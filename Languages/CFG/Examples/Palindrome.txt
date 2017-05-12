@@ -1,0 +1,27 @@
+====CONFIGURATION_FILE_PDA=====
+
+T(Terminals):
+2
+
+1
+0
+
+
+V(Variables):
+1
+S
+
+V0(StartVariable):
+S
+
+
+P(Production):
+4
+
+4
+
+S -> 0
+S -> 1
+
+S -> 0S0
+S -> 1S1

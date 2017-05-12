@@ -1,0 +1,28 @@
+====CONFIGURATION_FILE_PDA=====
+
+T(Terminals):
+3
+
+i
+C
+t
+
+V(Variables):
+2
+S
+A
+
+V0(StartVariable):
+S
+
+
+P(Production):
+3
+
+1
+S -> iCtSA
+
+2
+A -> eS
+A -> epsilon
+

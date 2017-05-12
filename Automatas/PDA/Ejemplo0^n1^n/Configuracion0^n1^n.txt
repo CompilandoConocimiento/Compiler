@@ -1,0 +1,48 @@
+====CONFIGURATION_FILE_PDA=====
+
+Q(SizeOfStates):
+3
+
+q0(InitialState):
+0
+
+z0(InitialStack):
+z
+
+F(FinalState):
+1
+
+2
+
+Σ(Alphabet):
+2
+
+0
+1
+
+G(AlphabetStack):
+3
+
+z
+x
+y
+
+
+∂(FuncionTransicion):
+7
+
+( q0 , 0 , z )->( q0 , y )
+( q0 , 1 , y )->( q2 , * )
+
+
+( q0 , 0 , y )->( q0 , x )
+( q0 , 0 , x )->( q0 , x )
+
+( q0 , 1 , x )->( q1 , * )
+
+( q1 , 1 , x )->( q1 , * )
+( q1 , 1 , y )->( q2 , * )
+
+
+
+

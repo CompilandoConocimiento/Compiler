@@ -1,0 +1,46 @@
+====DATOS_CONFIGURACION_DFA=====
+
+Q(CantidadDeEstados):
+4
+
+q0(EstadoInicial):
+0
+
+F(NumEstadosFinales):
+1
+
+3
+
+Σ(Alfabeto):
+52
+
+a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+
+
+∂(FuncionTransicion):
+Sintaxis:(PrimeroPonemosElEstadoDelQueHablo)(Estado+Direccion)(Los_enviamos_a_-1_si_no_hay_direccion)(Ponemos_=_=_para_acabar_estado)
+
+0
+i 1
+I 1
+= =
+
+1
+i 1
+n 2
+I 1
+N 2
+= =
+
+2
+i 1
+g 3
+I 1
+G 3
+= =
+
+3
+i 2
+I 2
+= =
+

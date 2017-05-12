@@ -1,0 +1,59 @@
+====CONFIGURATION_FILE_TURING_MACHINE=====
+
+Q(SizeOfStates):
+5
+
+
+q0(InitialState):
+0
+
+
+F(FinalState):
+1
+
+4
+
+
+Σ(InputAlphabet):
+2
+
+0 1
+
+
+Γ(TapeAlphabet):
+5
+
+0 1 X Y *
+
+
+B(BlankSymbol):
+*
+
+
+∂(FuncionTransicion):
+10
+
+( q0,0 )->( q1,X,R )
+( q0,Y )->( q3,Y,R )
+
+( q1,0 )->( q1,0,R )
+( q1,1 )->( q2,Y,L )
+( q1,Y )->( q1,Y,R )
+
+( q2,0 )->( q2,0,L )
+( q2,X )->( q0,X,R )
+( q2,Y )->( q2,Y,L )
+
+( q3,Y )->( q3,Y,R )
+( q3,* )->( q4,B,R )
+
+
+
+
+
+
+
+
+
+
+
