@@ -24,8 +24,11 @@ int main(){                                                                     
     if (Decision == 'Y' || Decision == 'y') ShowIt = true;                      //Desiciones
     else ShowIt = false;                                                        //Desiciones
 
+    string TestCase;
+    cout << "\n\nGive me a TestString: ";
+    cin >> TestCase;
+
     TuringMachine T1(ConfFile);                                               	//Create one
     if (ShowIt) T1.ShowMeInfo();                                                //Show info
-    string TestCase = "0011";
     T1.RunMachine(TestCase, true);
 }
