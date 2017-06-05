@@ -252,6 +252,9 @@ void NFA::AnalizarArchivo(char *Lectura, char *Aceptada, bool Muestra){     //==
                 fprintf(CadenaAceptadas, "\n");                             //Guardemos en el archivo
                 if(Muestra) std::cout << "'==\n\n";                         //Espacios de Estilo
             }
+            else                                                            //Y si no paso
+                std::cout << "\n\nNo paso :(\n\n";                          //Tambien dime
+
 
             ReiniciaAutomata();                                             //Reiniciamos el automata
             LaCadenaPaso = false;                                           //Pero suponemos que no ha pasado la cadena
