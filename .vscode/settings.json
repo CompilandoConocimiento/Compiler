@@ -14,6 +14,14 @@
         "cstdlib": "cpp",
         "cwchar": "cpp",
         "cwctype": "cpp",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "__locale": "cpp",
+        "locale": "cpp",
+        "__tree": "cpp",
+        "bitset": "cpp",
+        "set": "cpp",
+        "string": "cpp",
+        "iterator": "cpp",
+        "vector": "cpp"
     }
 }
