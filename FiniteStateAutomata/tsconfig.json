@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "outFile": "dist/fsa.js",
+        "lib": ["es2017"],
+        "downlevelIteration": true,
+    },
+    "include": [
+        "Code/"
+    ],
+    "exclude": [
+    ]
+}
