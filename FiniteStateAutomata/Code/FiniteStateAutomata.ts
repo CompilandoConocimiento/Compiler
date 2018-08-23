@@ -31,8 +31,12 @@ class AFN {
             this.states.set(id, new State(id))
     }
 
-    isValidSymbol(character: string): boolean {
+    isValidCharacter(character: string): boolean {
         return this.alphabeth.has(character)
+    }
+
+    isValidCharacterOrEpsilon(character: string): boolean {
+        return this.isValidCharacter(character) || this.epsilonCharacter == character
     }
 
     isFinalState(id: stateID): boolean {
@@ -70,13 +74,12 @@ class AFN {
     }   
     
     addTransition(fromStateID: stateID, character: string, toStateID: stateID): boolean {
-        if (!this.alphabeth.has(character)) return false
+        if (!this.isValidCharacterOrEpsilon(character)) return false
         this.addStateIfNotExist(fromStateID)
         this.addStateIfNotExist(toStateID)
 
-        const fromState = this.states.get(fromStateID)
-        const toState = this.states.get(fromStateID)
-        const stateTransitions = fromState.transitions
+        const toState = this.states.get(toStateID)
+        const stateTransitions = this.states.get(fromStateID).transitions
 
         if (stateTransitions.has(character)) stateTransitions.get(character).add(toState.id)
         else stateTransitions.set(character, new Set([toState.id]))
@@ -120,7 +123,7 @@ class AFN {
     }
 
     move(id: stateID, character: string): Set<stateID> {
-        if (!this.alphabeth.has(character)) return new Set()
+        if (!this.isValidCharacter(character)) return new Set()
         this.addStateIfNotExist(id)
 
         const stateTransitions = this.states.get(id).transitions
@@ -130,7 +133,7 @@ class AFN {
     }
 
     moveSet(statesIDs: Set<stateID>, character: string): Set<stateID>  {
-        if (!this.alphabeth.has(character)) return new Set()
+        if (!this.isValidCharacter(character)) return new Set()
 
         let visited: Set<stateID> = new Set()
         statesIDs.forEach(
@@ -141,13 +144,13 @@ class AFN {
     }
 
     goTo(id: stateID, character: string): Set<stateID> {
-        if (!this.alphabeth.has(character)) return new Set()
+        if (!this.isValidCharacter(character)) return new Set()
 
         return this.epsilonClosureSet(this.move(id, character))
     }
 
     goToSet(statesIDs: Set<stateID>, character: string): Set<stateID> {
-        if (!this.alphabeth.has(character)) return new Set()
+        if (!this.isValidCharacter(character)) return new Set()
 
         return this.epsilonClosureSet(this.moveSet(statesIDs, character))
     }

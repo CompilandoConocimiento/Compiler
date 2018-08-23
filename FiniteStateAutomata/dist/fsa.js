@@ -37,8 +37,11 @@ var AFN = /** @class */ (function () {
         if (!this.states.has(id))
             this.states.set(id, new State(id));
     };
-    AFN.prototype.isValidSymbol = function (character) {
+    AFN.prototype.isValidCharacter = function (character) {
         return this.alphabeth.has(character);
+    };
+    AFN.prototype.isValidCharacterOrEpsilon = function (character) {
+        return this.isValidCharacter(character) || this.epsilonCharacter == character;
     };
     AFN.prototype.isFinalState = function (id) {
         return this.states.has(id) && this.states.get(id).isFinalState;
@@ -69,13 +72,12 @@ var AFN = /** @class */ (function () {
         return isStillPossible;
     };
     AFN.prototype.addTransition = function (fromStateID, character, toStateID) {
-        if (!this.alphabeth.has(character))
+        if (!this.isValidCharacterOrEpsilon(character))
             return false;
         this.addStateIfNotExist(fromStateID);
         this.addStateIfNotExist(toStateID);
-        var fromState = this.states.get(fromStateID);
-        var toState = this.states.get(fromStateID);
-        var stateTransitions = fromState.transitions;
+        var toState = this.states.get(toStateID);
+        var stateTransitions = this.states.get(fromStateID).transitions;
         if (stateTransitions.has(character))
             stateTransitions.get(character).add(toState.id);
         else
@@ -109,7 +111,7 @@ var AFN = /** @class */ (function () {
         return visited;
     };
     AFN.prototype.move = function (id, character) {
-        if (!this.alphabeth.has(character))
+        if (!this.isValidCharacter(character))
             return new Set();
         this.addStateIfNotExist(id);
         var stateTransitions = this.states.get(id).transitions;
@@ -119,19 +121,19 @@ var AFN = /** @class */ (function () {
     };
     AFN.prototype.moveSet = function (statesIDs, character) {
         var _this = this;
-        if (!this.alphabeth.has(character))
+        if (!this.isValidCharacter(character))
             return new Set();
         var visited = new Set();
         statesIDs.forEach(function (stateID) { return visited = new Set(__spread(visited, _this.move(stateID, character))); });
         return visited;
     };
     AFN.prototype.goTo = function (id, character) {
-        if (!this.alphabeth.has(character))
+        if (!this.isValidCharacter(character))
             return new Set();
         return this.epsilonClosureSet(this.move(id, character));
     };
     AFN.prototype.goToSet = function (statesIDs, character) {
-        if (!this.alphabeth.has(character))
+        if (!this.isValidCharacter(character))
             return new Set();
         return this.epsilonClosureSet(this.moveSet(statesIDs, character));
     };
