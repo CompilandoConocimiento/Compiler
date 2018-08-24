@@ -1,12 +1,18 @@
-type stateID = number;
+type stateID = number
+
+let counter: stateID = 0
+
+function getNewId(): stateID {
+    return counter++
+}
 
 class State {
-    readonly id: number
+    id: number
     isFinalState: boolean
     transitions: Map<string, Set<number> >
 
     constructor(id: stateID) {
-        this.id = id;
+        this.id = id
         this.isFinalState = false
         this.transitions = new Map()
     }
@@ -14,16 +20,16 @@ class State {
 
 class AFN {
 
-    private states: Map<stateID, State>
-    private alphabeth: Set<string>
-    private initialState: stateID
-    private epsilonCharacter: string
+    states: Map<stateID, State>
+    alphabeth: Set<string>
+    initialState: stateID
+    epsilonCharacter: string
 
     constructor(alphabeth: Set<string>) {
         this.states = new Map()
         this.alphabeth = new Set(alphabeth)
-        this.initialState = 0;
-        this.epsilonCharacter = '\0' 
+        this.initialState = 0
+        this.epsilonCharacter = '\0'
     }
 
     private addStateIfNotExist(id: stateID): void {
@@ -31,12 +37,8 @@ class AFN {
             this.states.set(id, new State(id))
     }
 
-    isValidCharacter(character: string): boolean {
-        return this.alphabeth.has(character)
-    }
-
     isValidCharacterOrEpsilon(character: string): boolean {
-        return this.isValidCharacter(character) || this.epsilonCharacter == character
+        return this.alphabeth.has(character) || this.epsilonCharacter == character
     }
 
     isFinalState(id: stateID): boolean {
@@ -53,6 +55,11 @@ class AFN {
         this.states.get(id).isFinalState = true
     }
 
+    unsetFinalState(id: stateID): void {
+        this.addStateIfNotExist(id)
+        this.states.get(id).isFinalState = false
+    }
+
     setEpsilonCharacter(character: string): boolean {
         if (this.alphabeth.has(character)) return false
        
@@ -61,7 +68,6 @@ class AFN {
     }
 
     isAFD (): boolean {
-
         let isStillPossible: boolean = true
         this.states.forEach( (fromState, _1, _2) => {
             fromState.transitions.forEach((toStates, character, _) => {
@@ -78,11 +84,10 @@ class AFN {
         this.addStateIfNotExist(fromStateID)
         this.addStateIfNotExist(toStateID)
 
-        const toState = this.states.get(toStateID)
         const stateTransitions = this.states.get(fromStateID).transitions
 
-        if (stateTransitions.has(character)) stateTransitions.get(character).add(toState.id)
-        else stateTransitions.set(character, new Set([toState.id]))
+        if (stateTransitions.has(character)) stateTransitions.get(character).add(toStateID)
+        else stateTransitions.set(character, new Set([toStateID]))
 
         return true
     }
@@ -101,8 +106,8 @@ class AFN {
 
             actualState.transitions.forEach((toStatesId, character, _) => {
                 if (character == this.epsilonCharacter) {
-                    toStatesId.forEach( toStateId => {
-                        if (!visited.has(toStateId)) stack.push(toStateId)
+                    toStatesId.forEach( toStateID => {
+                        if (!visited.has(toStateID)) stack.push(toStateID)
                     })
                 }
             })
@@ -113,17 +118,16 @@ class AFN {
     }
 
     epsilonClosureSet(statesIDs: Set<stateID>): Set<stateID>  {
-
         let visited: Set<stateID> = new Set()
         statesIDs.forEach(
-            stateID => visited = new Set([...visited, ...this.epsilonClosure(stateID)])
+            id => visited = new Set([...visited, ...this.epsilonClosure(id)])
         )
         
         return visited
     }
 
     move(id: stateID, character: string): Set<stateID> {
-        if (!this.isValidCharacter(character)) return new Set()
+        if (!this.isValidCharacterOrEpsilon(character)) return new Set()
         this.addStateIfNotExist(id)
 
         const stateTransitions = this.states.get(id).transitions
@@ -133,86 +137,191 @@ class AFN {
     }
 
     moveSet(statesIDs: Set<stateID>, character: string): Set<stateID>  {
-        if (!this.isValidCharacter(character)) return new Set()
+        if (!this.isValidCharacterOrEpsilon(character)) return new Set()
 
         let visited: Set<stateID> = new Set()
         statesIDs.forEach(
-            stateID => visited = new Set([...visited, ...this.move(stateID, character)])
+            id => visited = new Set([...visited, ...this.move(id, character)])
         )
         
         return visited
     }
 
     goTo(id: stateID, character: string): Set<stateID> {
-        if (!this.isValidCharacter(character)) return new Set()
+        if (!this.isValidCharacterOrEpsilon(character)) return new Set()
 
         return this.epsilonClosureSet(this.move(id, character))
     }
 
     goToSet(statesIDs: Set<stateID>, character: string): Set<stateID> {
-        if (!this.isValidCharacter(character)) return new Set()
+        if (!this.isValidCharacterOrEpsilon(character)) return new Set()
 
         return this.epsilonClosureSet(this.moveSet(statesIDs, character))
     }
-}
 
 
-/*
-function AFN2(n, alphabeth){
+    join(AFN2: AFN): void {
+        let newInitialStateID: stateID = getNewId()
+        this.addTransition(newInitialStateID, this.epsilonCharacter, this.initialState)
+        this.addTransition(newInitialStateID, this.epsilonCharacter, AFN2.initialState)
+        this.setInitialState(newInitialStateID)
+        this.alphabeth = new Set([...this.alphabeth, ...AFN2.alphabeth])
 
-    self.toAFD = function(){
-        var AFD = new AFN(1 << self.n, self.alphabeth.slice());
-        var count = 0;
-        AFD.setInitialState(0);
-        AFD.setEpsilonSymbol(self.epsilonSymbol);
-        var initSet = self.epsilonClosure(self.initialState);
-        var Q = [initSet];
-        var mapeo = {};
-        mapeo[initSet] = count++;
-        for(var i = 0; i < Q.length; ++i){
-            var oldStates = Q[i];
-            var from = mapeo[oldStates];
-            var finalState = false;
-            oldStates.forEach(function(e){
-                finalState = finalState || self.isFinalState(e);
-            });
-            if(finalState) AFD.setFinalState(from);
-            self.alphabeth.forEach(function(c){
-                var newStates = self.goToSet(oldStates, c);
-                if(newStates.length > 0){
-                    if(!(newStates in mapeo)){
-                        Q.push(newStates);
-                        mapeo[newStates] = count++;
-                    }
-                    var to = mapeo[newStates];
-                    AFD.addTransition(from, c, to);
-                }
-            });
-        }
-        AFD.adjust(count);
-        return AFD;
-    }
+        AFN2.states.forEach( (state, id, _) => {
+            this.states.set(id, state)
+        })
 
-    self.validateString = function(str){
-        var S = self.epsilonClosure(self.initialState);
-        for(var i = 0; i < str.length; ++i){
-            S = self.goToSet(S, str[i]);
-        }
-        var test = false;
-        S.forEach(function(e){
-            if(self.isFinalState(e)){
-                test = true;
+        let newFinalStateID: stateID = getNewId()
+        this.states.forEach( (state, id, _2) => {
+            if(state.isFinalState){
+                this.addTransition(id, this.epsilonCharacter, newFinalStateID)
+                this.unsetFinalState(id)
             }
-        });
-        return test;
+        })
+        this.setFinalState(newFinalStateID)
+    }
+
+    concat(AFN2: AFN): void {
+        this.alphabeth = new Set([...this.alphabeth, ...AFN2.alphabeth])
+
+        let uniqueFinalState: stateID = 0;
+        this.states.forEach( (state, id, _2) => {
+            if(state.isFinalState){
+                uniqueFinalState = id
+                this.unsetFinalState(id)
+            }
+        })
+
+        AFN2.states.forEach( (state, id, _) => {
+            this.states.set(id, state)
+        })
+
+        this.states.set(uniqueFinalState, AFN2.states.get(AFN2.initialState))
+        this.states.get(uniqueFinalState).id = uniqueFinalState
+    }
+
+    positiveClosure(): void {
+        let newInitialStateID: stateID = getNewId()
+        let newFinalStateID: stateID = getNewId()
+        this.addTransition(newInitialStateID, this.epsilonCharacter, this.initialState)
+
+        this.states.forEach( (state, id, _2) => {
+            if(state.isFinalState){
+                this.addTransition(id, this.epsilonCharacter, this.initialState)
+                this.addTransition(id, this.epsilonCharacter, newFinalStateID)
+                this.unsetFinalState(id)
+            }
+        })
+
+        this.setInitialState(newInitialStateID)
+        this.setFinalState(newFinalStateID)
+    }
+
+    kleeneClosure(): void {
+        this.positiveClosure()
+
+        this.states.forEach( (state, id, _2) => {
+            if(state.isFinalState)
+                this.addTransition(this.initialState, this.epsilonCharacter, id)
+        })
+    }
+
+    optionalClosure(): void {
+        let newInitialStateID: stateID = getNewId()
+        let newFinalStateID: stateID = getNewId()
+        this.addTransition(newInitialStateID, this.epsilonCharacter, this.initialState)
+
+        this.states.forEach( (state, id, _2) => {
+            if(state.isFinalState){
+                this.addTransition(id, this.epsilonCharacter, newFinalStateID)
+                this.unsetFinalState(id)
+            }
+        })
+        
+        this.addTransition(newInitialStateID, this.epsilonCharacter, newFinalStateID)
+        this.setInitialState(newInitialStateID)
+        this.setFinalState(newFinalStateID)
+    }
+
+
+    hashSet(statesIDs: Set<stateID>): string {
+        return Array.from(statesIDs).sort((a, b) => a - b).join(',')
+    }
+
+    toAFD(): AFN {
+        let newInitialStateID: stateID = getNewId()
+        let AFD: AFN = new AFN(new Set(this.alphabeth))
+        AFD.setInitialState(newInitialStateID)
+        AFD.setEpsilonCharacter(this.epsilonCharacter)
+
+        let initialSet: Set<stateID> = this.epsilonClosure(this.initialState)
+        let pending: Array<Set<stateID>> = [initialSet]
+        let mapeo: Map<string, stateID> = new Map()
+        mapeo.set(this.hashSet(initialSet), newInitialStateID)
+
+        for(let i = 0; i < pending.length; ++i){
+            let oldStates: Set<stateID> = pending[i]
+            let fromStateID: stateID = mapeo.get(this.hashSet(oldStates))
+            let finalState: boolean = false
+
+            oldStates.forEach(
+                id => finalState = finalState || this.isFinalState(id)
+            )
+            if(finalState) AFD.setFinalState(fromStateID)
+
+            this.alphabeth.forEach(character =>{
+                let newStates: Set<stateID> = this.goToSet(oldStates, character)
+                if(newStates.size > 0){
+                    if(!mapeo.has(this.hashSet(newStates))){
+                        pending.push(newStates)
+                        mapeo.set(this.hashSet(newStates), getNewId())
+                    }
+                    let toStateID = mapeo.get(this.hashSet(newStates))
+                    AFD.addTransition(fromStateID, character, toStateID)
+                }
+            })
+        }
+
+        return AFD
+    }
+
+    validateString(str: string): boolean {
+        let S: Set<stateID> = this.epsilonClosure(this.initialState)
+        for(let character of str)
+            S = this.goToSet(S, character)
+        return (new Set([...S].filter(id => this.states.get(id).isFinalState))).size > 0
+    }
+
+    clone(): AFN {
+        let newCopy: AFN = new AFN(new Set(this.alphabeth))
+        newCopy.setEpsilonCharacter(this.epsilonCharacter)
+        let newIDS: Map<stateID, stateID> = new Map()
+
+        this.states.forEach( (state, fromID, _2) => {
+            if(!newIDS.has(fromID)) newIDS.set(fromID, getNewId())
+            let newFromID: stateID = newIDS.get(fromID)
+            state.transitions.forEach((toStates, character, _) => {
+                toStates.forEach(toID => {
+                    if(!newIDS.has(toID)) newIDS.set(toID, getNewId())
+                    let newToID: stateID = newIDS.get(toID)
+                    newCopy.addTransition(newFromID, character, newToID)
+                })
+            })
+            if(state.isFinalState) newCopy.setFinalState(newFromID)
+        })
+
+        newCopy.setInitialState(newIDS.get(this.initialState))
+
+        return newCopy
     }
 }
 
-function basicAFN(s){
-    var basic = new AFN(2, [s]);
-    basic.addTransition(0, s, 1);
-    basic.setFinalState(1);
+function basicAFN(character: string): AFN {
+    let basic: AFN = new AFN(new Set([character]))
+    let fromStateID: stateID = getNewId()
+    let toStateID: stateID = getNewId()
+    basic.setInitialState(fromStateID)
+    basic.addTransition(fromStateID, character, toStateID)
+    basic.setFinalState(toStateID)
     return basic;
 }
-
-*/
