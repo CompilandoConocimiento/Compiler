@@ -6,23 +6,82 @@
 
 	<body>
 		<script type="text/javascript">
-			let example = new AFN(new Set(['a', 'b', 'c']) );
 			const eps = '\0';
-			console.log(example.addTransition(0, eps, 1))
-			console.log(example.addTransition(0, eps, 7))
-			console.log(example.addTransition(1, eps, 2))
-			console.log(example.addTransition(1, eps, 4))
-			console.log(example.addTransition(2, 'a', 3))
-			console.log(example.addTransition(4, 'b', 5))
-			console.log(example.addTransition(3, eps, 6))
-			console.log(example.addTransition(5, eps, 6))
-			console.log(example.addTransition(6, eps, 1))
-			console.log(example.addTransition(6, eps, 7))
-			console.log(example.addTransition(7, eps, 8))
-			console.log(example.addTransition(8, 'c', 9))
-			console.log(example.addTransition(9, eps, 8))
-			console.log(example.addTransition(9, eps, 10))
-			console.log(example.setFinalState(10))
+
+			// (a|b)*c+
+			var example = new AFN(new Set(['a', 'b', 'c']));
+			let q = [];
+			for(var i = 0; i <= 10; ++i) q[i] = getNewId();
+			example.setInitialState(q[0]);
+			example.addTransition(q[0], eps, q[1])
+			example.addTransition(q[0], eps, q[7])
+			example.addTransition(q[1], eps, q[2])
+			example.addTransition(q[1], eps, q[4])
+			example.addTransition(q[2], 'a', q[3])
+			example.addTransition(q[4], 'b', q[5])
+			example.addTransition(q[3], eps, q[6])
+			example.addTransition(q[5], eps, q[6])
+			example.addTransition(q[6], eps, q[1])
+			example.addTransition(q[6], eps, q[7])
+			example.addTransition(q[7], eps, q[8])
+			example.addTransition(q[8], 'c', q[9])
+			example.addTransition(q[9], eps, q[8])
+			example.addTransition(q[9], eps, q[10])
+			example.setFinalState(q[10])
+
+			//example from the class
+			var sign = basicAFN('+');            // +
+			sign.join(basicAFN('-'));            // +|-
+			sign.optionalClosure();              // (+|-)?
+			var digit = basicAFN('0');
+			for(var i = 1; i <= 9; ++i)
+				digit.join(basicAFN(i.toString()));
+			digit.positiveClosure();             // D+
+			var integers = sign.clone();
+			integers.concat(digit);              // (+|-)?D+
+
+			var decimals = integers.clone();
+			decimals.concat(basicAFN('.'));      // (+|-)?D+.
+			decimals.concat(digit.clone());      // (+|-)?D+.D+
+
+			var exponent = basicAFN('e');
+			exponent.concat(integers.clone());   // e(+|-)?D+
+			exponent.optionalClosure();          // (e(+|-)?D+)?
+
+			decimals.concat(exponent.clone());   // (+|-)?D+.D+(e(+|-)?D+)?
+
+			//unknown language, taken from RPC
+			var contestExample = new AFN(new Set(['a', 'b']));
+			let r = [];
+			for(var i = 0; i <= 4; ++i) r[i] = getNewId();
+			contestExample.setInitialState(r[0]);
+			contestExample.addTransition(r[0], 'a', r[3]);
+			contestExample.addTransition(r[0], 'b', r[1]);
+			contestExample.addTransition(r[1], 'a', r[1]);
+			contestExample.addTransition(r[1], 'b', r[1]);
+			contestExample.addTransition(r[1], 'b', r[3]);
+			contestExample.addTransition(r[2], 'a', r[0]);
+			contestExample.addTransition(r[2], 'a', r[1]);
+			contestExample.addTransition(r[2], 'b', r[4]);
+			contestExample.addTransition(r[3], 'a', r[2]);
+			contestExample.addTransition(r[3], 'b', r[4]);
+			contestExample.addTransition(r[4], 'a', r[2]);
+			contestExample.addTransition(r[4], 'a', r[4]);
+			contestExample.setFinalState(r[0]);
+			contestExample.setFinalState(r[2]);
+
+			var test = [["aaaaaaaa", true], ["abababab", false], ["bbbbaaa", true], ["a", false], ["b", false], ["abaaba", true], ["bbaab", false], ["babab", false], ["bbbaaba", true], ["bbaabbaa", true]];
+
+			test.forEach(caso => {
+				console.log("String " + caso[0] + " is " + contestExample.validateString(caso[0]) + ", correct answer is " + caso[1]);
+			});
+
+			var example4 = contestExample.clone();
+			console.log("");
+
+			test.forEach(caso => {
+				console.log("String " + caso[0] + " is " + example4.validateString(caso[0]) + ", correct answer is " + caso[1]);
+			});
 		</script>
 	</body>
 </html>
