@@ -82,6 +82,42 @@
 			test.forEach(caso => {
 				console.log("String " + caso[0] + " is " + example4.validateString(caso[0]) + ", correct answer is " + caso[1]);
 			});
+			
+			var sign = basicAFN('+');            // +
+			sign.join(basicAFN('-'));            // +|-
+			sign.optionalClosure();              // (+|-)?
+			var digit = basicAFN('D');
+			digit.positiveClosure();             // D+
+			var integers = sign.clone();
+			integers.concat(digit);              // (+|-)?D+
+
+			var decimals = integers.clone();
+			decimals.concat(basicAFN('.'));      // (+|-)?D+.
+			decimals.concat(digit.clone());      // (+|-)?D+.D+
+
+			var exponent = basicAFN('E');
+			exponent.join(basicAFN('e'));        // E|e
+			exponent.concat(integers.clone());   // (E|e)(+|-)?D+
+			exponent.optionalClosure();          // ((E|e)(+|-)?D+)?
+
+			decimals.concat(exponent.clone());   // (+|-)?D+.D+((E|e)(+|-)?D+)?
+
+			var decimals2 = decimals.clone();
+
+			var decimals3 = decimals.toAFD();
+
+			decimals3.states.forEach(state =>{
+				console.log("Estado " + (state.id-74-32) + ":");
+				if(state.isFinalState) console.log("final")
+				state.transitions.forEach((toStates, character) =>{
+					var str = character + " -> ";
+					toStates.forEach(toId =>{
+						str += (toId-74-32) + ",";
+					});
+					console.log(" " + str);
+				});
+			});
+
 		</script>
 	</body>
 </html>
