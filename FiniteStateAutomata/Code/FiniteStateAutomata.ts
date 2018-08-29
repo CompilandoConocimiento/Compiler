@@ -193,7 +193,8 @@ class AFN {
         })
 
         AFN2.states.forEach( (state, id, _) => {
-            this.states.set(id, state)
+            if(id != AFN2.initialState)
+                this.states.set(id, state)
         })
 
         this.states.set(uniqueFinalState, AFN2.states.get(AFN2.initialState))
