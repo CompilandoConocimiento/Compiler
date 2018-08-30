@@ -4,13 +4,13 @@
 
 import React from "react"
 import ReactDOM from "react-dom"
-import M from "materialize-css"
 import { HashRouter, Switch, Route, Link } from 'react-router-dom'
+import M from "materialize-css"
 
-import Header from "../Header/"
-import Footer from "../Footer/"
+import Header from "../Header"
+import Footer from "../Footer"
 
-import {AFN, getNewId, basicAFN} from "../../FiniteStateAutomata"
+import {FiniteStateAutomata, getNewID, basicFSA} from "../../FiniteStateAutomata"
 
 class App extends React.Component {
 
@@ -18,7 +18,7 @@ class App extends React.Component {
         super (props)
 
         this.state = {
-            SideMenu: null
+            Automatas: [] as Array<FiniteStateAutomata>
         }
     }
  
@@ -37,6 +37,9 @@ class App extends React.Component {
 
                 <main>
                     <br />
+
+                    <div>
+                    </div>
 
                     Hola
                     
@@ -65,9 +68,9 @@ ReactDOM.render(<HashRouter><App /></HashRouter>, document.getElementById("React
 const eps = '\0';
 
 // (a|b)*c+
-var example = new AFN(new Set(['a', 'b', 'c']));
+var example = new FiniteStateAutomata(new Set(['a', 'b', 'c']));
 let q = [];
-for(var i = 0; i <= 10; ++i) q[i] = getNewId();
+for(var i = 0; i <= 10; ++i) q[i] = getNewID();
 example.setInitialState(q[0]);
 example.addTransition(q[0], eps, q[1])
 example.addTransition(q[0], eps, q[7])
@@ -86,30 +89,30 @@ example.addTransition(q[9], eps, q[10])
 example.setFinalState(q[10])
 
 //example from the class
-var sign = basicAFN('+');            // +
-sign.join(basicAFN('-'));            // +|-
+var sign = basicFSA('+');            // +
+sign.join(basicFSA('-'));            // +|-
 sign.optionalClosure();              // (+|-)?
-var digit = basicAFN('0');
+var digit = basicFSA('0');
 for(var i = 1; i <= 9; ++i)
-    digit.join(basicAFN(i.toString()));
+    digit.join(basicFSA(i.toString()));
 digit.positiveClosure();             // D+
 var integers = sign.clone();
 integers.concat(digit);              // (+|-)?D+
 
 var decimals = integers.clone();
-decimals.concat(basicAFN('.'));      // (+|-)?D+.
+decimals.concat(basicFSA('.'));      // (+|-)?D+.
 decimals.concat(digit.clone());      // (+|-)?D+.D+
 
-var exponent = basicAFN('e');
+var exponent = basicFSA('e');
 exponent.concat(integers.clone());   // e(+|-)?D+
 exponent.optionalClosure();          // (e(+|-)?D+)?
 
 decimals.concat(exponent.clone());   // (+|-)?D+.D+(e(+|-)?D+)?
 
 //unknown language, taken from RPC
-var contestExample = new AFN(new Set(['a', 'b']));
+var contestExample = new FiniteStateAutomata(new Set(['a', 'b']));
 let r = [];
-for(var i = 0; i <= 4; ++i) r[i] = getNewId();
+for(var i = 0; i <= 4; ++i) r[i] = getNewID();
 contestExample.setInitialState(r[0]);
 contestExample.addTransition(r[0], 'a', r[3]);
 contestExample.addTransition(r[0], 'b', r[1]);
@@ -139,20 +142,20 @@ test.forEach(caso => {
     console.log("String " + caso[0] + " is " + example4.validateString(caso[0]) + ", correct answer is " + caso[1]);
 });
 
-var sign = basicAFN('+');            // +
-sign.join(basicAFN('-'));            // +|-
+var sign = basicFSA('+');            // +
+sign.join(basicFSA('-'));            // +|-
 sign.optionalClosure();              // (+|-)?
-var digit = basicAFN('D');
+var digit = basicFSA('D');
 digit.positiveClosure();             // D+
 var integers = sign.clone();
 integers.concat(digit);              // (+|-)?D+
 
 var decimals = integers.clone();
-decimals.concat(basicAFN('.'));      // (+|-)?D+.
+decimals.concat(basicFSA('.'));      // (+|-)?D+.
 decimals.concat(digit.clone());      // (+|-)?D+.D+
 
-var exponent = basicAFN('E');
-exponent.join(basicAFN('e'));        // E|e
+var exponent = basicFSA('E');
+exponent.join(basicFSA('e'));        // E|e
 exponent.concat(integers.clone());   // (E|e)(+|-)?D+
 exponent.optionalClosure();          // ((E|e)(+|-)?D+)?
 

@@ -1,7 +1,7 @@
 import React from "react"
 import {Link} from "react-router-dom"
 
-import * as DataConverts from "../App/Routes.json"
+import Style from "./index.css"
 
 export default function Header(props) {
     return (
@@ -9,18 +9,21 @@ export default function Header(props) {
             <div className="navbar-fixed blue-grey darken-3">
                 <nav className="blue-grey darken-3">
                     <div className="nav-wrapper blue-grey darken-3 container">
-                        <a className="brand-logo center hide-on-small-only" style={{fontSize: "1.9rem"}}>
-                            <b>Binary</b> Conversions
+                        
+                        <a className="brand-logo center">
+                            <span className={Style.Header}>
+                                <b>Finite</b> State Automata
+                            </span>
                         </a>
-                        <a className="brand-logo center hide-on-med-and-up" style={{fontSize: "1.1rem"}}>
-                            <b>Binary</b> Conversions
-                        </a>
+                        
                         <a href="" data-target="SideNav" className="sidenav-trigger show-on-large">
                             <i className="material-icons white-text">menu</i>
                         </a>
-                        <Link to="/" className="right" style={{height: "100%"}}>
+
+                        <a href="/" className="right" style={{height: "100%"}}>
                             <i className="material-icons">home</i>
-                        </Link>
+                        </a>
+
                     </div>
                 </nav>
             </div>
@@ -29,31 +32,36 @@ export default function Header(props) {
                 <li className="center">
                     <br />
                     <h5 style={{fontWeight: 200, fontSize: "1.9rem"}}>
-                        <b>Binary</b> Conversions
+                        <b>Menu</b>
                     </h5>
                 </li>
 				<br />
-                {
-                    DataConverts.Data.map(
-                        Topic => {
-                            const SubTopics = Topic.SubTypes.map(
-                                Type =>
-                                <li key={Type[0]}>
-                                    <Link className="waves-effect" to={Type[1]}>
-                                        {Type[0]}
-                                    </Link>
-                                </li>
-                            )
-                            return (
-                                <React.Fragment key={Topic.Name}>
-                                    <li><div className="divider"></div></li>
-                                    <li><a className="subheader">{Topic.Name}</a></li>
-                                    {SubTopics}
-                                </React.Fragment>
-                            )
-                        }
-                    )
-                }
+                <li><div className="divider"></div></li>
+                <li><a className="subheader">Basic Ideas</a></li>
+                <li>
+                    <a className="waves-effect" href="#!">
+                        See Automatas
+                    </a>
+                    <a className="waves-effect" href="#!">
+                        Create Basic Automata
+                    </a>
+                </li>
+                <li><div className="divider"></div></li>
+                <li><a className="subheader">Operations</a></li>
+                <li>
+                    <a className="waves-effect" href="#!">
+                        Join
+                    </a>
+                    <a className="waves-effect" href="#!">
+                        Concatenate
+                    </a>
+                    <a className="waves-effect" href="#!">
+                        Positive Closure
+                    </a>
+                    <a className="waves-effect" href="#!">
+                        Optional Closure
+                    </a>
+                </li>
             </ul>
         </React.Fragment>
     )

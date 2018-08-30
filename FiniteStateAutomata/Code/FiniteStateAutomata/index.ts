@@ -1,6 +1,6 @@
 type stateID = number
 
-export const getNewId = function() {
+export const getNewID = function() {
     let counter: stateID = 0
 
     return function () {return counter++}
@@ -18,7 +18,7 @@ class State {
     }
 }
 
-export class AFN {
+export class FiniteStateAutomata {
 
     states: Map<stateID, State>
     alphabeth: Set<string>
@@ -160,18 +160,18 @@ export class AFN {
     }
 
 
-    join(AFN2: AFN): void {
-        const newInitialStateID: stateID = getNewId()
+    join(FSA2: FiniteStateAutomata): void {
+        const newInitialStateID: stateID = getNewID()
         this.addTransition(newInitialStateID, this.epsilonCharacter, this.initialState)
-        this.addTransition(newInitialStateID, this.epsilonCharacter, AFN2.initialState)
+        this.addTransition(newInitialStateID, this.epsilonCharacter, FSA2.initialState)
         this.setInitialState(newInitialStateID)
-        this.alphabeth = new Set([...this.alphabeth, ...AFN2.alphabeth])
+        this.alphabeth = new Set([...this.alphabeth, ...FSA2.alphabeth])
 
-        AFN2.states.forEach( (state, id, _) => {
+        FSA2.states.forEach( (state, id, _) => {
             this.states.set(id, state)
         })
 
-        const newFinalStateID: stateID = getNewId()
+        const newFinalStateID: stateID = getNewID()
         this.states.forEach( (state, id, _2) => {
             if (state.isFinalState) {
                 this.addTransition(id, this.epsilonCharacter, newFinalStateID)
@@ -181,8 +181,8 @@ export class AFN {
         this.setFinalState(newFinalStateID)
     }
 
-    concat(AFN2: AFN): void {
-        this.alphabeth = new Set([...this.alphabeth, ...AFN2.alphabeth])
+    concat(FSA2: FiniteStateAutomata): void {
+        this.alphabeth = new Set([...this.alphabeth, ...FSA2.alphabeth])
 
         let uniqueFinalState: stateID = 0;
         this.states.forEach( (state, id, _2) => {
@@ -192,17 +192,17 @@ export class AFN {
             }
         })
 
-        AFN2.states.forEach( (state, id, _) => {
+        FSA2.states.forEach( (state, id, _) => {
             this.states.set(id, state)
         })
 
-        this.states.set(uniqueFinalState, AFN2.states.get(AFN2.initialState))
+        this.states.set(uniqueFinalState, FSA2.states.get(FSA2.initialState))
         this.states.get(uniqueFinalState).id = uniqueFinalState
     }
 
     positiveClosure(): void {
-        const newInitialStateID: stateID = getNewId()
-        const newFinalStateID: stateID = getNewId()
+        const newInitialStateID: stateID = getNewID()
+        const newFinalStateID: stateID = getNewID()
         this.addTransition(newInitialStateID, this.epsilonCharacter, this.initialState)
 
         this.states.forEach( (state, id, _2) => {
@@ -227,8 +227,8 @@ export class AFN {
     }
 
     optionalClosure(): void {
-        const newInitialStateID: stateID = getNewId()
-        const newFinalStateID: stateID = getNewId()
+        const newInitialStateID: stateID = getNewID()
+        const newFinalStateID: stateID = getNewID()
         this.addTransition(newInitialStateID, this.epsilonCharacter, this.initialState)
 
         this.states.forEach( (state, id, _2) => {
@@ -244,13 +244,13 @@ export class AFN {
     }
 
 
-    hashSet(statesIDs: Set<stateID>): string {
+    private hashSet(statesIDs: Set<stateID>): string {
         return Array.from(statesIDs).sort((a, b) => a - b).join(',')
     }
 
-    toAFD(): AFN {
-        const newInitialStateID: stateID = getNewId()
-        const AFD: AFN = new AFN(new Set(this.alphabeth))
+    toAFD(): FiniteStateAutomata {
+        const newInitialStateID: stateID = getNewID()
+        const AFD = new FiniteStateAutomata(new Set(this.alphabeth))
         AFD.setInitialState(newInitialStateID)
         AFD.setEpsilonCharacter(this.epsilonCharacter)
 
@@ -274,7 +274,7 @@ export class AFN {
                 if (newStates.size > 0) {
                     if (!mapping.has(this.hashSet(newStates))) {
                         pending.push(newStates)
-                        mapping.set(this.hashSet(newStates), getNewId())
+                        mapping.set(this.hashSet(newStates), getNewID())
                     }
                     const toStateID = mapping.get(this.hashSet(newStates))
                     AFD.addTransition(fromStateID, character, toStateID)
@@ -298,17 +298,17 @@ export class AFN {
         return finalStates.length > 0
     }
 
-    clone(): AFN {
-        const newCopy: AFN = new AFN(new Set(this.alphabeth))
+    clone(): FiniteStateAutomata {
+        const newCopy = new FiniteStateAutomata(new Set(this.alphabeth))
         newCopy.setEpsilonCharacter(this.epsilonCharacter)
         const newIDs: Map<stateID, stateID> = new Map()
 
         this.states.forEach( (state, fromID, _2) => {
-            if (!newIDs.has(fromID)) newIDs.set(fromID, getNewId())
+            if (!newIDs.has(fromID)) newIDs.set(fromID, getNewID())
             const newFromID: stateID = newIDs.get(fromID)
             state.transitions.forEach((toStates, character, _) => {
                 toStates.forEach(toID => {
-                    if (!newIDs.has(toID)) newIDs.set(toID, getNewId())
+                    if (!newIDs.has(toID)) newIDs.set(toID, getNewID())
                     const newToID: stateID = newIDs.get(toID)
                     newCopy.addTransition(newFromID, character, newToID)
                 })
@@ -322,10 +322,10 @@ export class AFN {
     }
 }
 
-export function basicAFN(character: string): AFN {
-    const basic: AFN = new AFN(new Set([character]))
-    const fromStateID: stateID = getNewId()
-    const toStateID: stateID = getNewId()
+export function basicFSA(character: string): FiniteStateAutomata {
+    const basic = new FiniteStateAutomata(new Set([character]))
+    const fromStateID: stateID = getNewID()
+    const toStateID: stateID = getNewID()
 
     basic.setInitialState(fromStateID)
     basic.addTransition(fromStateID, character, toStateID)
