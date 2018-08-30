@@ -42,7 +42,7 @@ export default function Header(props) {
                     <a className="waves-effect" href="#!">
                         See Automatas
                     </a>
-                    <a className="waves-effect" href="#!">
+                    <a data-target="AddAutomataModal" className="waves-effect modal-trigger">
                         Create Basic Automata
                     </a>
                 </li>

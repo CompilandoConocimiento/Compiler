@@ -11,7 +11,7 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
         <div className="card blue-grey darken-1">
             <div className="card-content white-text">
 
-                <span className="card-title">{props.name}</span>
+                <span className="card-title">Automata {props.name}</span>
 
             </div>
 

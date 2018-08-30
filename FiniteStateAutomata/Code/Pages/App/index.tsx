@@ -12,26 +12,28 @@ import Footer from "../Footer"
 
 import {FiniteStateAutomata, getNewID, basicFSA, stateID} from "../../FiniteStateAutomata"
 import AutomataCard from "../../Components/AutomataCard/"
+import Style from "./Style.css"
 
 
-type MyProps = { }
 type MyState = {Automatas: Array<FiniteStateAutomata>, SideMenu: any}
 
-
-class App extends React.Component<MyProps, MyState> {
+class App extends React.Component<{}, MyState> {
 
     constructor(props) {
         super (props)
 
         this.state = {
-            Automatas: [basicFSA("0")],
+            Automatas: [basicFSA('0'), basicFSA('1')],
             SideMenu: null,
         }
     }
  
     componentDidMount() {
-        let DOMNode = document.getElementById('SideNav')
-        let SideMenu = M.Sidenav.init(DOMNode, {})
+        let SideDOMNode = document.getElementById('SideNav')
+        let ModalDOMNode = document.querySelectorAll('.modal')
+        
+        let SideMenu = M.Sidenav.init(SideDOMNode, {})
+        M.Modal.init(ModalDOMNode, {})
 
         this.setState({SideMenu}) 
     }
@@ -39,22 +41,18 @@ class App extends React.Component<MyProps, MyState> {
 
     render() {
 
-        console.log(AutomataCard)
-
-
         return (
             <React.Fragment>
                 <Header />
 
-                <main>
+                <main style={{padding: "1.2rem"}}>
                     <br />
 
-                    <div>
-                    </div>
 
-                    <div>
+                    <h3 className="blue-grey-text text-darken-3"> Automatas </h3>
+                    <div className={Style.Container}>
                         {this.state.Automatas.map( 
-                            (fsa, index) => {
+                            (_, index) => {
 
                                 return (
                                     <AutomataCard 
@@ -65,6 +63,18 @@ class App extends React.Component<MyProps, MyState> {
                                 )
                             }
                         )}
+                    </div>
+
+                    <button data-target="AddAutomataModal" className="btn modal-trigger">Modal</button>
+
+                    <div id="AddAutomataModal" className="modal bottom-sheet">
+                        <div className="modal-content">
+                        <h4>Modal Header</h4>
+                        <p>A bunch of text</p>
+                        </div>
+                        <div className="modal-footer">
+                        <a href="#!" className="modal-close waves-effect waves-green btn-flat">Agree</a>
+                        </div>
                     </div>
                     
                     <br />
