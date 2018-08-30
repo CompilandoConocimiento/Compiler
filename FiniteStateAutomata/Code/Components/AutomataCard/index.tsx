@@ -1,8 +1,9 @@
 import React from "react"
 
-interface propsType {
+export interface propsType {
     name: string,
-    onClick: () => any
+    onClick: () => any,
+    SelectAutomata: () => any,
 }
 
 const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => {
@@ -11,12 +12,16 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
         <div className="card blue-grey darken-1">
             <div className="card-content white-text">
 
-                <span className="card-title">Automata {props.name}</span>
+                <span className="card-title">Automatas {props.name}</span>
 
             </div>
 
             <div className="card-action">
-                <a onClick={props.onClick}>See it</a>
+                <a className="modal-close waves-effect waves-green btn-flat"
+                    onClick={props.SelectAutomata}>
+                    Select
+                </a>
+                <a data-target="SeeAutomataModal" className="modal-trigger" onClick={props.SelectAutomata}>See it</a>
             </div>
         </div>
     )

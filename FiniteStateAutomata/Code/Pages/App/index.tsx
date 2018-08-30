@@ -12,10 +12,55 @@ import Footer from "../Footer"
 
 import {FiniteStateAutomata, getNewID, basicFSA, stateID} from "../../FiniteStateAutomata"
 import AutomataCard from "../../Components/AutomataCard/"
+import SeeAutomata from "../../Components/SeeAutomata/"
 import Style from "./Style.css"
 
 
-type MyState = {Automatas: Array<FiniteStateAutomata>, SideMenu: any}
+
+
+function AddAutomata(props: {addNew: (a: string) => void}) {
+
+    function AddAutomata() {
+        const value: string = (document.getElementById('automataNewChar') as HTMLInputElement).value
+        
+        props.addNew(value);
+        (document.getElementById('automataNewChar') as HTMLInputElement).value = ""
+    }
+
+    return (
+        <div id="AddAutomataModal" className="modal modal-fixed-footer">
+            <div className="modal-content">
+                
+                <h4>Create an Automata</h4>
+                <p>Select a name and the basic character it should recognize</p>
+
+                <div className="row">
+                    <div className="input-field col s6">
+                        <input placeholder="character" id="automataNewChar" type="text" maxLength={1} />
+                        <label htmlFor="first_name">Tell me the character</label>
+                    </div>
+                </div>
+                
+
+            </div>
+            <div className="modal-footer">
+                <a href="#!" className="modal-close waves-effect waves-green btn-flat">
+                    Close
+                </a>
+                <a href="#!" onClick={AddAutomata} className="modal-close waves-effect waves-green btn-flat">
+                    Create
+                </a>
+            </div>
+        </div>
+    )
+}
+
+type MyState = {
+    Automatas: Array<FiniteStateAutomata>, 
+    SideMenu: any, 
+    actualAutomata: FiniteStateAutomata | null
+    selectedAutomatas: Array<FiniteStateAutomata> | null
+}
 
 class App extends React.Component<{}, MyState> {
 
@@ -25,6 +70,8 @@ class App extends React.Component<{}, MyState> {
         this.state = {
             Automatas: [basicFSA('0'), basicFSA('1')],
             SideMenu: null,
+            actualAutomata: null,
+            selectedAutomatas: null,
         }
     }
  
@@ -52,30 +99,38 @@ class App extends React.Component<{}, MyState> {
                     <h3 className="blue-grey-text text-darken-3"> Automatas </h3>
                     <div className={Style.Container}>
                         {this.state.Automatas.map( 
-                            (_, index) => {
+                            (fsa, index) => {
 
                                 return (
                                     <AutomataCard 
                                         key     = {String(index)}   
                                         name    = {String(index)} 
-                                        onClick = {()=>3} 
+                                        onClick = {() => {
+                                            this.setState({actualAutomata: fsa})
+                                        }} 
+                                        SelectAutomata = {() => {
+
+                                        }
+                                        }
                                     />
                                 )
                             }
                         )}
                     </div>
 
-                    <button data-target="AddAutomataModal" className="btn modal-trigger">Modal</button>
+                    <AddAutomata 
+                        addNew={(character: string) => {
+                            this.setState( (preState) => {
+                                const newAutomata = basicFSA(character)
+                                newAutomata.alphabeth = new Set(Array(256).fill(0).map( (_, index ) => String.fromCharCode(index)))
+                                preState.Automatas.push(newAutomata)
+                                return {Automatas: preState.Automatas}
+                            })
+                        }} 
+                    />
 
-                    <div id="AddAutomataModal" className="modal bottom-sheet">
-                        <div className="modal-content">
-                        <h4>Modal Header</h4>
-                        <p>A bunch of text</p>
-                        </div>
-                        <div className="modal-footer">
-                        <a href="#!" className="modal-close waves-effect waves-green btn-flat">Agree</a>
-                        </div>
-                    </div>
+                    <SeeAutomata FSA={this.state.actualAutomata!} name={String(this.state.Automatas.indexOf(this.state.actualAutomata!))} />
+                    
                     
                     <br />
                     <br />
