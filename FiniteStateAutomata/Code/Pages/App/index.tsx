@@ -4,21 +4,28 @@
 
 import React from "react"
 import ReactDOM from "react-dom"
-import { HashRouter, Switch, Route, Link } from 'react-router-dom'
+import { HashRouter } from 'react-router-dom'
 import M from "materialize-css"
 
 import Header from "../Header"
 import Footer from "../Footer"
 
-import {FiniteStateAutomata, getNewID, basicFSA} from "../../FiniteStateAutomata"
+import {FiniteStateAutomata, getNewID, basicFSA, stateID} from "../../FiniteStateAutomata"
+import AutomataCard from "../../Components/AutomataCard/"
 
-class App extends React.Component {
+
+type MyProps = { }
+type MyState = {Automatas: Array<FiniteStateAutomata>, SideMenu: any}
+
+
+class App extends React.Component<MyProps, MyState> {
 
     constructor(props) {
         super (props)
 
         this.state = {
-            Automatas: [] as Array<FiniteStateAutomata>
+            Automatas: [basicFSA("0")],
+            SideMenu: null,
         }
     }
  
@@ -29,7 +36,11 @@ class App extends React.Component {
         this.setState({SideMenu}) 
     }
 
+
     render() {
+
+        console.log(AutomataCard)
+
 
         return (
             <React.Fragment>
@@ -41,7 +52,20 @@ class App extends React.Component {
                     <div>
                     </div>
 
-                    Hola
+                    <div>
+                        {this.state.Automatas.map( 
+                            (fsa, index) => {
+
+                                return (
+                                    <AutomataCard 
+                                        key     = {String(index)}   
+                                        name    = {String(index)} 
+                                        onClick = {()=>3} 
+                                    />
+                                )
+                            }
+                        )}
+                    </div>
                     
                     <br />
                     <br />
@@ -69,7 +93,7 @@ const eps = '\0';
 
 // (a|b)*c+
 var example = new FiniteStateAutomata(new Set(['a', 'b', 'c']));
-let q = [];
+let q: Array<stateID> = [];
 for(var i = 0; i <= 10; ++i) q[i] = getNewID();
 example.setInitialState(q[0]);
 example.addTransition(q[0], eps, q[1])
@@ -111,12 +135,12 @@ decimals.concat(exponent.clone());   // (+|-)?D+.D+(e(+|-)?D+)?
 
 //unknown language, taken from RPC
 var contestExample = new FiniteStateAutomata(new Set(['a', 'b']));
-let r = [];
+let r: Array<stateID> = [];
 for(var i = 0; i <= 4; ++i) r[i] = getNewID();
 contestExample.setInitialState(r[0]);
-contestExample.addTransition(r[0], 'a', r[3]);
-contestExample.addTransition(r[0], 'b', r[1]);
-contestExample.addTransition(r[1], 'a', r[1]);
+contestExample.addTransition(r[0], 'a', r[3])
+contestExample.addTransition(r[0], 'b', r[1])
+contestExample.addTransition(r[1], 'a', r[1])
 contestExample.addTransition(r[1], 'b', r[1]);
 contestExample.addTransition(r[1], 'b', r[3]);
 contestExample.addTransition(r[2], 'a', r[0]);
@@ -129,7 +153,7 @@ contestExample.addTransition(r[4], 'a', r[4]);
 contestExample.setFinalState(r[0]);
 contestExample.setFinalState(r[2]);
 
-var test = [["aaaaaaaa", true], ["abababab", false], ["bbbbaaa", true], ["a", false], ["b", false], ["abaaba", true], ["bbaab", false], ["babab", false], ["bbbaaba", true], ["bbaabbaa", true]];
+var test: Array<[string, boolean]> = [["aaaaaaaa", true], ["abababab", false], ["bbbbaaa", true], ["a", false], ["b", false], ["abaaba", true], ["bbaab", false], ["babab", false], ["bbbaaba", true], ["bbaabbaa", true]];
 
 test.forEach(caso => {
     console.log("String " + caso[0] + " is " + contestExample.validateString(caso[0]) + ", correct answer is " + caso[1]);
@@ -160,8 +184,6 @@ exponent.concat(integers.clone());   // (E|e)(+|-)?D+
 exponent.optionalClosure();          // ((E|e)(+|-)?D+)?
 
 decimals.concat(exponent.clone());   // (+|-)?D+.D+((E|e)(+|-)?D+)?
-
-var decimals2 = decimals.clone();
 
 var decimals3 = decimals.toAFD();
 

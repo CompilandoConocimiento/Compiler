@@ -6,7 +6,7 @@ module.exports = {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['.js', '.jsx', '.css', '.tsx', '.ts']
+        extensions: ['.tsx', '.ts', '.jsx', '.js', '.css', ]
     },
     module: {
         rules: [
@@ -27,20 +27,20 @@ module.exports = {
           {
             test: /\.css$/,
             use: [
+              'style-loader',
               {
-                loader: "style-loader"
-              },
-              {
-                loader: "css-loader",
+                loader: 'typings-for-css-modules-loader?&namedExport&camelCase',
                 options: {
                   modules: true,
+                  camelCase: true,
+                  namedExport: true,
                   localIdentName: "[name]_[local]_[hash:base64]",
                   sourceMap: true,
                   minimize: true
                 }
-              },
+              }
             ]
-          },
+          }
         ]
     }
 };

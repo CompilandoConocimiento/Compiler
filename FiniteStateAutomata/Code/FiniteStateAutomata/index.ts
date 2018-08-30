@@ -1,4 +1,4 @@
-type stateID = number
+export type stateID = number
 
 export const getNewID = function() {
     let counter: stateID = 0
@@ -42,7 +42,8 @@ export class FiniteStateAutomata {
     }
 
     isFinalState(id: stateID): boolean {
-        return this.states.has(id) && this.states.get(id).isFinalState
+        this.addStateIfNotExist(id)
+        return this.states.has(id) && this.states.get(id)!.isFinalState
     }
 
     setInitialState(id: stateID): void {
@@ -52,12 +53,12 @@ export class FiniteStateAutomata {
 
     setFinalState(id: stateID): void {
         this.addStateIfNotExist(id)
-        this.states.get(id).isFinalState = true
+        this.states.get(id)!.isFinalState = true
     }
 
     unsetFinalState(id: stateID): void {
         this.addStateIfNotExist(id)
-        this.states.get(id).isFinalState = false
+        this.states.get(id)!.isFinalState = false
     }
 
     setEpsilonCharacter(character: string): boolean {
@@ -84,9 +85,9 @@ export class FiniteStateAutomata {
         this.addStateIfNotExist(fromStateID)
         this.addStateIfNotExist(toStateID)
 
-        const stateTransitions = this.states.get(fromStateID).transitions
+        const stateTransitions = this.states.get(fromStateID)!.transitions
 
-        if (stateTransitions.has(character)) stateTransitions.get(character).add(toStateID)
+        if (stateTransitions.has(character)) stateTransitions.get(character)!.add(toStateID)
         else stateTransitions.set(character, new Set([toStateID]))
 
         return true
@@ -99,10 +100,10 @@ export class FiniteStateAutomata {
         const stack: Array<number> = [id]
 
         while (stack.length > 0) {
-            const actualStateId = stack.pop()
+            const actualStateId: any = stack.pop()
             visited.add(actualStateId)
 
-            const actualState: State = this.states.get(actualStateId)
+            const actualState: State = this.states.get(actualStateId)!
 
             actualState.transitions.forEach((toStatesId, character, _) => {
                 if (character == this.epsilonCharacter) {
@@ -130,10 +131,10 @@ export class FiniteStateAutomata {
         if (!this.isValidCharacterOrEpsilon(character)) return new Set()
         this.addStateIfNotExist(id)
 
-        const stateTransitions = this.states.get(id).transitions
+        const stateTransitions = this.states.get(id)!.transitions
         if (!stateTransitions.has(character)) return new Set()
 
-        return new Set(stateTransitions.get(character))
+        return new Set(stateTransitions.get(character)!)
     }
 
     moveSet(statesIDs: Set<stateID>, character: string): Set<stateID>  {
@@ -196,8 +197,8 @@ export class FiniteStateAutomata {
             this.states.set(id, state)
         })
 
-        this.states.set(uniqueFinalState, FSA2.states.get(FSA2.initialState))
-        this.states.get(uniqueFinalState).id = uniqueFinalState
+        this.states.set(uniqueFinalState, FSA2.states.get(FSA2.initialState)!)
+        this.states.get(uniqueFinalState)!.id = uniqueFinalState
     }
 
     positiveClosure(): void {
@@ -261,7 +262,7 @@ export class FiniteStateAutomata {
 
         for (let i = 0; i < pending.length; ++i) {
             const oldStates: Set<stateID> = pending[i]
-            const fromStateID: stateID = mapping.get(this.hashSet(oldStates))
+            const fromStateID: stateID = mapping.get(this.hashSet(oldStates))!
             let finalState: boolean = false
 
             oldStates.forEach(
@@ -276,7 +277,7 @@ export class FiniteStateAutomata {
                         pending.push(newStates)
                         mapping.set(this.hashSet(newStates), getNewID())
                     }
-                    const toStateID = mapping.get(this.hashSet(newStates))
+                    const toStateID: stateID = mapping.get(this.hashSet(newStates))!
                     AFD.addTransition(fromStateID, character, toStateID)
                 }
             })
@@ -293,7 +294,7 @@ export class FiniteStateAutomata {
             if (PossibleStates.size === 0) return false
         }
 
-        const finalStates = [...PossibleStates].filter(id => this.states.get(id).isFinalState)
+        const finalStates = [...PossibleStates].filter(id => this.states.get(id)!.isFinalState)
         
         return finalStates.length > 0
     }
@@ -305,18 +306,18 @@ export class FiniteStateAutomata {
 
         this.states.forEach( (state, fromID, _2) => {
             if (!newIDs.has(fromID)) newIDs.set(fromID, getNewID())
-            const newFromID: stateID = newIDs.get(fromID)
+            const newFromID: stateID = newIDs.get(fromID)!
             state.transitions.forEach((toStates, character, _) => {
                 toStates.forEach(toID => {
                     if (!newIDs.has(toID)) newIDs.set(toID, getNewID())
-                    const newToID: stateID = newIDs.get(toID)
+                    const newToID: stateID = newIDs.get(toID)!
                     newCopy.addTransition(newFromID, character, newToID)
                 })
             })
             if (state.isFinalState) newCopy.setFinalState(newFromID)
         })
 
-        newCopy.setInitialState(newIDs.get(this.initialState))
+        newCopy.setInitialState(newIDs.get(this.initialState)!)
 
         return newCopy
     }

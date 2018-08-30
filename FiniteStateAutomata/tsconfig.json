@@ -1,8 +1,17 @@
 {
     "compilerOptions": {
-        "lib": ["es2017"],
+        "noEmit": false,
         "jsx": "preserve",
         "allowSyntheticDefaultImports": true,
-        "downlevelIteration": true
-    },
+        "alwaysStrict": true,
+        "target": "esnext",
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "moduleResolution": "node"
+    }
 }
