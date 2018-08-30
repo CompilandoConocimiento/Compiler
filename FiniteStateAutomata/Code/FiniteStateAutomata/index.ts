@@ -161,7 +161,7 @@ export class FiniteStateAutomata {
     }
 
 
-    join(FSA2: FiniteStateAutomata): void {
+    join(FSA2: FiniteStateAutomata): FiniteStateAutomata {
         const newInitialStateID: stateID = getNewID()
         this.addTransition(newInitialStateID, this.epsilonCharacter, this.initialState)
         this.addTransition(newInitialStateID, this.epsilonCharacter, FSA2.initialState)
@@ -180,9 +180,11 @@ export class FiniteStateAutomata {
             }
         })
         this.setFinalState(newFinalStateID)
+
+        return this
     }
 
-    concat(FSA2: FiniteStateAutomata): void {
+    concat(FSA2: FiniteStateAutomata): FiniteStateAutomata {
         this.alphabeth = new Set([...this.alphabeth, ...FSA2.alphabeth])
 
         let uniqueFinalState: stateID = 0;
@@ -194,14 +196,16 @@ export class FiniteStateAutomata {
         })
 
         FSA2.states.forEach( (state, id, _) => {
-            this.states.set(id, state)
+            if (id != FSA2.initialState) this.states.set(id, state)
         })
 
         this.states.set(uniqueFinalState, FSA2.states.get(FSA2.initialState)!)
         this.states.get(uniqueFinalState)!.id = uniqueFinalState
+
+        return this
     }
 
-    positiveClosure(): void {
+    positiveClosure(): FiniteStateAutomata {
         const newInitialStateID: stateID = getNewID()
         const newFinalStateID: stateID = getNewID()
         this.addTransition(newInitialStateID, this.epsilonCharacter, this.initialState)
@@ -216,18 +220,22 @@ export class FiniteStateAutomata {
 
         this.setInitialState(newInitialStateID)
         this.setFinalState(newFinalStateID)
+        
+        return this
     }
 
-    kleeneClosure(): void {
+    kleeneClosure(): FiniteStateAutomata {
         this.positiveClosure()
 
         this.states.forEach( (state, id, _2) => {
             if (state.isFinalState)
                 this.addTransition(this.initialState, this.epsilonCharacter, id)
         })
+
+        return this
     }
 
-    optionalClosure(): void {
+    optionalClosure(): FiniteStateAutomata {
         const newInitialStateID: stateID = getNewID()
         const newFinalStateID: stateID = getNewID()
         this.addTransition(newInitialStateID, this.epsilonCharacter, this.initialState)
@@ -242,6 +250,8 @@ export class FiniteStateAutomata {
         this.addTransition(newInitialStateID, this.epsilonCharacter, newFinalStateID)
         this.setInitialState(newInitialStateID)
         this.setFinalState(newFinalStateID)
+
+        return this
     }
 
 
@@ -249,7 +259,7 @@ export class FiniteStateAutomata {
         return Array.from(statesIDs).sort((a, b) => a - b).join(',')
     }
 
-    toAFD(): FiniteStateAutomata {
+    toDFA(): FiniteStateAutomata {
         const newInitialStateID: stateID = getNewID()
         const AFD = new FiniteStateAutomata(new Set(this.alphabeth))
         AFD.setInitialState(newInitialStateID)
@@ -333,4 +343,21 @@ export function basicFSA(character: string): FiniteStateAutomata {
     basic.setFinalState(toStateID)
 
     return basic
+}
+
+export function superJoin(FSAs: Array<FiniteStateAutomata>): FiniteStateAutomata {
+    const newInitialStateID: stateID = getNewID()
+    const newFSA = new FiniteStateAutomata(new Set([]))
+    newFSA.setInitialState(newInitialStateID)
+
+    FSAs.forEach( FSA => {
+        newFSA.alphabeth = new Set([...newFSA.alphabeth, ...FSA.alphabeth])
+        FSA.states.forEach( (state, id, _) => {
+            newFSA.states.set(id, state)
+        })
+        newFSA.addTransition(newInitialStateID, newFSA.epsilonCharacter, FSA.initialState)
+    })
+
+    return newFSA
+
 }

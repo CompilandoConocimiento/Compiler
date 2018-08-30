@@ -1,9 +1,19 @@
 import React from "react"
-import {Link} from "react-router-dom"
 
-import Style from "./index.css"
+import Style from "./Style.css"
 
-export default function Header(props) {
+export interface propsType {
+    join: () => void,
+    concat: () => void
+    positiveClosure: () => void,
+    kleeneClosure: () => void,
+    optionalClosure: () => void,
+    superJoin: () => void,
+    toDFA: () => void,
+}
+
+
+export default function Header(props: propsType) {
     return (
         <React.Fragment>
             <div className="navbar-fixed blue-grey darken-3">
@@ -49,17 +59,26 @@ export default function Header(props) {
                 <li><div className="divider"></div></li>
                 <li><a className="subheader">Operations</a></li>
                 <li>
-                    <a className="waves-effect" href="#!">
+                    <a className="waves-effect" href="#!" onClick={props.join}>
                         Join
                     </a>
-                    <a className="waves-effect" href="#!">
+                    <a className="waves-effect" href="#!" onClick={props.concat}>
                         Concatenate
                     </a>
-                    <a className="waves-effect" href="#!">
+                    <a className="waves-effect" href="#!" onClick={props.positiveClosure}>
                         Positive Closure
                     </a>
-                    <a className="waves-effect" href="#!">
+                    <a className="waves-effect" href="#!" onClick={props.kleeneClosure} >
+                        Kleene Closure
+                    </a>
+                    <a className="waves-effect" href="#!" onClick={props.optionalClosure} >
                         Optional Closure
+                    </a>
+                    <a className="waves-effect" href="#!" onClick={props.toDFA} >
+                        to Deterministic
+                    </a>
+                    <a className="waves-effect" href="#!" onClick={props.superJoin} >
+                        Super Join
                     </a>
                 </li>
             </ul>

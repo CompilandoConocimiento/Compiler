@@ -62,8 +62,6 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
                         const TransitionsItems = transitions.map(element => {
 
                             const transitionsvalues = Array.from(element[1].values())
-                            console.log(transitionsvalues)
-
                             return (
                                 <tr>
                                     <td style={{padding: "1rem", fontSize: "1.2rem"}}>"{element[0]}"</td>
