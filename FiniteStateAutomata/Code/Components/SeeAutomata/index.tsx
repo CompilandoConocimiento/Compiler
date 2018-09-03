@@ -19,7 +19,7 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
         const isFinal = index + 1 == finalStates.length
 
         return (
-            <span key={`${e} f`}>{e} {isFinal? "": ", "}</span>
+            <span key={`${e} f`}>{e-props.FSA.initialState} {isFinal? "": ", "}</span>
         )
     })
 
@@ -40,7 +40,7 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
 
                     <tbody>
                     <tr>
-                        <td>{props.FSA.initialState}</td>
+                        <td>{props.FSA.initialState - props.FSA.initialState}</td>
                         <td>
                         {`{ `}
                         {
@@ -72,7 +72,7 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
                                                 const isFinal = index + 1 == transitionsvalues.length
 
                                                 return (
-                                                    <span key={`${element[0]} ${index}`}>{e} {isFinal? "": ", "}</span>
+                                                    <span key={`${element[0]} ${index}`}>{e-props.FSA.initialState} {isFinal? "": ", "}</span>
                                                 )
                                             })
                                         }
@@ -89,7 +89,7 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
 
                                 <br />
                                 <br />
-                                <span style={{padding: "1rem", fontSize: "1.4rem"}}>State {element[0]}</span>
+                                <span style={{padding: "1rem", fontSize: "1.4rem"}}>State {element[0] - props.FSA.initialState}</span>
                                 <table>
                                     <thead>
                                     <tr>
