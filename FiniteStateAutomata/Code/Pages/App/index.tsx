@@ -10,7 +10,8 @@ import M from "materialize-css"
 import Header from "../Header"
 import Footer from "../Footer"
 
-import {Lexer, FiniteStateAutomata, basicFSA, superJoin} from "../../FiniteStateAutomata"
+import {FiniteStateAutomata} from "../../FiniteStateAutomata/FiniteStateAutomata"
+import {Lexer} from "../../FiniteStateAutomata/Lexer"
 import AutomataCard from "../../Components/AutomataCard/"
 import SeeAutomata from "../../Components/SeeAutomata/"
 import Style from "./Style.css"
@@ -67,41 +68,41 @@ class App extends React.Component<{}, MyState> {
     constructor(props) {
         super (props)
 
-        const sign = basicFSA('+');            // +
-        sign.join(basicFSA('-'));            // +|-
+        const sign = FiniteStateAutomata.basicFSA('+');            // +
+        sign.join(FiniteStateAutomata.basicFSA('-'));            // +|-
         sign.optionalClosure();              // (+|-)?
-        const digit = basicFSA('D');
+        const digit = FiniteStateAutomata.basicFSA('D');
         digit.positiveClosure();             // D+
         const integers = sign.clone();
         integers.concat(digit);              // (+|-)?D+
         integers.setFinalToken(10);
 
         const decimals = integers.clone();
-        decimals.concat(basicFSA('.'));      // (+|-)?D+.
+        decimals.concat(FiniteStateAutomata.basicFSA('.'));      // (+|-)?D+.
         decimals.concat(digit.clone());      // (+|-)?D+.D+
 
-        const exponent = basicFSA('E');
-        exponent.join(basicFSA('e'));        // E|e
+        const exponent = FiniteStateAutomata.basicFSA('E');
+        exponent.join(FiniteStateAutomata.basicFSA('e'));        // E|e
         exponent.concat(integers.clone());   // (E|e)(+|-)?D+
         exponent.optionalClosure();          // ((E|e)(+|-)?D+)?
 
         decimals.concat(exponent.clone());   // (+|-)?D+.D+((E|e)(+|-)?D+)?
         decimals.setFinalToken(20);
 
-        let third = basicFSA('L');
-        third.join(basicFSA('D'));
+        let third = FiniteStateAutomata.basicFSA('L');
+        third.join(FiniteStateAutomata.basicFSA('D'));
         third.kleeneClosure();
-        third = basicFSA('L').concat(third);
+        third = FiniteStateAutomata.basicFSA('L').concat(third);
         third.setFinalToken(30);
 
-        let fourth = basicFSA('S');
-        fourth.join(basicFSA('T'));
+        let fourth = FiniteStateAutomata.basicFSA('S');
+        fourth.join(FiniteStateAutomata.basicFSA('T'));
         fourth.positiveClosure();
         fourth.setFinalToken(40);
 
-        let great = superJoin([integers.clone(), decimals.clone(), third.clone(), fourth.clone()]);
+        let great = FiniteStateAutomata.superJoin([integers.clone(), decimals.clone(), third.clone(), fourth.clone()]);
         let bueno = great.toDFA();
-        window.l = new Lexer(bueno, "-DDD.DDe+DDSTholaSSTSLLDLD-D+DD");
+        window["l"] = new Lexer(bueno, "-DDD.DDe+DDSTholaSSTSLLDLD-D+DD");
 
 
         this.state = {
@@ -160,7 +161,7 @@ class App extends React.Component<{}, MyState> {
                                 return this.state.Automatas[index].clone()
                             })
                 
-                            const newFSA = superJoin(FSAs)
+                            const newFSA = FiniteStateAutomata.superJoin(FSAs)
 
                             this.setState( (preState) => {
                                 preState.Automatas.push(newFSA)
@@ -208,7 +209,7 @@ class App extends React.Component<{}, MyState> {
                     <AddAutomata 
                         addNew={(character: string) => {
                             this.setState( (preState) => {
-                                const newAutomata = basicFSA(character)
+                                const newAutomata = FiniteStateAutomata.basicFSA(character)
                                 newAutomata.alphabeth = new Set(Array(256).fill(0).map( (_, index ) => String.fromCharCode(index)))
                                 preState.Automatas.push(newAutomata)
                                 return {Automatas: preState.Automatas}
