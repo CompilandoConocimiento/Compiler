@@ -10,7 +10,7 @@ import M from "materialize-css"
 import Header from "../Header"
 import Footer from "../Footer"
 
-import {FiniteStateAutomata, basicFSA, superJoin} from "../../FiniteStateAutomata"
+import {Lexer, FiniteStateAutomata, basicFSA, superJoin} from "../../FiniteStateAutomata"
 import AutomataCard from "../../Components/AutomataCard/"
 import SeeAutomata from "../../Components/SeeAutomata/"
 import Style from "./Style.css"
@@ -74,6 +74,7 @@ class App extends React.Component<{}, MyState> {
         digit.positiveClosure();             // D+
         const integers = sign.clone();
         integers.concat(digit);              // (+|-)?D+
+        integers.setFinalToken(10);
 
         const decimals = integers.clone();
         decimals.concat(basicFSA('.'));      // (+|-)?D+.
@@ -85,16 +86,22 @@ class App extends React.Component<{}, MyState> {
         exponent.optionalClosure();          // ((E|e)(+|-)?D+)?
 
         decimals.concat(exponent.clone());   // (+|-)?D+.D+((E|e)(+|-)?D+)?
+        decimals.setFinalToken(20);
 
         let third = basicFSA('L');
         third.join(basicFSA('D'));
         third.kleeneClosure();
         third = basicFSA('L').concat(third);
+        third.setFinalToken(30);
 
         let fourth = basicFSA('S');
         fourth.join(basicFSA('T'));
         fourth.positiveClosure();
+        fourth.setFinalToken(40);
 
+        let great = superJoin([integers.clone(), decimals.clone(), third.clone(), fourth.clone()]);
+        let bueno = great.toDFA();
+        window.l = new Lexer(bueno, "-DDD.DDe+DDSTholaSSTSLLDLD-D+DD");
 
 
         this.state = {
@@ -154,8 +161,6 @@ class App extends React.Component<{}, MyState> {
                             })
                 
                             const newFSA = superJoin(FSAs)
-                
-                            window["newFSA"] = newFSA
 
                             this.setState( (preState) => {
                                 preState.Automatas.push(newFSA)
