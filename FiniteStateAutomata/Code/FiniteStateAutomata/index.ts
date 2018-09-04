@@ -380,23 +380,26 @@ export function superJoin(FSAs: Array<FiniteStateAutomata>): FiniteStateAutomata
 }
 
 export class Lexer {
-    FSA: FiniteStateAutomata
+    private FSA: FiniteStateAutomata
     testString: string
-    position: number
-    currentState: Set<stateID>
-    lastMatchedState: Set<stateID>
-    endMatchPos: number
+    private position: number
 
     constructor(FSA: FiniteStateAutomata, testString: string) {
         this.testString = testString
         this.position = 0
         this.FSA = FSA
-        this.currentState = FSA.epsilonClosure(FSA.initialState)
-        this.lastMatchedState = new Set()
-        this.endMatchPos = 0
     }
 
-    /*private*/ isFinalState(states: Set<stateID>): boolean {
+    reset(): void {
+        this.position = 0
+    }
+
+    advance(): void {
+        if (this.position != this.testString.length)
+            this.position++
+    }
+
+    private isFinalState(states: Set<stateID>): boolean {
         let finalState: boolean = false
         states.forEach(
             id => finalState = finalState || this.FSA.isFinalState(id)
@@ -404,7 +407,7 @@ export class Lexer {
         return finalState
     }
 
-    /*private*/ getToken(states: Set<stateID>): number {
+    private getToken(states: Set<stateID>): number {
         let token: number = -1
         states.forEach(
             id =>{
@@ -414,23 +417,29 @@ export class Lexer {
         return token
     }
 
-    getNextToken(): number {
-        if (this.position >= this.testString.length) return 0
+    getNextToken(): Object {
+        if (this.position == this.testString.length) return {token:0, position:this.testString.length}
 
-        while (this.position < this.testString.length){
-            if (this.isFinalState(this.currentState)){
-                this.lastMatchedState = new Set(this.currentState)
-                this.endMatchPos = this.position
+        let currentState: Set<stateID> = this.FSA.epsilonClosure(this.FSA.initialState)
+        let lastMatchedState: Set<stateID> = new Set()
+        let endMatchPos: number = this.position
+
+        while (this.position <= this.testString.length){
+            if (this.isFinalState(currentState)){
+                lastMatchedState = currentState
+                endMatchPos = this.position
             }
-            let toState: Set<stateID> = this.FSA.goToSet(this.currentState, this.testString[this.position])
+            let toState: Set<stateID> = new Set()
+            if (this.position != this.testString.length)
+                toState = this.FSA.goToSet(currentState, this.testString[this.position++])
             if (toState.size > 0){
-                this.currentState = toState
+                currentState = toState
             }else{
-                this.position = this.endMatchPos
-                return this.getToken(this.lastMatchedState)
+                this.position = endMatchPos
+                return {token:this.getToken(lastMatchedState), position:endMatchPos}
             }
         }
 
-        return 0
+        return {token:0, position:this.testString.length}
     }
 }
