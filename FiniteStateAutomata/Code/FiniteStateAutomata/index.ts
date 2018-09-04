@@ -7,13 +7,15 @@ export const getNewID = function() {
 }()
 
 class State {
-    id: number
+    id: stateID
+    token: number
     isFinalState: boolean
     transitions: Map<string, Set<number> >
 
     constructor(id: stateID) {
         this.id = id
         this.isFinalState = false
+        this.token = -1
         this.transitions = new Map()
     }
 }
@@ -61,6 +63,12 @@ export class FiniteStateAutomata {
         this.states.get(id)!.isFinalState = false
     }
 
+    setFinalToken(token: number): void {
+        this.states.forEach( (state, _1, _2) => {
+            if (state.isFinalState) state.token = token
+        })
+    }
+
     setEpsilonCharacter(character: string): boolean {
         if (this.alphabeth.has(character)) return false
        
@@ -68,7 +76,7 @@ export class FiniteStateAutomata {
         return true
     }
 
-    isAFD (): boolean {
+    isDFA (): boolean {
         let isStillPossible: boolean = true
         this.states.forEach( (fromState, _1, _2) => {
             fromState.transitions.forEach((toStates, character, _) => {
@@ -261,9 +269,9 @@ export class FiniteStateAutomata {
 
     toDFA(): FiniteStateAutomata {
         const newInitialStateID: stateID = getNewID()
-        const AFD = new FiniteStateAutomata(new Set(this.alphabeth))
-        AFD.setInitialState(newInitialStateID)
-        AFD.setEpsilonCharacter(this.epsilonCharacter)
+        const DFA = new FiniteStateAutomata(new Set(this.alphabeth))
+        DFA.setInitialState(newInitialStateID)
+        DFA.setEpsilonCharacter(this.epsilonCharacter)
 
         const initialSet: Set<stateID> = this.epsilonClosure(this.initialState)
         const pending: Array<Set<stateID>> = [initialSet]
@@ -274,11 +282,18 @@ export class FiniteStateAutomata {
             const oldStates: Set<stateID> = pending[i]
             const fromStateID: stateID = mapping.get(this.hashSet(oldStates))!
             let finalState: boolean = false
+            let token: number = -1
 
             oldStates.forEach(
-                id => finalState = finalState || this.isFinalState(id)
+                id => {
+                    finalState = finalState || this.isFinalState(id)
+                    if (this.isFinalState(id)) token = this.states.get(id)!.token
+                }
             )
-            if (finalState) AFD.setFinalState(fromStateID)
+            if (finalState) {
+                DFA.setFinalState(fromStateID)
+                DFA.states.get(fromStateID)!.token = token
+            }
 
             this.alphabeth.forEach(character =>{
                 const newStates: Set<stateID> = this.goToSet(oldStates, character)
@@ -288,12 +303,12 @@ export class FiniteStateAutomata {
                         mapping.set(this.hashSet(newStates), getNewID())
                     }
                     const toStateID: stateID = mapping.get(this.hashSet(newStates))!
-                    AFD.addTransition(fromStateID, character, toStateID)
+                    DFA.addTransition(fromStateID, character, toStateID)
                 }
             })
         }
 
-        return AFD
+        return DFA
     }
 
     validateString(testString: string): boolean {
@@ -324,7 +339,10 @@ export class FiniteStateAutomata {
                     newCopy.addTransition(newFromID, character, newToID)
                 })
             })
-            if (state.isFinalState) newCopy.setFinalState(newFromID)
+            if (state.isFinalState) {
+                newCopy.setFinalState(newFromID)
+                newCopy.states.get(newFromID)!.token = state.token
+            }
         })
 
         newCopy.setInitialState(newIDs.get(this.initialState)!)
@@ -359,5 +377,60 @@ export function superJoin(FSAs: Array<FiniteStateAutomata>): FiniteStateAutomata
     })
 
     return newFSA
+}
 
+export class Lexer {
+    FSA: FiniteStateAutomata
+    testString: string
+    position: number
+    currentState: Set<stateID>
+    lastMatchedState: Set<stateID>
+    endMatchPos: number
+
+    constructor(FSA: FiniteStateAutomata, testString: string) {
+        this.testString = testString
+        this.position = 0
+        this.FSA = FSA
+        this.currentState = FSA.epsilonClosure(FSA.initialState)
+        this.lastMatchedState = new Set()
+        this.endMatchPos = 0
+    }
+
+    /*private*/ isFinalState(states: Set<stateID>): boolean {
+        let finalState: boolean = false
+        states.forEach(
+            id => finalState = finalState || this.FSA.isFinalState(id)
+        )
+        return finalState
+    }
+
+    /*private*/ getToken(states: Set<stateID>): number {
+        let token: number = -1
+        states.forEach(
+            id =>{
+                if (this.FSA.isFinalState(id)) token = this.FSA.states.get(id)!.token
+            }
+        )
+        return token
+    }
+
+    getNextToken(): number {
+        if (this.position >= this.testString.length) return 0
+
+        while (this.position < this.testString.length){
+            if (this.isFinalState(this.currentState)){
+                this.lastMatchedState = new Set(this.currentState)
+                this.endMatchPos = this.position
+            }
+            let toState: Set<stateID> = this.FSA.goToSet(this.currentState, this.testString[this.position])
+            if (toState.size > 0){
+                this.currentState = toState
+            }else{
+                this.position = this.endMatchPos
+                return this.getToken(this.lastMatchedState)
+            }
+        }
+
+        return 0
+    }
 }
