@@ -3,7 +3,7 @@ import {FiniteStateAutomata} from "./FiniteStateAutomata"
 
 export class Lexer {
     private FSA: FiniteStateAutomata
-    testString: string
+    public testString: string
     private position: number
 
     constructor(FSA: FiniteStateAutomata, testString: string) {
@@ -42,10 +42,10 @@ export class Lexer {
 
     getNextToken(): TokenInfo {
         if (this.position == this.testString.length) 
-            return {
-                token: 0, 
-                position: this.testString.length
-            }
+        return {
+            token: 0, 
+            position: this.testString.length
+        }
 
         let currentState: Set<stateID> = this.FSA.epsilonClosure(this.FSA.initialState)
         let lastMatchedState: Set<stateID> = new Set()
