@@ -14,6 +14,7 @@ export class FiniteStateAutomata {
         this.alphabeth = new Set(alphabeth)
         this.initialState = 0
         this.epsilonCharacter = '\0'
+        this.name = ""
     }
 
     getName(): string {

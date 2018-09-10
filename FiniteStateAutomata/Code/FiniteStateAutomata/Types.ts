@@ -5,4 +5,5 @@ export interface TokenInfo {
     token: token,
     position: number,
 }
- 
+
+export type production = Array<token|string>
