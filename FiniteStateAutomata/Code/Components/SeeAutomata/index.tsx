@@ -2,8 +2,7 @@ import React from "react"
 import {FiniteStateAutomata} from "../../FiniteStateAutomata"
 
 export interface propsType {
-    FSA: FiniteStateAutomata,
-    name: String
+    FSA: FiniteStateAutomata
 }
 
 const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => {
@@ -19,7 +18,7 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
         const isFinal = index + 1 == finalStates.length
 
         return (
-            <span key={`${e} f`}>{e-props.FSA.initialState} {isFinal? "": ", "}</span>
+            <span key={`${e} f`}>{e} {isFinal? "": ", "}</span>
         )
     })
 
@@ -28,7 +27,7 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
         <div id="SeeAutomataModal" className="modal modal-fixed-footer">
             <div className="modal-content">
                 
-                <h4>See the Automata {props.name}</h4>
+                <h4>See the Automata {props.FSA.getName()}</h4>
 
                 <table>
                     <thead>
@@ -40,7 +39,7 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
 
                     <tbody>
                     <tr>
-                        <td>{props.FSA.initialState - props.FSA.initialState}</td>
+                        <td>{props.FSA.initialState}</td>
                         <td>
                         {`{ `}
                         {
@@ -72,7 +71,7 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
                                                 const isFinal = index + 1 == transitionsvalues.length
 
                                                 return (
-                                                    <span key={`${element[0]} ${index}`}>{e-props.FSA.initialState} {isFinal? "": ", "}</span>
+                                                    <span key={`${element[0]} ${index}`}>{e} {isFinal? "": ", "}</span>
                                                 )
                                             })
                                         }
@@ -89,7 +88,7 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
 
                                 <br />
                                 <br />
-                                <span style={{padding: "1rem", fontSize: "1.4rem"}}>State {element[0] - props.FSA.initialState}</span>
+                                <span style={{padding: "1rem", fontSize: "1.4rem"}}>State {element[0]}</span>
                                 <table>
                                     <thead>
                                     <tr>

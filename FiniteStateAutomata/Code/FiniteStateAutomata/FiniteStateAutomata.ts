@@ -7,6 +7,7 @@ export class FiniteStateAutomata {
     alphabeth: Set<string>
     initialState: stateID
     epsilonCharacter: string
+    name: string
 
     constructor(alphabeth: Set<string>) {
         this.states = new Map()
@@ -15,13 +16,21 @@ export class FiniteStateAutomata {
         this.epsilonCharacter = '\0'
     }
 
+    getName(): string {
+        return this.name
+    }
+
+    setName(name: string): void {
+        this.name = name
+    }
+
     private addStateIfNotExist(id: stateID): void {
         if (!this.states.has(id))
             this.states.set(id, new State(id))
     }
 
     isValidCharacterOrEpsilon(character: string): boolean {
-        return this.alphabeth.has(character) || this.epsilonCharacter == character
+        return State.metaCharacters.has(character) || this.alphabeth.has(character) || this.epsilonCharacter == character
     }
 
     isFinalState(id: stateID): boolean {
@@ -359,5 +368,3 @@ export class FiniteStateAutomata {
         return newFSA
     }
 }
-
-

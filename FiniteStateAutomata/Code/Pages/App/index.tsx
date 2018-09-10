@@ -19,13 +19,15 @@ import Style from "./Style.css"
 
 
 
-function AddAutomata(props: {addNew: (a: string) => void}) {
+function AddAutomata(props: {addNew: (a: string, b: string) => void}) {
 
     function AddAutomata() {
+        const name: string = (document.getElementById('automataNewName') as HTMLInputElement).value
         const value: string = (document.getElementById('automataNewChar') as HTMLInputElement).value
         
-        props.addNew(value);
-        (document.getElementById('automataNewChar') as HTMLInputElement).value = ""
+        props.addNew(name, value);
+        (document.getElementById('automataNewName') as HTMLInputElement).value = "";
+        (document.getElementById('automataNewChar') as HTMLInputElement).value = "";
     }
 
     return (
@@ -34,6 +36,13 @@ function AddAutomata(props: {addNew: (a: string) => void}) {
                 
                 <h4>Create an Automata</h4>
                 <p>Select a name and the basic character it should recognize</p>
+
+                <div className="row">
+                    <div className="input-field col s6">
+                        <input placeholder="name" id="automataNewName" type="text" />
+                        <label htmlFor="first_name">Tell me the name of the automata</label>
+                    </div>
+                </div>
 
                 <div className="row">
                     <div className="input-field col s6">
@@ -68,45 +77,56 @@ class App extends React.Component<{}, MyState> {
     constructor(props) {
         super (props)
 
-        const sign = FiniteStateAutomata.basicFSA('+');            // +
-        sign.join(FiniteStateAutomata.basicFSA('-'));            // +|-
-        sign.optionalClosure();              // (+|-)?
-        const digit = FiniteStateAutomata.basicFSA('D');
-        digit.positiveClosure();             // D+
-        const integers = sign.clone();
-        integers.concat(digit);              // (+|-)?D+
-        integers.setFinalToken(10);
+        const plusSign = FiniteStateAutomata.basicFSA('+');
+        plusSign.setName("Plus sign");
+        plusSign.setFinalToken(1);
 
-        const decimals = integers.clone();
-        decimals.concat(FiniteStateAutomata.basicFSA('.'));      // (+|-)?D+.
-        decimals.concat(digit.clone());      // (+|-)?D+.D+
+        const minusSign = FiniteStateAutomata.basicFSA('-');
+        minusSign.setName("Minus sign");
+        minusSign.setFinalToken(2);
 
-        const exponent = FiniteStateAutomata.basicFSA('E');
-        exponent.join(FiniteStateAutomata.basicFSA('e'));        // E|e
-        exponent.concat(integers.clone());   // (E|e)(+|-)?D+
-        exponent.optionalClosure();          // ((E|e)(+|-)?D+)?
+        const multSign = FiniteStateAutomata.basicFSA('*');
+        multSign.setName("Multiplication sign");
+        multSign.setFinalToken(3);
 
-        decimals.concat(exponent.clone());   // (+|-)?D+.D+((E|e)(+|-)?D+)?
-        decimals.setFinalToken(20);
+        const divSign = FiniteStateAutomata.basicFSA('/');
+        divSign.setName("Division sign");
+        divSign.setFinalToken(4);
 
-        let third = FiniteStateAutomata.basicFSA('L');
-        third.join(FiniteStateAutomata.basicFSA('D'));
-        third.kleeneClosure();
-        third = FiniteStateAutomata.basicFSA('L').concat(third);
-        third.setFinalToken(30);
+        const openParenthesis = FiniteStateAutomata.basicFSA('(');
+        openParenthesis.setName("Opening parenthesis");
+        openParenthesis.setFinalToken(5);
 
-        let fourth = FiniteStateAutomata.basicFSA('S');
-        fourth.join(FiniteStateAutomata.basicFSA('T'));
-        fourth.positiveClosure();
-        fourth.setFinalToken(40);
+        const closeParenthesis = FiniteStateAutomata.basicFSA(')');
+        closeParenthesis.setName("Closing parenthesis");
+        closeParenthesis.setFinalToken(6);
 
-        let great = FiniteStateAutomata.superJoin([integers.clone(), decimals.clone(), third.clone(), fourth.clone()]);
-        let bueno = great.toDFA();
-        window["l"] = new Lexer(bueno, "-DDD.DDe+DDSTholaSSTSLLDLD-D+DD");
+        const integer = FiniteStateAutomata.basicFSA('d');
+        integer.positiveClosure();
+        integer.setName("Integer");
 
+        const decimal = integer.clone();
+        decimal.concat(FiniteStateAutomata.basicFSA('.'));
+        decimal.concat(integer.clone());
+        decimal.setName("Decimal");
+
+        const exponent = FiniteStateAutomata.basicFSA('E').join(FiniteStateAutomata.basicFSA('e'));
+        exponent.concat(plusSign.clone().join(minusSign.clone()).optionalClosure().concat(integer.clone()));
+
+        const float = decimal.clone().concat(exponent.clone());
+        float.setName("Float");
+
+        const number = FiniteStateAutomata.superJoin([integer.clone(), decimal.clone(), float.clone()]);
+        number.setName("Number");
+        number.setFinalToken(10);
+
+        const arithmetic = FiniteStateAutomata.superJoin([plusSign.clone(), minusSign.clone(), multSign.clone(), divSign.clone(), openParenthesis.clone(), closeParenthesis.clone(), number.clone()]);
+        arithmetic.setName("Arithmetic expressions")
+
+        window["test"] = new Lexer(arithmetic, "4+1.5e-7/(3.9-2*8)");
 
         this.state = {
-            Automatas: [integers, decimals, third, fourth],
+            Automatas: [plusSign, minusSign, multSign, divSign, openParenthesis, closeParenthesis, integer, decimal, float, number, arithmetic],
             SideMenu: null,
             actualAutomata: null,
             selectedAutomatas: [],
@@ -183,7 +203,7 @@ class App extends React.Component<{}, MyState> {
                                 return (
                                     <AutomataCard 
                                         key     = {String(index)}   
-                                        name    = {String(index)} 
+                                        name    = {fsa.getName()} 
                                         auto    = {fsa}
                                         onClick = {() => {
                                             this.setState({actualAutomata: fsa})
@@ -207,9 +227,10 @@ class App extends React.Component<{}, MyState> {
                     </div>
 
                     <AddAutomata 
-                        addNew={(character: string) => {
+                        addNew={(name: string, character: string) => {
                             this.setState( (preState) => {
                                 const newAutomata = FiniteStateAutomata.basicFSA(character)
+                                newAutomata.setName(name)
                                 newAutomata.alphabeth = new Set(Array(256).fill(0).map( (_, index ) => String.fromCharCode(index)))
                                 preState.Automatas.push(newAutomata)
                                 return {Automatas: preState.Automatas}
@@ -217,7 +238,7 @@ class App extends React.Component<{}, MyState> {
                         }} 
                     />
 
-                    <SeeAutomata FSA={this.state.actualAutomata!} name={String(this.state.Automatas.indexOf(this.state.actualAutomata!))} />
+                    <SeeAutomata FSA={this.state.actualAutomata!} />
                     
                     
                     <br />

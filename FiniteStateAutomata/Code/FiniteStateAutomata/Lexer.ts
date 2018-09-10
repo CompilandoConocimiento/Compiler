@@ -31,7 +31,7 @@ export class Lexer {
     }
 
     private getToken(states: Set<stateID>): token {
-        let token: number = -1
+        let token: token = -1
         states.forEach(
             id =>{
                 if (this.FSA.isFinalState(id)) token = this.FSA.states.get(id)!.token
@@ -77,4 +77,14 @@ export class Lexer {
             position:this.testString.length
         }
     }
+
+    static tokens: Map<token, string> = new Map([
+        [1, "Plus sign"],
+        [2, "Minus sign"],
+        [3, "Multiplication sign"],
+        [4, "Division sign"],
+        [5, "Opening parenthesis"],
+        [6, "Closing parenthesis"],
+        [10, "Number"]
+    ])
 }
