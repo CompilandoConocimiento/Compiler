@@ -8,7 +8,7 @@ export interface propsType {
 const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => {
     
     if (props.FSA == null) return <div id="SeeAutomataModal" className="modal modal-fixed-footer"></div>
-    console.log(props.FSA)
+    //console.log(props.FSA)
 
     const finalStates = Array.from(props.FSA.states.values())
                         .filter(state => state.isFinalState).

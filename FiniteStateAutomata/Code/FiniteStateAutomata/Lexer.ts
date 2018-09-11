@@ -73,18 +73,18 @@ export class Lexer {
         }
 
         return {
-            token:0, 
+            token: 0, 
             position:this.testString.length
         }
     }
 
-    static tokens: Map<token, string> = new Map([
-        [1, "Plus sign"],
-        [2, "Minus sign"],
-        [3, "Multiplication sign"],
-        [4, "Division sign"],
-        [5, "Opening parenthesis"],
-        [6, "Closing parenthesis"],
-        [10, "Number"]
+    static tokenDesc: Map<token, string> = new Map([
+        [token.PlusSign, "Plus sign"],
+        [token.MinusSign, "Minus sign"],
+        [token.MultiplicationSign, "Multiplication sign"],
+        [token.DivisionSign, "Division sign"],
+        [token.OpenParenthesis, "Opening parenthesis"],
+        [token.CloseParenthesis, "Closing parenthesis"],
+        [token.Number, "Number"]
     ])
 }

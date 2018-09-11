@@ -22,10 +22,11 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
                 <a className="waves-effect waves-green btn-flat"
                     onClick={() => {
                         const value = prompt("Introduce the string to check:")
-                        alert(`The string was ${props.auto.validateString(value!)? "acepted": "rejected"}`)
+                        if(value != null) alert(`The string was ${props.auto.validateString(value!)? "accepted": "rejected"}`)
                     }}>
                     Validate String
                 </a>
+                <a data-target="LexicalAnalysisModal" className="waves-effect waves-green btn-flat modal-trigger" onClick={props.onClick}> Lexical Analysis</a>
                 <a className="waves-effect waves-green btn-flat"
                     onClick={props.SelectAutomata}>
                     Select

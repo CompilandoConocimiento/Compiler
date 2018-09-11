@@ -1,4 +1,4 @@
-import {stateID} from "./Types"
+import {stateID, token} from "./Types"
 import {State, getNewID} from "./State"
 
 export class FiniteStateAutomata {
@@ -54,7 +54,7 @@ export class FiniteStateAutomata {
         this.states.get(id)!.isFinalState = false
     }
 
-    setFinalToken(token: number): void {
+    setFinalToken(token: token): void {
         this.states.forEach( state => {
             if (state.isFinalState) state.token = token
         })
@@ -279,7 +279,7 @@ export class FiniteStateAutomata {
             const oldStates: Set<stateID> = pending[i]
             const fromStateID: stateID = mapping.get(this.hashSet(oldStates))!
             let finalState: boolean = false
-            let token: number = -1
+            let token: token = -1
 
             oldStates.forEach(
                 id => {

@@ -11,10 +11,12 @@ import Header from "../Header"
 import Footer from "../Footer"
 
 import {FiniteStateAutomata} from "../../FiniteStateAutomata/FiniteStateAutomata"
+import {token} from "../../FiniteStateAutomata/Types"
 import {Lexer} from "../../FiniteStateAutomata/Lexer"
 import {CFG} from "../../FiniteStateAutomata/CFG"
 import AutomataCard from "../../Components/AutomataCard/"
 import SeeAutomata from "../../Components/SeeAutomata/"
+import LexicalAnalysis from "../../Components/LexicalAnalysis/"
 import Style from "./Style.css"
 
 
@@ -80,27 +82,27 @@ class App extends React.Component<{}, MyState> {
 
         const plusSign = FiniteStateAutomata.basicFSA('+');
         plusSign.setName("Plus sign");
-        plusSign.setFinalToken(1);
+        plusSign.setFinalToken(token.PlusSign);
 
         const minusSign = FiniteStateAutomata.basicFSA('-');
         minusSign.setName("Minus sign");
-        minusSign.setFinalToken(2);
+        minusSign.setFinalToken(token.MinusSign);
 
         const multSign = FiniteStateAutomata.basicFSA('*');
         multSign.setName("Multiplication sign");
-        multSign.setFinalToken(3);
+        multSign.setFinalToken(token.MultiplicationSign);
 
         const divSign = FiniteStateAutomata.basicFSA('/');
         divSign.setName("Division sign");
-        divSign.setFinalToken(4);
+        divSign.setFinalToken(token.DivisionSign);
 
         const openParenthesis = FiniteStateAutomata.basicFSA('(');
         openParenthesis.setName("Opening parenthesis");
-        openParenthesis.setFinalToken(5);
+        openParenthesis.setFinalToken(token.OpenParenthesis);
 
         const closeParenthesis = FiniteStateAutomata.basicFSA(')');
         closeParenthesis.setName("Closing parenthesis");
-        closeParenthesis.setFinalToken(6);
+        closeParenthesis.setFinalToken(token.CloseParenthesis);
 
         const integer = FiniteStateAutomata.basicFSA('d');
         integer.positiveClosure();
@@ -119,7 +121,7 @@ class App extends React.Component<{}, MyState> {
 
         const number = FiniteStateAutomata.superJoin([integer.clone(), decimal.clone(), float.clone()]);
         number.setName("Number");
-        number.setFinalToken(10);
+        number.setFinalToken(token.Number);
 
         const arithmetic = FiniteStateAutomata.superJoin([plusSign.clone(), minusSign.clone(), multSign.clone(), divSign.clone(), openParenthesis.clone(), closeParenthesis.clone(), number.clone()]);
         arithmetic.setName("Arithmetic expressions")
