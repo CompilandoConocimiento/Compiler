@@ -25,6 +25,7 @@ export default class SeeLexicalResult extends React.Component<propsType, stateTy
     }
 
     static getDerivedStateFromProps(nextProps: propsType, preState: stateType) {
+        if (nextProps.FSA == preState.FSA) return null
         return {stringData: preState.stringData, FSA: nextProps.FSA}
     }
 
@@ -43,7 +44,7 @@ export default class SeeLexicalResult extends React.Component<propsType, stateTy
                 lexer.advance()
             }
             table.push(
-                <tr>
+                <tr key={currentIndex}>
                     <td> {this.state.stringData.substring(currentIndex, currentToken.position)} </td>
                     <td> {currentToken.token} </td>
                     <td> {tokenDescriptions.get(currentToken.token)} </td>
@@ -75,9 +76,16 @@ export default class SeeLexicalResult extends React.Component<propsType, stateTy
 
 
                     <table>
-                        {
-                          table  
-                        }
+                        <thead>
+                            <tr>
+                                <td>String</td>
+                                <td>token</td>
+                                <td>Name</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {table}
+                        </tbody>
                     </table>
 
 
