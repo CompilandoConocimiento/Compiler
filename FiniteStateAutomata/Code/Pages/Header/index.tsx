@@ -3,13 +3,6 @@ import React from "react"
 import Style from "./Style.css"
 
 export interface propsType {
-    join: () => void,
-    concat: () => void
-    positiveClosure: () => void,
-    kleeneClosure: () => void,
-    optionalClosure: () => void,
-    superJoin: () => void,
-    toDFA: () => void,
 }
 
 
@@ -48,39 +41,6 @@ export default function Header(props: propsType) {
 				<br />
                 <li><div className="divider"></div></li>
                 <li><a className="subheader">Basic Ideas</a></li>
-                <li>
-                    <a className="waves-effect" href="#!">
-                        See Automatas
-                    </a>
-                    <a data-target="AddAutomataModal" className="waves-effect modal-trigger">
-                        Create Basic Automata
-                    </a>
-                </li>
-                <li><div className="divider"></div></li>
-                <li><a className="subheader">Operations</a></li>
-                <li>
-                    <a className="waves-effect" href="#!" onClick={props.join}>
-                        Join
-                    </a>
-                    <a className="waves-effect" href="#!" onClick={props.concat}>
-                        Concatenate
-                    </a>
-                    <a className="waves-effect" href="#!" onClick={props.positiveClosure}>
-                        Positive Closure
-                    </a>
-                    <a className="waves-effect" href="#!" onClick={props.kleeneClosure} >
-                        Kleene Closure
-                    </a>
-                    <a className="waves-effect" href="#!" onClick={props.optionalClosure} >
-                        Optional Closure
-                    </a>
-                    <a className="waves-effect" href="#!" onClick={props.toDFA} >
-                        to Deterministic
-                    </a>
-                    <a className="waves-effect" href="#!" onClick={props.superJoin} >
-                        Super Join
-                    </a>
-                </li>
             </ul>
         </React.Fragment>
     )

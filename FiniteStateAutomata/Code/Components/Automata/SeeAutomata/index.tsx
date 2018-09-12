@@ -1,11 +1,11 @@
 import React from "react"
-import {FiniteStateAutomata} from "../../FiniteStateAutomata"
+import {FiniteStateAutomata} from "../../../FiniteStateAutomata/FiniteStateAutomata"
 
 export interface propsType {
     FSA: FiniteStateAutomata
 }
 
-const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => {
+const SeeAutomata: React.StatelessComponent<propsType> = (props: propsType) => {
     
     if (props.FSA == null) return <div id="SeeAutomataModal" className="modal modal-fixed-footer"></div>
     //console.log(props.FSA)
@@ -53,16 +53,16 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
 
                 
                 {
-                    Array.from( props.FSA.states.entries() ).map( element => {
+                    Array.from( props.FSA.states.entries() ).map( stateElement => {
 
-                        const state = element[1]
+                        const state = stateElement[1]
                         const transitions = Array.from( state.transitions.entries() )
 
                         const TransitionsItems = transitions.map(element => {
 
                             const transitionsvalues = Array.from(element[1].values())
                             return (
-                                <tr>
+                                <tr key={`stateElement ${stateElement[0]} ${element[0]}`}>
                                     <td style={{padding: "1rem", fontSize: "1.2rem"}}>"{element[0]}"</td>
                                     <td>
                                     {`{ `}
@@ -81,14 +81,12 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
                             )
                         })
 
-
-                        
                         return (
-                            <React.Fragment>
+                            <React.Fragment key={stateElement[0]}>
 
                                 <br />
                                 <br />
-                                <span style={{padding: "1rem", fontSize: "1.4rem"}}>State {element[0]}</span>
+                                <span style={{padding: "1rem", fontSize: "1.4rem"}}>State {stateElement[0]}</span>
                                 <table>
                                     <thead>
                                     <tr>
@@ -119,4 +117,4 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
 }
 
 
-export default AutomataCard
+export default SeeAutomata

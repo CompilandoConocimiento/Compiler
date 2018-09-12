@@ -1,31 +1,95 @@
 import React from "react"
-import {FiniteStateAutomata} from "../../FiniteStateAutomata"
+import {FiniteStateAutomata} from "../../FiniteStateAutomata/FiniteStateAutomata"
+import {Lexer} from "../../FiniteStateAutomata/Lexer"
+import {token, tokenDescriptions} from "../../FiniteStateAutomata/Types"
 
 export interface propsType {
     FSA: FiniteStateAutomata
 }
 
-const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => {
-
-	if (props.FSA == null) return <div id="LexicalAnalysisModal" className="modal modal-fixed-footer"></div>
-
-	return (
-        <div id="LexicalAnalysisModal" className="modal modal-fixed-footer">
-            <div className="modal-content">
-                
-                <h4>See the Automata {props.FSA.getName()}</h4>
-
-                
-
-            </div>
-            <div className="modal-footer">
-                <a className="modal-close waves-effect waves-green btn-flat">
-                    Close
-                </a>
-            </div>
-        </div>
-    )
-
+export interface stateType {
+    stringData: string,
+    FSA: FiniteStateAutomata
 }
 
-export default AutomataCard
+
+export default class SeeLexicalResult extends React.Component<propsType, stateType> {
+
+    constructor(props: propsType) {
+        super (props)
+
+        this.state = {
+            stringData: "",
+            FSA: this.props.FSA,
+        }
+    }
+
+    static getDerivedStateFromProps(nextProps: propsType, preState: stateType) {
+        return {stringData: preState.stringData, FSA: nextProps.FSA}
+    }
+
+    render () {
+        if (this.props.FSA == null) return (
+            <div id="SeeLexicalResultModal" className="modal modal-fixed-footer"></div>
+        )
+
+
+        const lexer = new Lexer(this.state.FSA, this.state.stringData)
+        const table: Array<JSX.Element> = []
+        let currentIndex = 0;
+        while ( true ) {
+            let currentToken = lexer.getNextToken()
+            if (currentToken.token == token.Error) {
+                lexer.advance()
+            }
+            table.push(
+                <tr>
+                    <td> {this.state.stringData.substring(currentIndex, currentToken.position)} </td>
+                    <td> {currentToken.token} </td>
+                    <td> {tokenDescriptions.get(currentToken.token)} </td>
+                </tr>
+            )
+
+            currentIndex = currentToken.position
+            if (currentToken.token == token.EOF) break
+        }
+
+
+        return (
+            <div id="SeeLexicalResultModal" className="modal modal-fixed-footer">
+                <div className="modal-content container">
+                    
+                    <h4>Lexical Analysis using {this.state.FSA.getName()}</h4>
+
+                    <div className="row">
+                        <div className="input-field col s10">
+                            <input 
+                                id          = "stringData"
+                                type        = "text" 
+                                value       = {this.state.stringData}
+                                onChange    = {(e) => {this.setState({stringData: e.target.value})}}
+                            />
+                            <label htmlFor="stringData">String to analyze</label>
+                        </div>
+                    </div>
+
+
+                    <table>
+                        {
+                          table  
+                        }
+                    </table>
+
+
+                </div>
+                <div className="modal-footer">
+                    <a className="modal-close waves-effect waves-green btn-flat">
+                        Close
+                    </a>
+                </div>
+            </div>
+        )
+    }
+    
+
+}
