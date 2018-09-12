@@ -9,7 +9,8 @@ export interface propsType {
 
 export interface stateType {
     stringData: string,
-    FSA: FiniteStateAutomata
+    FSA: FiniteStateAutomata,
+    table: Array<JSX.Element> | null
 }
 
 
@@ -21,6 +22,7 @@ export default class SeeLexicalResult extends React.Component<propsType, stateTy
         this.state = {
             stringData: "",
             FSA: this.props.FSA,
+            table: null,  
         }
     }
 
@@ -29,21 +31,20 @@ export default class SeeLexicalResult extends React.Component<propsType, stateTy
         return {stringData: preState.stringData, FSA: nextProps.FSA}
     }
 
-    render () {
-        if (this.props.FSA == null) return (
-            <div id="SeeLexicalResultModal" className="modal modal-fixed-footer"></div>
-        )
+    createNewTable () {
+
+        console.log("sdsd")
 
 
         const lexer = new Lexer(this.state.FSA, this.state.stringData)
-        const table: Array<JSX.Element> = []
+        const newTable: Array<JSX.Element> = []
         let currentIndex = 0;
         while ( true ) {
             let currentToken = lexer.getNextToken()
             if (currentToken.token == token.Error) {
                 lexer.advance()
             }
-            table.push(
+            newTable.push(
                 <tr key={currentIndex}>
                     <td> {this.state.stringData.substring(currentIndex, currentToken.position)} </td>
                     <td> {currentToken.token} </td>
@@ -55,6 +56,14 @@ export default class SeeLexicalResult extends React.Component<propsType, stateTy
             if (currentToken.token == token.EOF) break
         }
 
+        this.setState({table: newTable})
+
+    }
+
+    render () {
+        if (this.props.FSA == null) return (
+            <div id="SeeLexicalResultModal" className="modal modal-fixed-footer"></div>
+        )
 
         return (
             <div id="SeeLexicalResultModal" className="modal modal-fixed-footer">
@@ -72,8 +81,11 @@ export default class SeeLexicalResult extends React.Component<propsType, stateTy
                             />
                             <label htmlFor="stringData">String to analyze</label>
                         </div>
-                    </div>
 
+                        <div className="btn green waves-effect" onClick={() => this.createNewTable()}>
+                            Check it!
+                        </div>
+                    </div>
 
                     <table>
                         <thead>
@@ -84,7 +96,7 @@ export default class SeeLexicalResult extends React.Component<propsType, stateTy
                             </tr>
                         </thead>
                         <tbody>
-                            {table}
+                            {this.state.table}
                         </tbody>
                     </table>
 
