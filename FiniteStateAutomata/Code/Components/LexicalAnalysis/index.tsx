@@ -33,28 +33,30 @@ export default class SeeLexicalResult extends React.Component<propsType, stateTy
 
     createNewTable () {
 
-        console.log("sdsd")
-
-
         const lexer = new Lexer(this.state.FSA, this.state.stringData)
+        window["lexer"] = lexer
+        window["tokens"] = []
         const newTable: Array<JSX.Element> = []
-        let currentIndex = 0;
-        while ( true ) {
-            let currentToken = lexer.getNextToken()
-            if (currentToken.token == token.Error) {
-                lexer.advance()
-            }
+        let prevIndex = 0;
+        let currentToken = 0;
+        while ( (currentToken = lexer.getNextToken()) != token.EOF ) {
+            if (currentToken == token.Error) lexer.advance()
+
             newTable.push(
-                <tr key={currentIndex}>
-                    <td> {this.state.stringData.substring(currentIndex, currentToken.position)} </td>
-                    <td> {currentToken.token} </td>
-                    <td> {tokenDescriptions.get(currentToken.token)} </td>
+                <tr key={prevIndex}>
+                    <td> {this.state.stringData.substring(prevIndex, lexer.position)} </td>
+                    <td> {currentToken} </td>
+                    <td> {tokenDescriptions.get(currentToken)} </td>
                 </tr>
             )
 
-            currentIndex = currentToken.position
-            if (currentToken.token == token.EOF) break
+            prevIndex = lexer.position
+            window["tokens"].push(currentToken)
         }
+
+        var root = window["grammar3"].validateTokens(tokens);
+        window["root"] = root;
+        console.log(root);
 
         this.setState({table: newTable})
 
@@ -90,9 +92,9 @@ export default class SeeLexicalResult extends React.Component<propsType, stateTy
                     <table>
                         <thead>
                             <tr>
-                                <td>String</td>
-                                <td>token</td>
-                                <td>Name</td>
+                                <td>Lexeme</td>
+                                <td>Token</td>
+                                <td>Token Name</td>
                             </tr>
                         </thead>
                         <tbody>

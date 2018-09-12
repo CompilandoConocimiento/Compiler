@@ -24,9 +24,4 @@ export const tokenDescriptions: Map<token, string> = new Map([
 	[token.Number, "Number"]
 ])
 
-export interface TokenInfo {
-    token: token,
-    position: number,
-}
-
 export type production = Array<token|string>

@@ -1,4 +1,5 @@
 import {FiniteStateAutomata} from "./FiniteStateAutomata"
+import {CFG} from "./CFG"
 import {token} from "./Types"
 
 const plusSign = FiniteStateAutomata.basicFSA('+');
@@ -57,6 +58,40 @@ const arithmetic = FiniteStateAutomata.superJoin(
 );
 
 arithmetic.setName("Arithmetic expressions")
+
+
+const grammar1: CFG = new CFG(new Set([1, 2, 3, 4, 5, 6, 10]), new Set(['E', 'T', 'F']), 'E');
+grammar1.addRule('E', ['E', 1, 'T']);
+grammar1.addRule('E', ['E', 2, 'T']);
+grammar1.addRule('E', ['T']);
+grammar1.addRule('T', ['T', 3, 'F']);
+grammar1.addRule('T', ['T', 4, 'F']);
+grammar1.addRule('T', ['F']);
+grammar1.addRule('F', [5, 'E', 6]);
+grammar1.addRule('F', [10]);
+window["grammar1"] = grammar1
+
+const grammar2: CFG = new CFG(new Set([1, 2, 3, 4, 5, 6, 10]), new Set(['E']), 'E');
+grammar2.addRule('E', ['E', 1, 'E']);
+grammar2.addRule('E', ['E', 2, 'E']);
+grammar2.addRule('E', ['E', 3, 'E']);
+grammar2.addRule('E', ['E', 4, 'E']);
+grammar2.addRule('E', [5, 'E', 6]);
+grammar2.addRule('E', [10]);
+window["grammar2"] = grammar2
+
+const grammar3: CFG = new CFG(new Set([1, 2, 3, 4, 5, 6, 10]), new Set(['E', 'T', 'F', 'e', 't']), 'E');
+grammar3.addRule('E', ['T', 'e']);
+grammar3.addRule('e', [1, 'T', 'e']);
+grammar3.addRule('e', [2, 'T', 'e']);
+grammar3.addRule('e', []);
+grammar3.addRule('T', ['F', 't']);
+grammar3.addRule('t', [3, 'F', 't']);
+grammar3.addRule('t', [4, 'F', 't']);
+grammar3.addRule('t', []);
+grammar3.addRule('F', [5, 'E', 6]);
+grammar3.addRule('F', [10]);
+window["grammar3"] = grammar3
 
 
 const DefaultAutomatas: Array<FiniteStateAutomata> = [plusSign, minusSign, multSign, divSign, openParenthesis, closeParenthesis,
