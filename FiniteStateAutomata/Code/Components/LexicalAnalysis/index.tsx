@@ -39,7 +39,8 @@ export default class SeeLexicalResult extends React.Component<propsType, stateTy
         const newTable: Array<JSX.Element> = []
         let prevIndex = 0;
         let currentToken = 0;
-        while ( (currentToken = lexer.getNextToken()) != token.EOF ) {
+        while (true) {
+            currentToken = lexer.getNextToken()
             if (currentToken == token.Error) lexer.advance()
 
             newTable.push(
@@ -51,12 +52,8 @@ export default class SeeLexicalResult extends React.Component<propsType, stateTy
             )
 
             prevIndex = lexer.position
-            window["tokens"].push(currentToken)
+            if (currentToken == token.EOF) break
         }
-
-        var root = window["grammar3"].validateTokens(tokens);
-        window["root"] = root;
-        console.log(root);
 
         this.setState({table: newTable})
 
