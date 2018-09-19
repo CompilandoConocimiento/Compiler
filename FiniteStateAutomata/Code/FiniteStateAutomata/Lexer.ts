@@ -43,22 +43,22 @@ export class Lexer {
     getNextToken(): token {
         if (this.position == this.testString.length) return token.EOF
 
-        let currentState: Set<stateID> = this.FSA.epsilonClosure(this.FSA.initialState)
+        let currentStates: Set<stateID> = this.FSA.epsilonClosure(this.FSA.initialState)
         let lastMatchedState: Set<stateID> = new Set()
         let endMatchPosition: number = this.position
 
         while (this.position <= this.testString.length) {
-            if (this.isFinalState(currentState)) {
-                lastMatchedState = currentState
+            if (this.isFinalState(currentStates)) {
+                lastMatchedState = currentStates
                 endMatchPosition = this.position
             }
             
-            let toState: Set<stateID> = new Set()
+            let toStates: Set<stateID> = new Set()
             if (this.position != this.testString.length)
-                toState = this.FSA.goToSet(currentState, this.testString[this.position++])
+                toStates = this.FSA.goToSet(currentStates, this.testString[this.position++])
             
-            if (toState.size > 0) 
-                currentState = toState
+            if (toStates.size > 0) 
+                currentStates = toStates
             else {
                 this.position = endMatchPosition
                 return this.getToken(lastMatchedState)

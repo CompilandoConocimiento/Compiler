@@ -16,11 +16,11 @@ export interface propsType {
 const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => {
 
     return (
-        <div className={`card blue-grey darken-${props.isSelected? "1": "3"}`} >
+        <div className={`card blue-grey darken-${props.isSelected? "1": "3"} ${props.isSelected? "z-depth-5" : ""} `} >
             <div 
-                className="card-content white-text">
-                <div className={Style.unselectable} onClick={props.SelectAutomata}>
-                    <span className="card-title">Automata {props.name}</span>
+                className="card-content white-text" onClick={props.SelectAutomata}>
+                <div className={Style.unselectable}>
+                    <span className="flow-text" style={{overflow: "auto"}}>Automata {props.name}</span>
                 </div>
             </div>
 
