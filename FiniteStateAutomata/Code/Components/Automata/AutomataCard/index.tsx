@@ -16,7 +16,7 @@ export interface propsType {
 const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => {
 
     return (
-        <div className={`card blue-grey darken-${props.isSelected? "1": "3"} ${props.isSelected? "z-depth-5" : ""} `} >
+        <div className={`card blue-grey darken-${props.isSelected? "1": "3"} ${props.isSelected? "z-depth-5" : "hoverable"} `} >
             <div 
                 className="card-content white-text" onClick={props.SelectAutomata}>
                 <div className={Style.unselectable}>
