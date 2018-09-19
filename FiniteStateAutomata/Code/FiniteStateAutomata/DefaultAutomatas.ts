@@ -2,6 +2,8 @@ import {FiniteStateAutomata} from "./FiniteStateAutomata"
 import {CFG} from "./CFG"
 import {token} from "./Types"
 
+
+
 const plusSign = FiniteStateAutomata.basicFSA('+');
 plusSign.setName("Plus sign");
 plusSign.setFinalToken(token.PlusSign);
@@ -94,8 +96,60 @@ grammar3.addRule('F', [10]);
 window["grammar3"] = grammar3
 
 
-const DefaultAutomatas: Array<FiniteStateAutomata> = [plusSign, minusSign, multSign, divSign, openParenthesis, closeParenthesis,
-    integer, decimal, exponent, float, number, arithmetic
+
+
+
+
+
+
+const DefaultaritmeticAutomatas: Array<FiniteStateAutomata> = [
+    plusSign, minusSign, multSign, divSign, openParenthesis, closeParenthesis,
+    integer, decimal, float, number, arithmetic
 ]
 
-export default DefaultAutomatas
+
+
+
+
+
+
+
+const a = FiniteStateAutomata.basicFSA('a');
+a.setName("a");
+
+const b = FiniteStateAutomata.basicFSA('b');
+b.setName("b");
+
+const c = FiniteStateAutomata.basicFSA('c');
+c.setName("c");
+
+const d = FiniteStateAutomata.basicFSA('d');
+d.setName("d");
+
+const s = FiniteStateAutomata.basicFSA('s');
+s.setName("s");
+
+const t = FiniteStateAutomata.basicFSA('t');
+t.setName("t");
+
+const firstAuto = a.clone().join(b.clone()).positiveClosure().concat(c.clone().kleeneClosure()).concat(d.clone())
+firstAuto.setFinalToken(100)
+
+const secondAuto = c.clone().concat(a.clone().join(b.clone()).positiveClosure())
+secondAuto.setFinalToken(200)
+
+const thirdAuto = a.clone().concat(b.clone()).concat(c.clone().positiveClosure()).concat(b.clone().kleeneClosure()).concat(a.clone().positiveClosure()).concat(d.clone().positiveClosure())
+thirdAuto.setFinalToken(300)
+
+const fourthAuto = s.clone().join(t.clone()).positiveClosure()
+fourthAuto.setFinalToken(400)
+
+window["testString"] = "abbacccdsstscababbssabcccaaddabccaddsstss"
+
+
+const DefaultTestAutomatas: Array<FiniteStateAutomata> = [
+    firstAuto, secondAuto, thirdAuto, fourthAuto, FiniteStateAutomata.superJoin([firstAuto.clone(), secondAuto.clone(), thirdAuto.clone(), fourthAuto.clone()]) 
+]
+
+
+export default DefaultTestAutomatas

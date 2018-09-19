@@ -34,6 +34,10 @@ export default class ShowAutomatas extends React.Component<{}, MyState> {
         const elements = document.querySelectorAll('.fixed-action-btn');
         M.FloatingActionButton.init(elements, {hoverEnabled: false})
     }
+    
+    callForceUpdate () {
+        this.forceUpdate()
+    }
 
     render () {
 
@@ -51,7 +55,10 @@ export default class ShowAutomatas extends React.Component<{}, MyState> {
 
             this.setState( (preState) => {
                 preState.Automatas.push(fsa1)
-                return {Automatas: preState.Automatas}
+                return {
+                    selectedAutomatas: [],
+                    Automatas: preState.Automatas
+                }
             })
         }
 
@@ -65,7 +72,10 @@ export default class ShowAutomatas extends React.Component<{}, MyState> {
 
             this.setState( (preState) => {
                 preState.Automatas.push(newFSA)
-                return {Automatas: preState.Automatas}
+                return {
+                    selectedAutomatas: [],
+                    Automatas: preState.Automatas
+                }
             })
         }
 
@@ -74,7 +84,7 @@ export default class ShowAutomatas extends React.Component<{}, MyState> {
         const positiveClosure = () => binaryOperation((a, _) => a.positiveClosure(a))
         const kleeneClosure   = () => binaryOperation((a, _) => a.kleeneClosure(a))
         const optionalClosure = () => binaryOperation((a, _) => a.optionalClosure(a))
-        const toDFA           = () => binaryOperation((a, _) => a.toDFA(a))
+        const toDFA           = () => binaryOperation((a, _) => a.toDFA())
         const superJoin       = JoinOperation
 
 
@@ -90,8 +100,9 @@ export default class ShowAutomatas extends React.Component<{}, MyState> {
                     (fsa, index) => {
 
                         return (
-                            <AutomataCard 
-                                key     = {String(index)}   
+                            <AutomataCard
+                                forceUpdate = {() => this.callForceUpdate()}
+                                key     = {String(index)}
                                 name    = {fsa.getName()} 
                                 FSA     = {fsa}
                                 onClick = {() => {
@@ -123,7 +134,6 @@ export default class ShowAutomatas extends React.Component<{}, MyState> {
                     this.setState( (preState) => {
                         const newAutomata = FiniteStateAutomata.basicFSA(character)
                         newAutomata.name = name
-                        newAutomata.alphabeth = new Set(Array(256).fill(0).map( (_, index ) => String.fromCharCode(index)))
                         preState.Automatas.push(newAutomata)
                         return {Automatas: preState.Automatas}
                     })
@@ -173,7 +183,7 @@ export default class ShowAutomatas extends React.Component<{}, MyState> {
                         </a>
                     </li>
                     <li>
-                        <a data-target="AddAutomataModal" className="modal-trigger btn-floating" style={{"width": "100px"}} href="#!" onClick={superJoin} >
+                        <a data-target="AddAutomataModal" className="modal-trigger btn-floating" style={{"width": "100px"}}>
                             Create Basic Automata
                         </a>
                     </li>

@@ -1,7 +1,10 @@
 import React from "react"
 import { FiniteStateAutomata } from "../../../FiniteStateAutomata/FiniteStateAutomata";
+import { tokenDescriptions } from "../../../FiniteStateAutomata/Types";
+import Style from "./Style.css"
 
 export interface propsType {
+    forceUpdate: () => void,
     name: string,
     onClick: () => any,
     SelectAutomata: () => any,
@@ -13,9 +16,12 @@ export interface propsType {
 const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => {
 
     return (
-        <div className={`card blue-grey darken-${props.isSelected? "1": "3"}`}>
-            <div className="card-content white-text">
-                <span className="card-title">Automata {props.name}</span>
+        <div className={`card blue-grey darken-${props.isSelected? "1": "3"}`} >
+            <div 
+                className="card-content white-text">
+                <div className={Style.unselectable} onClick={props.SelectAutomata}>
+                    <span className="card-title">Automata {props.name}</span>
+                </div>
             </div>
 
             <div className="card-action">
@@ -27,6 +33,20 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
                             if(value != null) alert(`The string was ${props.FSA.validateString(value!)? "accepted": "rejected"}`)
                         }}>
                         Validate String
+                    </a>
+                </li>
+                <li>
+                    <a className = "waves-effect waves-green btn-flat"
+                        onClick  = {() => {
+                            const newToken = prompt("Give token ID:")
+                            const newName = prompt("Give token name:")
+                            if (newToken != null && newName != null) {
+                                tokenDescriptions.set(Number(newToken), newName)
+                                props.FSA.setFinalToken(Number(newToken))
+                            }
+                        }}
+                    >
+                        Set final token to Final States
                     </a>
                 </li>
                 <li>
@@ -50,6 +70,17 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
                         onClick  = {props.SelectAutomata}
                     >
                         Select
+                    </a>
+                </li>
+                <li>
+                    <a className = "waves-effect waves-green btn-flat"
+                        onClick  = {() => {
+                            const newName = prompt("Give me a new name:", props.FSA.getName())
+                            if (newName != null) props.FSA.setName(newName)
+                            props.forceUpdate()
+                        }}
+                    >
+                        Rename
                     </a>
                 </li>
                 <li>

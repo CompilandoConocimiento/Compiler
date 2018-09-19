@@ -165,7 +165,7 @@ export class FiniteStateAutomata {
         this.addTransition(newInitialStateID, this.epsilonCharacter, this.initialState)
         this.addTransition(newInitialStateID, this.epsilonCharacter, FSA2.initialState)
         this.setInitialState(newInitialStateID)
-        this.setName(this.getName() + " | " + FSA2.getName())
+        this.setName(`(${this.getName()} | ${FSA2.getName()})`)
         this.alphabeth = new Set([...this.alphabeth, ...FSA2.alphabeth])
 
         FSA2.states.forEach( (state, id, _) => {
@@ -186,7 +186,7 @@ export class FiniteStateAutomata {
 
     concat(FSA2: FiniteStateAutomata): FiniteStateAutomata {
         this.alphabeth = new Set([...this.alphabeth, ...FSA2.alphabeth])
-        this.setName(this.getName() + " & " + FSA2.getName())
+        this.setName(`(${this.getName()} & ${FSA2.getName()})`)
 
         let uniqueFinalState: stateID = 0;
         this.states.forEach( (state, id, _2) => {
@@ -210,7 +210,7 @@ export class FiniteStateAutomata {
         const newInitialStateID: stateID = getNewID()
         const newFinalStateID: stateID = getNewID()
         this.addTransition(newInitialStateID, this.epsilonCharacter, this.initialState)
-        this.setName(this.getName() + "+")
+        this.setName(`(${this.getName()})+`)
 
         this.states.forEach( (state, id, _2) => {
             if (state.isFinalState) {
@@ -242,7 +242,8 @@ export class FiniteStateAutomata {
         const newInitialStateID: stateID = getNewID()
         const newFinalStateID: stateID = getNewID()
         this.addTransition(newInitialStateID, this.epsilonCharacter, this.initialState)
-        this.setName(this.getName() + "?")
+        this.setName(`(${this.getName()})?`)
+
 
         this.states.forEach( (state, id, _2) => {
             if (state.isFinalState) {
@@ -268,7 +269,7 @@ export class FiniteStateAutomata {
         const DFA = new FiniteStateAutomata(new Set(this.alphabeth))
         DFA.setInitialState(newInitialStateID)
         DFA.setEpsilonCharacter(this.epsilonCharacter)
-        DFA.setName(this.getName() + " deterministic")
+        DFA.setName(`(Deterministic : ${this.getName()})`)
 
         const initialSet: Set<stateID> = this.epsilonClosure(this.initialState)
         const pending: Array<Set<stateID>> = [initialSet]
@@ -364,6 +365,7 @@ export class FiniteStateAutomata {
         const newInitialStateID: stateID = getNewID()
         const newFSA = new FiniteStateAutomata(new Set([]))
         newFSA.setInitialState(newInitialStateID)
+        newFSA.setName(`Super join: [ ${FSAs.map(e => `[${e.getName()}]`).join(" | ")} ]`)
 
         FSAs.forEach( FSA => {
             newFSA.alphabeth = new Set([...newFSA.alphabeth, ...FSA.alphabeth])

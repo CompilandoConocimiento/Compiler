@@ -1,5 +1,6 @@
 import React from "react"
 import {FiniteStateAutomata} from "../../../FiniteStateAutomata/FiniteStateAutomata"
+import {tokenDescriptions} from "../../../FiniteStateAutomata/Types"
 
 export interface propsType {
     FSA: FiniteStateAutomata
@@ -10,18 +11,25 @@ const SeeAutomata: React.StatelessComponent<propsType> = (props: propsType) => {
     if (props.FSA == null) return <div id="SeeAutomataModal" className="modal modal-fixed-footer"></div>
     //console.log(props.FSA)
 
-    const finalStates = Array.from(props.FSA.states.values())
-                        .filter(state => state.isFinalState).
-                        map(state => state.id)
+    const finalStateItems = Array.from(props.FSA.states.values())
+    .filter(state => state.isFinalState)
+    .map(state => {
+        
+        const validToken = state.token != -1 && state.token != 0
+        const tokenName  = tokenDescriptions.get(state.token)
 
-    const finalStateItems = finalStates.map( (e, index) => {
-        const isFinal = index + 1 == finalStates.length
-
+        const name = (validToken && tokenName != undefined)? 
+        ` (${state.token} - ${tokenName})` : "" 
+        
         return (
-            <span key={`${e} f`}>{e} {isFinal? "": ", "}</span>
+            <span key={`${state.id} f`}>
+                &nbsp; &nbsp;
+                {state.id}
+                {name}
+                <br />
+            </span>
         )
     })
-
 
     return (
         <div id="SeeAutomataModal" className="modal modal-fixed-footer">
@@ -42,9 +50,8 @@ const SeeAutomata: React.StatelessComponent<propsType> = (props: propsType) => {
                         <td>{props.FSA.initialState}</td>
                         <td>
                         {`{ `}
-                        {
-                            finalStateItems 
-                        }
+                            <br />
+                            {finalStateItems} 
                         {`}`}
                         </td>
                     </tr>
