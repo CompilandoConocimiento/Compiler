@@ -46,7 +46,7 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
                             }
                         }}
                     >
-                        Set final token to Final States
+                        Set token to Final States
                     </a>
                 </li>
                 <li>

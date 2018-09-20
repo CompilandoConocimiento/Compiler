@@ -9,8 +9,8 @@ export default function Footer(props) {
                     <div className="col l6 s12">
                         <h6 className="white-text">What is this?</h6>
                         <p className="white-text">
-                            This webapp/book is a simple converter for the many
-                            representations of numbers in a computer.
+                            In this webapp we implement and test basic operations
+                            between automatas and free-context grammars.
                         </p>
                     </div>
                     <div className="col l4 offset-l2 s12">

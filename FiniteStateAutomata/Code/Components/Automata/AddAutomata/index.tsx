@@ -18,7 +18,7 @@ export default function AddAutomata(props: {addNew: (name: string, value: string
             <div className="modal-content">
                 
                 <h4>Create an Automata</h4>
-                <p>Select a name and the basic character it should recognize</p>
+                <p>Select a name and the string it should recognize</p>
 
                 <div className="row">
                     <div className="input-field col s6">
@@ -29,8 +29,8 @@ export default function AddAutomata(props: {addNew: (name: string, value: string
 
                 <div className="row">
                     <div className="input-field col s6">
-                        <input placeholder="character" id="automataNewChar" type="text" maxLength={1} />
-                        <label htmlFor="first_name">Tell me the character</label>
+                        <input placeholder="string" id="automataNewChar" type="text" />
+                        <label htmlFor="first_name">Tell me the string</label>
                     </div>
                 </div>
                 

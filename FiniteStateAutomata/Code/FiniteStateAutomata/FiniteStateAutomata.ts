@@ -349,14 +349,21 @@ export class FiniteStateAutomata {
         return newCopy
     }
 
-    static basicFSA(character: string): FiniteStateAutomata {
-        const basic = new FiniteStateAutomata(new Set([character]))
-        const fromStateID: stateID = getNewID()
-        const toStateID: stateID = getNewID()
+    static basicFSA(characters: string): FiniteStateAutomata {
+        const basic = new FiniteStateAutomata(new Set(characters.split("")))
+        basic.setName(characters)
+        let prevStateID: stateID = getNewID()
+        let currStateID: stateID
+        basic.setInitialState(prevStateID)
 
-        basic.setInitialState(fromStateID)
-        basic.addTransition(fromStateID, character, toStateID)
-        basic.setFinalState(toStateID)
+        for (let i = 0; i < characters.length; ++i) {
+            let c = characters[i]
+            currStateID = getNewID()
+            basic.addTransition(prevStateID, c, currStateID)
+            prevStateID = currStateID
+        }
+
+        basic.setFinalState(prevStateID)
 
         return basic
     }

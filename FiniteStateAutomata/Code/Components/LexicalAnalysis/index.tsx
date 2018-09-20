@@ -34,8 +34,6 @@ export default class SeeLexicalResult extends React.Component<propsType, stateTy
     createNewTable () {
 
         const lexer = new Lexer(this.state.FSA, this.state.stringData)
-        window["lexer"] = lexer
-        window["tokens"] = []
         const newTable: Array<JSX.Element> = []
         let prevIndex = 0;
         let currentToken = 0;

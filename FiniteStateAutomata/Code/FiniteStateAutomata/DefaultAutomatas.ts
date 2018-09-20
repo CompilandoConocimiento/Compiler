@@ -2,8 +2,6 @@ import {FiniteStateAutomata} from "./FiniteStateAutomata"
 import {CFG} from "./CFG"
 import {token} from "./Types"
 
-
-
 const plusSign = FiniteStateAutomata.basicFSA('+');
 plusSign.setName("Plus sign");
 plusSign.setFinalToken(token.PlusSign);
@@ -19,6 +17,42 @@ multSign.setFinalToken(token.MultiplicationSign);
 const divSign = FiniteStateAutomata.basicFSA('/');
 divSign.setName("Division sign");
 divSign.setFinalToken(token.DivisionSign);
+
+const powSign = FiniteStateAutomata.basicFSA('^');
+powSign.setName("Power sign");
+powSign.setFinalToken(token.PowerSign);
+
+const piConstant = FiniteStateAutomata.basicFSA('pi');
+piConstant.setName("Pi Constant");
+piConstant.setFinalToken(token.PiConstant);
+
+const eConstant = FiniteStateAutomata.basicFSA('e');
+eConstant.setName("Euler Constant");
+eConstant.setFinalToken(token.EConstant);
+
+const sineFunc = FiniteStateAutomata.basicFSA('sin');
+sineFunc.setName("Sine function");
+sineFunc.setFinalToken(token.Sine);
+
+const cosineFunc = FiniteStateAutomata.basicFSA('cos');
+cosineFunc.setName("Cosine function");
+cosineFunc.setFinalToken(token.Cosine);
+
+const tangentFunc = FiniteStateAutomata.basicFSA('tan');
+tangentFunc.setName("Tangent function");
+tangentFunc.setFinalToken(token.Tangent);
+
+const logFunc = FiniteStateAutomata.basicFSA('log');
+logFunc.setName("Logarithm base 10 function");
+logFunc.setFinalToken(token.Log);
+
+const lnFunc = FiniteStateAutomata.basicFSA('ln');
+lnFunc.setName("Natural logarithm function");
+lnFunc.setFinalToken(token.Ln);
+
+const sqrtFunc = FiniteStateAutomata.basicFSA('sqrt');
+sqrtFunc.setName("Square root function");
+sqrtFunc.setFinalToken(token.Sqrt);
 
 const openParenthesis = FiniteStateAutomata.basicFSA('(');
 openParenthesis.setName("Opening parenthesis");
@@ -53,6 +87,15 @@ const arithmetic = FiniteStateAutomata.superJoin(
         minusSign.clone(), 
         multSign.clone(),
         divSign.clone(),
+        powSign.clone(),
+        piConstant.clone(),
+        eConstant.clone(),
+        sineFunc.clone(),
+        cosineFunc.clone(),
+        tangentFunc.clone(),
+        logFunc.clone(),
+        lnFunc.clone(),
+        sqrtFunc.clone(),
         openParenthesis.clone(),
         closeParenthesis.clone(),
         number.clone()
@@ -62,55 +105,53 @@ const arithmetic = FiniteStateAutomata.superJoin(
 arithmetic.setName("Arithmetic expressions")
 
 
-const grammar1: CFG = new CFG(new Set([1, 2, 3, 4, 5, 6, 10]), new Set(['E', 'T', 'F']), 'E');
-grammar1.addRule('E', ['E', 1, 'T']);
-grammar1.addRule('E', ['E', 2, 'T']);
-grammar1.addRule('E', ['T']);
-grammar1.addRule('T', ['T', 3, 'F']);
-grammar1.addRule('T', ['T', 4, 'F']);
-grammar1.addRule('T', ['F']);
-grammar1.addRule('F', [5, 'E', 6]);
-grammar1.addRule('F', [10]);
+const grammar1: CFG = new CFG(new Set([1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 20, 21, 22, 23, 24, 25]), new Set(['E', 'T', 'P', 'F']), 'E', arithmetic);
+grammar1.addRule('E', ['E', token.PlusSign, 'T'], function(args){return args[0]+args[2];});
+grammar1.addRule('E', ['E', token.MinusSign, 'T'], function(args){return args[0]-args[2];});
+grammar1.addRule('E', ['T'], function(args){return args[0];});
+grammar1.addRule('T', ['T', token.MultiplicationSign, 'P'], function(args){return args[0]*args[2];});
+grammar1.addRule('T', ['T', token.DivisionSign, 'P'], function(args){return args[0]/args[2];});
+grammar1.addRule('T', ['P'], function(args){return args[0];});
+grammar1.addRule('P', ['P', token.PowerSign, 'F'], function(args){return Math.pow(args[0],args[2]);});
+grammar1.addRule('P', ['F'], function(args){return args[0];});
+grammar1.addRule('F', [token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return args[1];});
+grammar1.addRule('F', [token.Number], function(args){return Number(args[0]);});
+grammar1.addRule('F', [token.Sine, token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return Math.sin(args[2]);});
+grammar1.addRule('F', [token.Cosine, token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return Math.cos(args[2]);});
+grammar1.addRule('F', [token.Tangent, token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return Math.tan(args[2]);});
+grammar1.addRule('F', [token.Log, token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return Math.log10(args[2]);});
+grammar1.addRule('F', [token.Ln, token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return Math.log(args[2]);});
+grammar1.addRule('F', [token.Sqrt, token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return Math.sqrt(args[2]);});
+grammar1.addRule('F', [token.PiConstant], function(args){return Math.PI;});
+grammar1.addRule('F', [token.EConstant], function(args){return Math.E;});
 window["grammar1"] = grammar1
 
-const grammar2: CFG = new CFG(new Set([1, 2, 3, 4, 5, 6, 10]), new Set(['E']), 'E');
-grammar2.addRule('E', ['E', 1, 'E']);
-grammar2.addRule('E', ['E', 2, 'E']);
-grammar2.addRule('E', ['E', 3, 'E']);
-grammar2.addRule('E', ['E', 4, 'E']);
-grammar2.addRule('E', [5, 'E', 6]);
-grammar2.addRule('E', [10]);
-window["grammar2"] = grammar2
+console.log(grammar1.executeActions(grammar1.parseString("(sin(2*pi/7)+sin(4*pi/7)+sin(8*pi/7))^2*4")))
 
-const grammar3: CFG = new CFG(new Set([1, 2, 3, 4, 5, 6, 10]), new Set(['E', 'T', 'F', 'e', 't']), 'E');
+
+const grammar3: CFG = new CFG(new Set([1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 20, 21, 22, 23, 24, 25]), new Set(['E', 'T', 'F', 'e', 't']), 'E', arithmetic);
 grammar3.addRule('E', ['T', 'e']);
-grammar3.addRule('e', [1, 'T', 'e']);
-grammar3.addRule('e', [2, 'T', 'e']);
+grammar3.addRule('e', [token.PlusSign, 'T', 'e']);
+grammar3.addRule('e', [token.MinusSign, 'T', 'e']);
 grammar3.addRule('e', []);
 grammar3.addRule('T', ['F', 't']);
-grammar3.addRule('t', [3, 'F', 't']);
-grammar3.addRule('t', [4, 'F', 't']);
+grammar3.addRule('t', [token.MultiplicationSign, 'F', 't']);
+grammar3.addRule('t', [token.DivisionSign, 'F', 't']);
 grammar3.addRule('t', []);
-grammar3.addRule('F', [5, 'E', 6]);
-grammar3.addRule('F', [10]);
+grammar3.addRule('F', [token.OpenParenthesis, 'E', token.CloseParenthesis]);
+grammar3.addRule('F', [Number]);
 window["grammar3"] = grammar3
 
 
 
 
-
-
-
-
 const DefaultaritmeticAutomatas: Array<FiniteStateAutomata> = [
-    plusSign, minusSign, multSign, divSign, openParenthesis, closeParenthesis,
+    plusSign, minusSign, multSign, divSign, powSign,
+    piConstant, eConstant,
+    sineFunc, cosineFunc, tangentFunc, logFunc, lnFunc, sqrtFunc,
+    openParenthesis, closeParenthesis,
     integer, decimal, float, number, arithmetic
 ]
-
-
-
-
-
 
 
 
