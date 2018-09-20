@@ -21,6 +21,11 @@ export default function Footer(props) {
                                     <b>Soy</b>Oscar<b>RH</b>
                                 </li>
                             </a>
+                            <a href="" target="_blank">
+                                <li className="white-text">
+                                    <b>Alaneos</b>777
+                                </li>
+                            </a>
                         </ul>
 
                         <br />
