@@ -212,12 +212,13 @@ export class CFG {
 
 	executeActions(info: ParseInfo, index: number = 0): any {
 		let posTerminal: number = 0
+		let self = this;
 		let lexemes: Array<string> = info.lexemes
 		let dfs: (current: node) => any = function(current: node): any{
 		    let posChild: number = 0
 		    let args: Array<string> = []
 		    current.rule.text.forEach(c => {
-		        if(grammar1.isNonTerminal(c))
+		        if(self.isNonTerminal(c))
 		            args.push(dfs(current.children[posChild++]));
 		        else
 		            args.push(lexemes[posTerminal++])

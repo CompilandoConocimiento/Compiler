@@ -105,28 +105,28 @@ const arithmetic = FiniteStateAutomata.superJoin(
 arithmetic.setName("Arithmetic expressions")
 
 
-const grammar1: CFG = new CFG(new Set([1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 20, 21, 22, 23, 24, 25]), new Set(['E', 'T', 'P', 'F']), 'E', arithmetic);
-grammar1.addRule('E', ['E', token.PlusSign, 'T'], function(args){return args[0]+args[2];});
-grammar1.addRule('E', ['E', token.MinusSign, 'T'], function(args){return args[0]-args[2];});
-grammar1.addRule('E', ['T'], function(args){return args[0];});
-grammar1.addRule('T', ['T', token.MultiplicationSign, 'P'], function(args){return args[0]*args[2];});
-grammar1.addRule('T', ['T', token.DivisionSign, 'P'], function(args){return args[0]/args[2];});
-grammar1.addRule('T', ['P'], function(args){return args[0];});
-grammar1.addRule('P', ['P', token.PowerSign, 'F'], function(args){return Math.pow(args[0],args[2]);});
-grammar1.addRule('P', ['F'], function(args){return args[0];});
-grammar1.addRule('F', [token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return args[1];});
-grammar1.addRule('F', [token.Number], function(args){return Number(args[0]);});
-grammar1.addRule('F', [token.Sine, token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return Math.sin(args[2]);});
-grammar1.addRule('F', [token.Cosine, token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return Math.cos(args[2]);});
-grammar1.addRule('F', [token.Tangent, token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return Math.tan(args[2]);});
-grammar1.addRule('F', [token.Log, token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return Math.log10(args[2]);});
-grammar1.addRule('F', [token.Ln, token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return Math.log(args[2]);});
-grammar1.addRule('F', [token.Sqrt, token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return Math.sqrt(args[2]);});
-grammar1.addRule('F', [token.PiConstant], function(args){return Math.PI;});
-grammar1.addRule('F', [token.EConstant], function(args){return Math.E;});
-window["grammar1"] = grammar1
+const arithGrammar: CFG = new CFG(new Set([1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 20, 21, 22, 23, 24, 25]), new Set(['E', 'T', 'P', 'F']), 'E', arithmetic);
+arithGrammar.addRule('E', ['E', token.PlusSign, 'T'], function(args){return args[0]+args[2];});
+arithGrammar.addRule('E', ['E', token.MinusSign, 'T'], function(args){return args[0]-args[2];});
+arithGrammar.addRule('E', ['T'], function(args){return args[0];});
+arithGrammar.addRule('T', ['T', token.MultiplicationSign, 'P'], function(args){return args[0]*args[2];});
+arithGrammar.addRule('T', ['T', token.DivisionSign, 'P'], function(args){return args[0]/args[2];});
+arithGrammar.addRule('T', ['P'], function(args){return args[0];});
+arithGrammar.addRule('P', ['P', token.PowerSign, 'F'], function(args){return Math.pow(args[0],args[2]);});
+arithGrammar.addRule('P', ['F'], function(args){return args[0];});
+arithGrammar.addRule('F', [token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return args[1];});
+arithGrammar.addRule('F', [token.Number], function(args){return Number(args[0]);});
+arithGrammar.addRule('F', [token.Sine, token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return Math.sin(args[2]);});
+arithGrammar.addRule('F', [token.Cosine, token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return Math.cos(args[2]);});
+arithGrammar.addRule('F', [token.Tangent, token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return Math.tan(args[2]);});
+arithGrammar.addRule('F', [token.Log, token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return Math.log10(args[2]);});
+arithGrammar.addRule('F', [token.Ln, token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return Math.log(args[2]);});
+arithGrammar.addRule('F', [token.Sqrt, token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return Math.sqrt(args[2]);});
+arithGrammar.addRule('F', [token.PiConstant], function(args){return Math.PI;});
+arithGrammar.addRule('F', [token.EConstant], function(args){return Math.E;});
+window["arithGrammar"] = arithGrammar
 
-console.log(grammar1.executeActions(grammar1.parseString("(sin(2*pi/7)+sin(4*pi/7)+sin(8*pi/7))^2*4")))
+console.log(arithGrammar.executeActions(arithGrammar.parseString("(sin(2*pi/7)+sin(4*pi/7)+sin(8*pi/7))^2*4")))
 
 
 const grammar3: CFG = new CFG(new Set([1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 20, 21, 22, 23, 24, 25]), new Set(['E', 'T', 'F', 'e', 't']), 'E', arithmetic);
