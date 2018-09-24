@@ -1,4 +1,4 @@
-import {token, production, productionText, ParseInfo} from "./Types"
+import {token, production, productionText} from "./Types"
 import {FiniteStateAutomata} from "./FiniteStateAutomata"
 import {Lexer} from "./Lexer"
 
@@ -27,7 +27,7 @@ export class item {
 		return newItem
 	}
 
-	nextPosition(): token|string {
+	nextPosition(): any {
 		if (this.position < this.rule.text.length)
 			return this.rule.text[this.position]
 		else
@@ -49,6 +49,11 @@ export class node {
 		this.rule = rule
 		this.children = children
 	}
+}
+
+export interface ParseInfo {
+	lexemes: Array<string>,
+	derivations: Array<node>
 }
 
 export class CFG {
@@ -82,11 +87,11 @@ export class CFG {
     		this.productions.set(name, new Set())
     }
 
-    isTerminal(token): boolean {
+    isTerminal(token: any): boolean {
     	return this.terminalSymbols.has(token)
     }
 
-    isNonTerminal(name: string): boolean {
+    isNonTerminal(name: any): boolean {
     	return this.nonTerminalSymbols.has(name)
     }
 
@@ -111,12 +116,13 @@ export class CFG {
 	    return false
     }
 
-    private createTree(root: item): Array<node> {
+    private createTree(root: item|null): Array<node> {
+		if(root == null) return []
     	let nodes: Array<node> = []
-    	let pending: Array<item> = []
+    	let pending: Array<item|null> = []
     	pending.push(root.complete)
 
-    	let prev: item = root.prev
+    	let prev: item|null = root.prev
     	while (prev != null && prev.position > 0){
     		pending.push(prev);
     		prev = prev.prev
@@ -154,7 +160,7 @@ export class CFG {
 				if(typeof dp[n] == "undefined") dp[n] = []
 				for(let j = 0; j < dp[n].length; ++j){
 					let currItem: item = dp[n][j]
-					let next: token|string = currItem.nextPosition()
+					let next: any = currItem.nextPosition()
 					if(currItem.end()){
 						dp[currItem.start].forEach(item => {
 							if(item.nextPosition() == currItem.name){
@@ -199,9 +205,8 @@ export class CFG {
 		let nodes: Array<node> = []
 
 		dp[n].forEach(currItem =>{
-			if(currItem.end() && currItem.start == 0 && currItem.name == this.S){
+			if(currItem.end() && currItem.start == 0 && currItem.name == this.S)
 				nodes = [...nodes, ...this.createTree(currItem)]
-			}
 		})
 
 		return {

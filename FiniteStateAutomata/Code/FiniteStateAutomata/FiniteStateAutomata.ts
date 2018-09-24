@@ -31,7 +31,7 @@ export class FiniteStateAutomata {
     }
 
     isValidCharacterOrEpsilon(character: string): boolean {
-        return State.metaCharacters.has(character) || this.alphabeth.has(character) || this.epsilonCharacter == character
+        return State.specialTransitions.has(character) || this.alphabeth.has(character) || this.epsilonCharacter == character
     }
 
     isFinalState(id: stateID): boolean {
@@ -350,7 +350,7 @@ export class FiniteStateAutomata {
     }
 
     static basicFSA(characters: string): FiniteStateAutomata {
-        const basic = new FiniteStateAutomata(new Set(characters.split("")))
+        const basic = new FiniteStateAutomata(new Set())
         basic.setName(characters)
         let prevStateID: stateID = getNewID()
         let currStateID: stateID
@@ -358,6 +358,8 @@ export class FiniteStateAutomata {
 
         for (let i = 0; i < characters.length; ++i) {
             let c = characters[i]
+            if(c == '\\') c += characters[++i]
+            basic.alphabeth.add(c)
             currStateID = getNewID()
             basic.addTransition(prevStateID, c, currStateID)
             prevStateID = currStateID

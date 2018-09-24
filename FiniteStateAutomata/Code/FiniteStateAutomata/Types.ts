@@ -18,7 +18,17 @@ export enum token {
 	Tangent = 22,
 	Log = 23,
 	Ln = 24,
-	Sqrt = 25
+	Sqrt = 25,
+	Abs = 26,
+	ArcSin = 27,
+	ArcCos = 28,
+	ArcTan = 29,
+	Symbol = 30,
+	Or = 31,
+	And = 32,
+	PositiveClosure = 33,
+	KleeneClosure = 34,
+	OptionalClosure = 35
 }
 
 export const tokenDescriptions: Map<token, string> = new Map([
@@ -39,16 +49,18 @@ export const tokenDescriptions: Map<token, string> = new Map([
 	[token.Tangent, "Tangent"],
 	[token.Log, "Logarithm"],
 	[token.Ln, "Natural Logarithm"],
-	[token.Sqrt, "Square root"]
+	[token.Sqrt, "Square root"],
+	[token.Abs, "Absolute value"],
+	[token.Symbol, "Symbol"],
+	[token.Or, "Or"],
+	[token.And, "And"],
+	[token.PositiveClosure, "Positive closure"],
+	[token.KleeneClosure, "Kleen closure"],
+	[token.OptionalClosure, "Optional closure"]
 ])
 
-export type productionText = Array<token|string>
+export type productionText = Array<any>
 export interface production {
 	text: productionText,
 	callback: (args: Array<any>)=>any
-}
-
-export interface ParseInfo {
-	lexemes: Array<string>,
-	derivations: Array<node>
 }
