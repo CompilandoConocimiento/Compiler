@@ -1,6 +1,7 @@
 import {FiniteStateAutomata} from "./FiniteStateAutomata"
 import {CFG} from "./CFG"
 import {token} from "./Types"
+import { metaCharacters } from "./State";
 
 const plusSign = FiniteStateAutomata.basicFSA('+');
 plusSign.setName("Plus sign");
@@ -191,6 +192,16 @@ optionalClosure.setFinalToken(token.OptionalClosure);
 
 const symbol = FiniteStateAutomata.basicFSA("\\w");
 symbol.join(FiniteStateAutomata.basicFSA("\\d"));
+symbol.join(FiniteStateAutomata.basicFSA("\\+", false));
+symbol.join(FiniteStateAutomata.basicFSA("\\*", false));
+symbol.join(FiniteStateAutomata.basicFSA("\\?", false));
+symbol.join(FiniteStateAutomata.basicFSA("\\(", false));
+symbol.join(FiniteStateAutomata.basicFSA("\\)", false));
+symbol.join(FiniteStateAutomata.basicFSA("\\|", false));
+symbol.join(FiniteStateAutomata.basicFSA("\\&", false));
+symbol.join(FiniteStateAutomata.basicFSA("\\\\", false));
+symbol.join(FiniteStateAutomata.basicFSA("\\d", false));
+symbol.join(FiniteStateAutomata.basicFSA("\\w", false));
 symbol.setName("Symbol");
 symbol.setFinalToken(token.Symbol);
 
@@ -212,7 +223,15 @@ regExpGrammar.addRule('C', ['C', token.OptionalClosure], function(args){return a
 regExpGrammar.addRule('C', ['F'], function(args){return args[0];});
 
 regExpGrammar.addRule('F', [token.OpenParenthesis, 'E', token.CloseParenthesis], function(args){return args[1]});
-regExpGrammar.addRule('F', [token.Symbol], function(args){return FiniteStateAutomata.basicFSA(args[0])});
+regExpGrammar.addRule('F', [token.Symbol], function(args){
+    let str = args[0];
+    if(Object.values(metaCharacters).includes(str))
+        return FiniteStateAutomata.basicFSA(str);
+    if(str[0] == '\\')
+        return FiniteStateAutomata.basicFSA(str[1], false)
+    else
+        return FiniteStateAutomata.basicFSA(str, false)
+});
 
 regExpGrammar.setName("Regular expressions")
 window["regExpGrammar"] = regExpGrammar

@@ -1,5 +1,12 @@
 import {stateID} from "./Types"
 
+export enum metaCharacters {
+    Digit = '\\d',
+    Letter = '\\w'
+}
+
+const range: (start: number, end: number, char: string)=>any = (start, end, char) => Array.from({length: (end - start)}, (_, k) => [String.fromCharCode(k + start), char])
+
 export class State {
     id: stateID
     token: number
@@ -7,9 +14,9 @@ export class State {
     transitions: Map<string, Set<stateID> >
 
     static specialTransitions: Map<string, string> = new Map([
-        ['0', '\\d'], ['1', '\\d'], ['2', '\\d'], ['3', '\\d'], ['4', '\\d'], ['5', '\\d'], ['6', '\\d'], ['7', '\\d'], ['8', '\\d'], ['9', '\\d'],
-        ['A', '\\w'], ['B', '\\w'], ['C', '\\w'], ['D', '\\w'], ['E', '\\w'], ['F', '\\w'], ['G', '\\w'], ['H', '\\w'], ['I', '\\w'], ['J', '\\w'], ['K', '\\w'], ['L', '\\w'], ['M', '\\w'], ['N', '\\w'], ['O', '\\w'], ['P', '\\w'], ['Q', '\\w'], ['R', '\\w'], ['S', '\\w'], ['T', '\\w'], ['U', '\\w'], ['V', '\\w'], ['W', '\\w'], ['X', '\\w'], ['Y', '\\w'], ['Z', '\\w'],
-        ['a', '\\w'], ['b', '\\w'], ['c', '\\w'], ['d', '\\w'], ['e', '\\w'], ['f', '\\w'], ['g', '\\w'], ['h', '\\w'], ['i', '\\w'], ['j', '\\w'], ['k', '\\w'], ['l', '\\w'], ['m', '\\w'], ['n', '\\w'], ['o', '\\w'], ['p', '\\w'], ['q', '\\w'], ['r', '\\w'], ['s', '\\w'], ['t', '\\w'], ['u', '\\w'], ['v', '\\w'], ['w', '\\w'], ['x', '\\w'], ['y', '\\w'], ['z', '\\w']
+        ...range(48, 57, metaCharacters.Digit),
+        ...range(65, 90, metaCharacters.Letter),
+        ...range(97, 122, metaCharacters.Letter)
     ])
 
     constructor(id: stateID) {

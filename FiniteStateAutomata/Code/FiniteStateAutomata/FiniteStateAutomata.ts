@@ -349,7 +349,7 @@ export class FiniteStateAutomata {
         return newCopy
     }
 
-    static basicFSA(characters: string): FiniteStateAutomata {
+    static basicFSA(characters: string, hasMetaCharacters: boolean = true): FiniteStateAutomata {
         const basic = new FiniteStateAutomata(new Set())
         basic.setName(characters)
         let prevStateID: stateID = getNewID()
@@ -358,7 +358,7 @@ export class FiniteStateAutomata {
 
         for (let i = 0; i < characters.length; ++i) {
             let c = characters[i]
-            if(c == '\\') c += characters[++i]
+            if(hasMetaCharacters && c == '\\') c += characters[++i]
             basic.alphabeth.add(c)
             currStateID = getNewID()
             basic.addTransition(prevStateID, c, currStateID)
