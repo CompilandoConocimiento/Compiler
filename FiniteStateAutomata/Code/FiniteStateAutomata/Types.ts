@@ -61,6 +61,6 @@ export const tokenDescriptions: Map<token, string> = new Map([
 
 export type productionText = Array<any>
 export interface production {
-	text: productionText,
+	RHS: productionText,
 	callback: (args: Array<any>)=>any
 }

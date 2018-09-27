@@ -1,8 +1,8 @@
 import {stateID} from "./Types"
 
-export enum metaCharacters {
-    Digit = '\\d',
-    Letter = '\\w'
+export const metaCharacters = {
+    Digit: String.raw`\d`,
+    Letter: String.raw`\w`
 }
 
 const range: (start: number, end: number, char: string)=>any = (start, end, char) => Array.from({length: (end - start)}, (_, k) => [String.fromCharCode(k + start), char])

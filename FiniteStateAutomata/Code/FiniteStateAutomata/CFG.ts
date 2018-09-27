@@ -4,15 +4,15 @@ import {Lexer} from "./Lexer"
 
 export class item {
 
-	name: string
+	LHS: string
 	rule: production
 	start: number
 	position: number
 	prev: null | item
 	complete: null | item
 
-	constructor (name: string, rule: production, start: number, position: number) {
-		this.name = name
+	constructor (LHS: string, rule: production, start: number, position: number) {
+		this.LHS = LHS
 		this.rule = rule
 		this.start = start
 		this.position = position
@@ -21,31 +21,31 @@ export class item {
 	}
 
 	clone(): item {
-		let newItem: item = new item(this.name, this.rule, this.start, this.position)
+		let newItem: item = new item(this.LHS, this.rule, this.start, this.position)
 		newItem.prev = this.prev
 		newItem.complete = this.complete
 		return newItem
 	}
 
 	nextPosition(): any {
-		if (this.position < this.rule.text.length)
-			return this.rule.text[this.position]
+		if (this.position < this.rule.RHS.length)
+			return this.rule.RHS[this.position]
 		else
 			return 0
 	}
 
 	end(): boolean {
-		return this.position == this.rule.text.length
+		return this.position == this.rule.RHS.length
 	}
 }
 
 export class node {
-	name: string
+	LHS: string
 	rule: production
 	children: Array<node>
 
-	constructor (name: string, rule: production, children: Array<node>) {
-		this.name = name
+	constructor (LHS: string, rule: production, children: Array<node>) {
+		this.LHS = LHS
 		this.rule = rule
 		this.children = children
 	}
@@ -82,31 +82,31 @@ export class CFG {
         this.name = name
     }
 
-    private addProductionIfNotExist(name: string): void {
-    	if (!this.productions.has(name))
-    		this.productions.set(name, new Set())
+    private addProductionIfNotExist(LHS: string): void {
+    	if (!this.productions.has(LHS))
+    		this.productions.set(LHS, new Set())
     }
 
     isTerminal(token: any): boolean {
     	return this.terminalSymbols.has(token)
     }
 
-    isNonTerminal(name: any): boolean {
-    	return this.nonTerminalSymbols.has(name)
+    isNonTerminal(LHS: any): boolean {
+    	return this.nonTerminalSymbols.has(LHS)
     }
 
-    addRule(name: string, text: productionText, callback: (args: Array<any>)=>any): boolean {
-    	if (!this.isNonTerminal(name)) return false
-    	this.addProductionIfNotExist(name)
-    	this.productions.get(name)!.add({
-    		text: text,
+    addRule(LHS: string, RHS: productionText, callback: (args: Array<any>)=>any): boolean {
+    	if (!this.isNonTerminal(LHS)) return false
+    	this.addProductionIfNotExist(LHS)
+    	this.productions.get(LHS)!.add({
+    		RHS: RHS,
     		callback: callback
     	})
     	return true
     }
 
     private hashItem(item: item): string {
-    	return item.name + ";" + item.rule.text.join(",") + ";" + item.start.toString() + ";" + item.position.toString()
+    	return item.LHS + ";" + item.rule.RHS.join(",") + ";" + item.start.toString() + ";" + item.position.toString()
     }
 
     private existItem(items: Array<item>, item: item): boolean {
@@ -135,7 +135,7 @@ export class CFG {
     	}
 
     	if (root.end())
-    		return [new node(root.name, root.rule, nodes)]
+    		return [new node(root.LHS, root.rule, nodes)]
     	else
     		return nodes
     }
@@ -163,7 +163,7 @@ export class CFG {
 					let next: any = currItem.nextPosition()
 					if(currItem.end()){
 						dp[currItem.start].forEach(item => {
-							if(item.nextPosition() == currItem.name){
+							if(item.nextPosition() == currItem.LHS){
 								let newItem: item = item.clone()
 								++newItem.position
 								newItem.prev = item.clone()
@@ -205,7 +205,7 @@ export class CFG {
 		let nodes: Array<node> = []
 
 		dp[n].forEach(currItem =>{
-			if(currItem.end() && currItem.start == 0 && currItem.name == this.S)
+			if(currItem.end() && currItem.start == 0 && currItem.LHS == this.S)
 				nodes = [...nodes, ...this.createTree(currItem)]
 		})
 
@@ -222,7 +222,7 @@ export class CFG {
 		let dfs: (current: node) => any = function(current: node): any{
 		    let posChild: number = 0
 		    let args: Array<string> = []
-		    current.rule.text.forEach(c => {
+		    current.rule.RHS.forEach(c => {
 		        if(self.isNonTerminal(c))
 		            args.push(dfs(current.children[posChild++]));
 		        else
