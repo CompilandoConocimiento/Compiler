@@ -1,7 +1,5 @@
 import React from "react"
 
-
-
 export default function AddAutomata(props: {addNew: (name: string, value: string) => void}) {
 
     function AddAutomata() {

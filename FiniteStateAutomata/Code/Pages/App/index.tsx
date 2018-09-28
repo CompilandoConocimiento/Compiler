@@ -20,8 +20,6 @@ class App extends React.Component<{}, MyState> {
 
     constructor(props) {
         super (props)
-
-  
     }
  
     componentDidMount() {
