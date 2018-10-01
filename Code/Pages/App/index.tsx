@@ -9,14 +9,15 @@ import M from "materialize-css"
 import Header from "../Header"
 import Footer from "../Footer"
 
-import { Token, DefaultTokens, EssencialToken, getNewTokenID } from '../../CoreLogic/Token'
+import { DefaultTokens, EssencialToken, getNewTokenID, TokenItem } from '../../CoreLogic/Token'
+import { FiniteStateAutomata, } from '../../CoreLogic/FiniteStateAutomata'
 import TokenPage from '../TokenPage/'
 import AutomataPage from '../AutomataPage/'
 import CardToTopic from './CardToTopic'
 
 type AppState = {
     SideMenu: M.Sidenav | null,
-    Tokens: Array<Token>,
+    Tokens: Map<String, TokenItem>,
     Automatas: Array<any>,
     Grammars: Array<any>,
 }
@@ -28,7 +29,7 @@ class App extends React.Component<{}, AppState> {
 
         this.state = {
             SideMenu: null,
-            Tokens: [...DefaultTokens],
+            Tokens: new Map(DefaultTokens),
             Automatas: [],
             Grammars: [],
         }
@@ -45,27 +46,21 @@ class App extends React.Component<{}, AppState> {
     }
 
     addNewTokens(newTokens: EssencialToken[]) {
-        const tokensNames: Set<String> = new Set(this.state.Tokens.map (t => t.name))
-
-        newTokens = newTokens.filter( (newToken: EssencialToken) =>  {
-            if (tokensNames.has(newToken.name)) return false
-            tokensNames.add(newToken.name)
-            return true
-        })
-
-        const newFilteredTokens = newTokens.map(
-            newToken => {
-                return {
-                    name: newToken.name, 
-                    description: newToken.description,
-                    id: getNewTokenID()
-                }
-            } 
-        )
 
         this.setState((preState) => {
+            newTokens.forEach(
+                (newToken) => {
+                    if (preState.Tokens.has(newToken.name) == false) {
+                        preState.Tokens.set(
+                            newToken.name,
+                            { description: newToken.description, id: getNewTokenID() }
+                        )
+                    }
+                }
+            ) 
+
             M.toast({html: 'New tokens added'})
-            return {Tokens: [...preState.Tokens, ...newFilteredTokens]}
+            return {Tokens: preState.Tokens}
         })
     }
 
@@ -125,6 +120,15 @@ class App extends React.Component<{}, AppState> {
                                 <TokenPage 
                                     Tokens           = {this.state.Tokens}
                                     addNewTokens     = {(newTokens: EssencialToken[]) => this.addNewTokens(newTokens)}
+                                    deleteToken      = {(tokenName: String) => {
+                                        this.setState(
+                                            (preState) => {
+                                                if (tokenName === "EOF" || tokenName === "Error") return null
+                                                preState.Tokens.delete(tokenName)
+                                                return {Tokens: preState.Tokens}
+                                            }
+                                        )
+                                    }}
                                 />
                             }
                         />
@@ -134,6 +138,18 @@ class App extends React.Component<{}, AppState> {
                             render = {
                                 () => 
                                 <AutomataPage 
+                                    Tokens = {this.state.Tokens}
+                                    Automatas = {this.state.Automatas}
+                                    DeleteAutomata = {(index: number) => {
+                                        
+                                    }}
+                                    AddAutomata = {(newFSA: FiniteStateAutomata) => {
+                                        this.setState(preState => {
+                                            preState.Automatas.push(newFSA)
+                                            return {Automatas : preState.Automatas}
+                                        })
+                                    }}
+                                    
                                 />
                             }
                         />

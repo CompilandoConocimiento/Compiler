@@ -1,16 +1,27 @@
 import React from "react"
 
 import {FiniteStateAutomata} from "../../CoreLogic/FiniteStateAutomata"
+import {TokenItem} from "../../CoreLogic/Token"
 import AutomataCard from "./AutomataCard"
+import SeeAutomata from "./SeeAutomata"
 
 import Style from "./Style.css"
 
-type MyState = {
+type ShowAutomatasState = {
     Automatas: Array<FiniteStateAutomata>, 
-    selectedAutomatas: Array<number>
+    selectedAutomatas: Array<number>,
+    ModalData: M.Modal | null,
+    ModalContent: JSX.Element,
 }
 
-export default class ShowAutomatas extends React.Component<{}, MyState> {
+type ShowAutomatasProps = {
+    Tokens: Map<String, TokenItem>,
+    Automatas: FiniteStateAutomata[],
+    DeleteAutomata: (number) => void,
+    AddAutomata: (newFSA: FiniteStateAutomata) => void
+}
+
+export default class ShowAutomatas extends React.Component<ShowAutomatasProps, ShowAutomatasState> {
 
     constructor(props) {
         super (props)
@@ -21,12 +32,18 @@ export default class ShowAutomatas extends React.Component<{}, MyState> {
         this.state = {
             Automatas: [minusSign],
             selectedAutomatas: [],
+            ModalData: null,
+            ModalContent: <br />
         }
     }
 
     componentDidMount() {
-        const elements = document.querySelectorAll('.fixed-action-btn');
-        M.FloatingActionButton.init(elements, {hoverEnabled: false})
+        const buttonNodes = document.querySelectorAll('.fixed-action-btn')
+        const modalNodes = document.querySelectorAll('.modal')
+        M.FloatingActionButton.init(buttonNodes, {hoverEnabled: false})
+
+        const ModalData = M.Modal.init(modalNodes, {inDuration: 120, outDuration: 100})[0]
+        this.setState({ModalData: ModalData})
     }
     
     callForceUpdate () {
@@ -119,7 +136,23 @@ export default class ShowAutomatas extends React.Component<{}, MyState> {
                         </a>
                     </li>
                     <li>
-                        <a data-target="AddAutomataModal" className="modal-trigger btn-floating" style={{"width": "130px"}}>
+                        <a 
+                            className = "btn-floating" style={{"width": "130px"}}
+                            onClick   = {() => {
+                                const stringText = prompt("Give me a string to recognize")
+                                if (stringText == null) return 
+                                const haveMeta: boolean = confirm("Does it have metachars?")
+                                const name = prompt("Give me a name for the automata")
+                                if (name == null) return 
+
+                                this.setState( () => {
+                                    const newAutomata = FiniteStateAutomata.basicFSA(stringText, haveMeta)
+                                    newAutomata.setName(name)
+
+                                    return 
+                                })
+                            }}
+                        >
                             Create Basic Automata
                         </a>
                     </li>
@@ -149,20 +182,18 @@ export default class ShowAutomatas extends React.Component<{}, MyState> {
 
             <div className="container">
                 <div className={Style.Container}>
-                    {this.state.Automatas.map( 
+                    {this.state.Automatas.map(
                         (fsa, index) => {
                             return (
                                 <AutomataCard
-                                    forceUpdate = {() => this.callForceUpdate()}
-                                    key     = {String(`automata ${index}`)}
-                                    name    = {fsa.getName()}
-                                    FSA     = {fsa}
-                                    onClick = {() => {
-                                    }} 
+                                    key            = {String(`automata ${index}`)}
+                                    name           = {fsa.getName()}
+                                    FSA            = {fsa}
+                                    onClick        = {() => {}} 
                                     isSelected     = {this.state.selectedAutomatas!.indexOf(index) != -1}
+                                    forceUpdate    = {() => this.callForceUpdate()}
                                     SelectAutomata = {() => {
                                         this.setState( preState => {
-
                                             if (preState.selectedAutomatas.indexOf(index) != -1) {
                                                 preState.selectedAutomatas.splice( 
                                                     preState.selectedAutomatas.indexOf(index), 1 
@@ -173,13 +204,36 @@ export default class ShowAutomatas extends React.Component<{}, MyState> {
                                             return {selectedAutomatas: preState.selectedAutomatas}
                                         })
                                     }}
+                                    ShowAutomata = {
+                                        (FSA: FiniteStateAutomata) => {
+                                            this.setState(() => {
+                                                this.state.ModalData!.open()
+                                                console.log(FSA.getName())
+                                                return {ModalContent: <SeeAutomata FSA={FSA} Tokens={this.props.Tokens}/>}
+                                            })
+                                        }
+                                    }
                                 />
                             )
                         }
                     )}
                 </div>
-            </div>  
+            </div>
 
+            <div id="ModalAutomata" className="modal modal-fixed-footer">
+                <div className="modal-content">
+                    { this.state.ModalContent }
+                </div>
+                <div className="modal-footer">
+                    <a 
+                        className = "modal-close waves-effect waves-green btn-flat"
+                        onClick   = {() => this.state.ModalData!.close()}
+                    >
+                        Close
+                    </a>
+                </div>
+            </div>
+        
             { this.showOperationFAB() }
             
             </React.Fragment>
