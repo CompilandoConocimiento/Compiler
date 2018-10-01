@@ -27,10 +27,13 @@ class App extends React.Component<{}, AppState> {
     constructor(props) {
         super (props)
 
+        const minusSign = FiniteStateAutomata.basicFSA('-');
+        minusSign.setName("Minus sign");
+
         this.state = {
             SideMenu: null,
             Tokens: new Map(DefaultTokens),
-            Automatas: [],
+            Automatas: [minusSign],
             Grammars: [],
         }
     }
@@ -91,7 +94,7 @@ class App extends React.Component<{}, AppState> {
                                 return (
                                     <React.Fragment>
                                         <div className="row">
-                                            <div className="col s12">
+                                            <div className="col s10 m6 l4 offset-s1 offset-m3 offset-4">
                                                 <CardToTopic 
                                                     name	= {"Tokens"} 
                                                     link	= {"/tokens"}
@@ -100,7 +103,7 @@ class App extends React.Component<{}, AppState> {
                                             </div>
                                         </div>
                                         <div className="row">
-                                            <div className="col s12">
+                                            <div className="col s10 m6 l4 offset-s1 offset-m3 offset-4">
                                                 <CardToTopic 
                                                     name	= {"Automatas"} 
                                                     link	= {"/automatas"}

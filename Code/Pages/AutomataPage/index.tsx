@@ -1,36 +1,32 @@
 import React from "react"
 
-import {FiniteStateAutomata} from "../../CoreLogic/FiniteStateAutomata"
+import {FiniteStateAutomata, AutomataJSON} from "../../CoreLogic/FiniteStateAutomata"
+import {StateDeterministicJSON} from "../../CoreLogic/State"
 import {TokenItem} from "../../CoreLogic/Token"
 import AutomataCard from "./AutomataCard"
 import SeeAutomata from "./SeeAutomata"
 
 import Style from "./Style.css"
 
-type ShowAutomatasState = {
-    Automatas: Array<FiniteStateAutomata>, 
+type AutomataPageState = {
     selectedAutomatas: Array<number>,
     ModalData: M.Modal | null,
     ModalContent: JSX.Element,
 }
 
-type ShowAutomatasProps = {
+type AutomataPageProps = {
     Tokens: Map<String, TokenItem>,
     Automatas: FiniteStateAutomata[],
     DeleteAutomata: (number) => void,
     AddAutomata: (newFSA: FiniteStateAutomata) => void
 }
 
-export default class ShowAutomatas extends React.Component<ShowAutomatasProps, ShowAutomatasState> {
+export default class AutomataPage extends React.Component<AutomataPageProps, AutomataPageState> {
 
     constructor(props) {
         super (props)
 
-        const minusSign = FiniteStateAutomata.basicFSA('-');
-        minusSign.setName("Minus sign");
-
         this.state = {
-            Automatas: [minusSign],
             selectedAutomatas: [],
             ModalData: null,
             ModalContent: <br />
@@ -53,36 +49,23 @@ export default class ShowAutomatas extends React.Component<ShowAutomatasProps, S
     showOperationFAB() {
 
         const binaryOperation = (operation: (a, b) => any) => {
-            let fsa1: FiniteStateAutomata = this.state.Automatas[this.state.selectedAutomatas[0]].clone()
-            const fsa2 = !this.state.Automatas[this.state.selectedAutomatas[1]]? null: 
-            this.state.Automatas[this.state.selectedAutomatas[1]].clone()
+            let fsa1: FiniteStateAutomata = this.props.Automatas[this.state.selectedAutomatas[0]].clone()
+            const fsa2 = !this.props.Automatas[this.state.selectedAutomatas[1]]? null: 
+            this.props.Automatas[this.state.selectedAutomatas[1]].clone()
 
             fsa1 = operation(fsa1, fsa2)
-
-            this.setState( (preState) => {
-                preState.Automatas.push(fsa1)
-                return {
-                    selectedAutomatas: [],
-                    Automatas: preState.Automatas
-                }
-            })
+            this.props.AddAutomata(fsa1)
+            this.setState({selectedAutomatas: []})
         }
 
         const SuperJoinOperation = () => {
-
             const FSAs = this.state.selectedAutomatas.map(index => {
-                return this.state.Automatas[index].clone()
+                return this.props.Automatas[index].clone()
             })
 
             const newFSA = FiniteStateAutomata.superJoin(FSAs)
-
-            this.setState( (preState) => {
-                preState.Automatas.push(newFSA)
-                return {
-                    selectedAutomatas: [],
-                    Automatas: preState.Automatas
-                }
-            })
+            this.setState({selectedAutomatas: []})
+            this.props.AddAutomata(newFSA)
         }
 
         const join            = () => binaryOperation((a, b) => a.join(b))
@@ -145,18 +128,14 @@ export default class ShowAutomatas extends React.Component<ShowAutomatasProps, S
                                 const name = prompt("Give me a name for the automata")
                                 if (name == null) return 
 
-                                this.setState( () => {
-                                    const newAutomata = FiniteStateAutomata.basicFSA(stringText, haveMeta)
-                                    newAutomata.setName(name)
-
-                                    return 
-                                })
+                                const newAutomata = FiniteStateAutomata.basicFSA(stringText, haveMeta)
+                                newAutomata.setName(name)
+                                this.props.AddAutomata(newAutomata)
                             }}
                         >
                             Create Basic Automata
                         </a>
                     </li>
-                    
                     <li>
                         <a 
                             className = "btn-floating" 
@@ -164,6 +143,56 @@ export default class ShowAutomatas extends React.Component<ShowAutomatasProps, S
                             onClick   = {() => {this.setState({selectedAutomatas: []})}}
                         >
                             Clear
+                        </a>
+                    </li>
+                    <li>
+                        <a 
+                            className = "btn-floating" 
+                            style     = {{"width": "120px"}} 
+                            onClick   = {() => {
+
+                                let data2 = this.state.selectedAutomatas
+                                .map( index => this.props.Automatas[index] )
+                                .map( (fsa) => fsa.clone().toDFA().clone() )
+
+                                console.log(data2)
+
+                                let data = data2
+                                .map(fsa => {
+                                    const example: AutomataJSON = {
+                                        alphabeth: Array.from(fsa.alphabeth),
+                                        initialState: fsa.initialState,
+                                        states: [...fsa.states.values()].map(state => {
+                                            const dataState: StateDeterministicJSON = {
+                                                id: state.id,
+                                                token: state.token,
+                                                isFinalState: state.isFinalState,
+                                                transitions: [...state.transitions.keys()].map(
+                                                    (character) => {
+                                                        const transition 
+                                                            = state.transitions.size == 0?
+                                                            null : [...state.transitions.get(character)!.values()][0]
+                                                        const newTransition: [string, number | null]
+                                                            = [character, transition]
+
+                                                        return newTransition
+                                                    }
+                                                )
+                                            }
+                                            if (state.isFinalState) dataState["token"] = state.token
+
+                                            return dataState
+                                        })
+                                    }
+
+                                    return example
+                                })
+                                    
+                                console.log(data)
+
+                            }}
+                        >
+                            Download
                         </a>
                     </li>
                 </ul>
@@ -182,15 +211,15 @@ export default class ShowAutomatas extends React.Component<ShowAutomatasProps, S
 
             <div className="container">
                 <div className={Style.Container}>
-                    {this.state.Automatas.map(
+                    {this.props.Automatas.map(
                         (fsa, index) => {
                             return (
                                 <AutomataCard
                                     key            = {String(`automata ${index}`)}
                                     name           = {fsa.getName()}
                                     FSA            = {fsa}
-                                    onClick        = {() => {}} 
                                     isSelected     = {this.state.selectedAutomatas!.indexOf(index) != -1}
+                                    Tokens         = {this.props.Tokens}
                                     forceUpdate    = {() => this.callForceUpdate()}
                                     SelectAutomata = {() => {
                                         this.setState( preState => {
@@ -208,7 +237,6 @@ export default class ShowAutomatas extends React.Component<ShowAutomatasProps, S
                                         (FSA: FiniteStateAutomata) => {
                                             this.setState(() => {
                                                 this.state.ModalData!.open()
-                                                console.log(FSA.getName())
                                                 return {ModalContent: <SeeAutomata FSA={FSA} Tokens={this.props.Tokens}/>}
                                             })
                                         }

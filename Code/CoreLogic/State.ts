@@ -5,6 +5,13 @@ export const metaCharacters = {
     Letter: String.raw`\w`
 }
 
+export type StateDeterministicJSON = {
+    id: number,
+    token: number,
+    isFinalState: boolean,
+    transitions: Array<[string, number | null]>
+}
+
 export const getNewStateID = function() {
     let counter: stateID = 0
 

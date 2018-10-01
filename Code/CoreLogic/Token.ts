@@ -7,17 +7,27 @@ export interface Token extends EssencialToken {
 	readonly id: Number,
 }
 
-export const DefaultTokens: Array<Token> = [
-    {
-        name: 'Error', 
-        description: "Error token",
-        id: -1,
-    },
-    {
-        name: 'EOF', 
-        description: "End of File",
-        id: 0,
-    },
+export interface TokenItem {
+	readonly description: String,
+	readonly id: Number,
+}
+
+export const DefaultTokens: Array<[String, TokenItem]> =
+[
+    [
+        "Error", 
+        {
+            description: "Error token",
+            id: -1,
+        }
+    ],
+    [
+        "EOF", 
+        {
+            description: "End of File",
+            id: 0,
+        }
+    ]
 ]
 
 export const TokenEOF = 0

@@ -50,7 +50,7 @@ export default function TokenPage(props: TokenPageProps) {
                     <th>ID</th>
                     <th>Name</th>
                     <th>Description</th>
-                    <th>x</th>
+                    <th>&nbsp;&nbsp;x</th>
                 </tr>
                 </thead>
 

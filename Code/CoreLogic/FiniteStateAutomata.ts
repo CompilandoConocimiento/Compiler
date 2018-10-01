@@ -1,14 +1,14 @@
-import {State, getNewStateID, stateID} from "./State"
+import {State, getNewStateID, stateID, StateDeterministicJSON} from "./State"
 export type automataToken = number
 
 export type Automata = FiniteStateAutomata
+
 export interface AutomataJSON {
-    states: Map<stateID, State>,
     alphabeth: Array<string>,
     initialState: number,
-    epsilonCharacter: string,
-    name: string
+    states: Array<StateDeterministicJSON>
 }
+
 
 export class FiniteStateAutomata {
 

@@ -1,15 +1,17 @@
 import React from "react"
 
-import {FiniteStateAutomata} from "../../CoreLogic/FiniteStateAutomata"
+import {FiniteStateAutomata, AutomataJSON} from "../../CoreLogic/FiniteStateAutomata"
+import {TokenItem} from "../../CoreLogic/Token"
 import Style from "./Style.css"
+
 
 interface propsType {
     name: string,
     ShowAutomata: (FSA: FiniteStateAutomata) => any,
-    onClick: () => any,
     SelectAutomata: () => any,
     isSelected: boolean,
-    FSA: FiniteStateAutomata
+    FSA: FiniteStateAutomata,
+    Tokens: Map<String,TokenItem>, 
     forceUpdate: () => void,
 }
 
@@ -86,7 +88,18 @@ export default function AutomataCard (props: propsType) {
                     <li>
                         <a className = "waves-effect waves-green btn-flat"
                             onClick  = {() => {
-                                
+                                const tokenIndex = Number(prompt("Give me a token ID"))
+                                let validToken = false
+                                props.Tokens.forEach( (data) =>  { validToken = (validToken || data.id == tokenIndex)})
+
+                                if (typeof tokenIndex !== 'number' || !validToken) {
+                                    M.toast({html: "No valid ID"})
+                                    return
+                                }
+
+                                Array.from(props.FSA.states.values())
+                                    .filter(state => state.isFinalState)
+                                    .forEach(state => state.token = tokenIndex)
                             }}
                         >
                             <i className="material-icons">add_circle</i>
