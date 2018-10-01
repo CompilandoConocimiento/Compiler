@@ -1,11 +1,18 @@
-import {stateID} from "./Types"
+export type stateID = number
 
 export const metaCharacters = {
     Digit: String.raw`\d`,
     Letter: String.raw`\w`
 }
 
-const range: (start: number, end: number, char: string) => any = (start, end, char) => Array.from({length: (end - start)}, (_, k) => [String.fromCharCode(k + start), char])
+export const getNewStateID = function() {
+    let counter: stateID = 0
+
+    return function () {return counter++}
+}()
+
+const range: (start: number, end: number, char: string) => any 
+= (start, end, char) => Array.from({length: (end - start)}, (_, k) => [String.fromCharCode(k + start), char])
 
 export class State {
     id: stateID
@@ -26,7 +33,10 @@ export class State {
         this.transitions = new Map()
         this.transitions.has = function(character: string): boolean {
             return Map.prototype.has.call(this, character) ||
-                (State.specialTransitions.has(character) && Map.prototype.has.call(this, State.specialTransitions.get(character)!))
+                (
+                    State.specialTransitions.has(character) && 
+                    Map.prototype.has.call(this, State.specialTransitions.get(character)!)
+                )
         }
 
         this.transitions.get = function(character: string): Set<stateID> {
@@ -39,10 +49,4 @@ export class State {
         }
     }
 }
-
-export const getNewID = function() {
-    let counter: stateID = 0
-
-    return function () {return counter++}
-}()
 

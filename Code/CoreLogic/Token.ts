@@ -20,6 +20,9 @@ export const DefaultTokens: Array<Token> = [
     },
 ]
 
+export const TokenEOF = 0
+export const TokenError = -1
+
 export const getNewTokenID = function() {
     let counter: number = 1
 

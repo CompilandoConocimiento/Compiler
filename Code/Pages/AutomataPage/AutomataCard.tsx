@@ -1,9 +1,9 @@
 import React from "react"
-import { FiniteStateAutomata } from "../../../FiniteStateAutomata/FiniteStateAutomata";
-import { tokenDescriptions } from "../../../FiniteStateAutomata/Types";
+
+import {FiniteStateAutomata} from "../../CoreLogic/FiniteStateAutomata"
 import Style from "./Style.css"
 
-export interface propsType {
+interface propsType {
     forceUpdate: () => void,
     name: string,
     onClick: () => any,
@@ -11,7 +11,6 @@ export interface propsType {
     isSelected: boolean,
     FSA: FiniteStateAutomata
 }
-
 
 const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => {
 
@@ -23,7 +22,6 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
                     <span className="flow-text" style={{overflow: "auto"}}>Automata {props.name}</span>
                 </div>
             </div>
-
             <div className="card-action">
             <ul>
                 <li>
@@ -37,13 +35,8 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
                 </li>
                 <li>
                     <a className = "waves-effect waves-green btn-flat"
-                        onClick  = {() => {
-                            const newToken = prompt("Give token ID:")
-                            const newName = prompt("Give token name:")
-                            if (newToken != null && newName != null) {
-                                tokenDescriptions.set(Number(newToken), newName)
-                                props.FSA.setFinalToken(Number(newToken))
-                            }
+                        onClick  = {() => {
+                            
                         }}
                     >
                         Set token to Final States
@@ -66,7 +59,7 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
                     </a>
                 </li>
                 <li>
-                    <a className = "waves-effect waves-green btn-flat"
+                  <a className = "waves-effect waves-green btn-flat"
                         onClick  = {props.SelectAutomata}
                     >
                         Select
@@ -74,7 +67,7 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
                 </li>
                 <li>
                     <a className = "waves-effect waves-green btn-flat"
-                        onClick  = {() => {
+                        onClick  = {() => {
                             const newName = prompt("Give me a new name:", props.FSA.getName())
                             if (newName != null) props.FSA.setName(newName)
                             props.forceUpdate()
@@ -98,6 +91,5 @@ const AutomataCard: React.StatelessComponent<propsType> = (props: propsType) => 
         </div>
     )
 }
-
 
 export default AutomataCard

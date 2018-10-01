@@ -1,3 +1,15 @@
+.Container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 1.5rem;
+}
+
+@media screen and (max-width: 700px) {
+    .Container {
+        grid-template-columns: 1fr;
+    }
+}
+
 .unselectable {
     -webkit-user-select: none;  /* Chrome all / Safari all */
     -moz-user-select: none;     /* Firefox all */

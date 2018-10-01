@@ -3,14 +3,15 @@
 // ======================================================================
 import React from "react"
 import ReactDOM from "react-dom"
-import { Route, HashRouter } from 'react-router-dom'
+import { Route, HashRouter, Switch } from 'react-router-dom'
 import M from "materialize-css"
 
 import Header from "../Header"
 import Footer from "../Footer"
 
 import { Token, DefaultTokens, EssencialToken, getNewTokenID } from '../../CoreLogic/Token'
-import TokenPage from './TokenPage'
+import TokenPage from '../TokenPage/'
+import AutomataPage from '../AutomataPage/'
 import CardToTopic from './CardToTopic'
 
 type AppState = {
@@ -87,34 +88,56 @@ class App extends React.Component<{}, AppState> {
                     
                     <br />
 
-                    <Route 
-                        exact 
-                        path   = '/'
-                        render = {() => {
-                            return (
-                                <div className="row">
-                                    <div className="col s12">
-                                        <CardToTopic 
-                                            name	= {"Tokens"} 
-                                            link	= {"/tokens"}
-                                            materializeCSSColor = {colors[0]} 
-                                        />
-                                    </div>
-                                </div>
-                            )
-                        }}
-                    />
+                    <Switch>
+                        <Route 
+                            exact 
+                            path   = '/'
+                            render = {() => {
+                                return (
+                                    <React.Fragment>
+                                        <div className="row">
+                                            <div className="col s12">
+                                                <CardToTopic 
+                                                    name	= {"Tokens"} 
+                                                    link	= {"/tokens"}
+                                                    materializeCSSColor = {colors[0]} 
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="row">
+                                            <div className="col s12">
+                                                <CardToTopic 
+                                                    name	= {"Automatas"} 
+                                                    link	= {"/automatas"}
+                                                    materializeCSSColor = {colors[1]} 
+                                                />
+                                            </div>
+                                        </div>
+                                    </React.Fragment>
+                                )
+                            }}
+                        />
 
-                    <Route 
-                        path   = '/tokens'
-                        render = {
-                            () => 
-                            <TokenPage 
-                                Tokens           = {this.state.Tokens}
-                                addNewTokens     = {(newTokens: EssencialToken[]) => this.addNewTokens(newTokens)}
-                            />
-                        }
-                    />
+                        <Route 
+                            path   = '/tokens'
+                            render = {
+                                () => 
+                                <TokenPage 
+                                    Tokens           = {this.state.Tokens}
+                                    addNewTokens     = {(newTokens: EssencialToken[]) => this.addNewTokens(newTokens)}
+                                />
+                            }
+                        />
+
+                        <Route 
+                            path   = '/automatas'
+                            render = {
+                                () => 
+                                <AutomataPage 
+                                />
+                            }
+                        />
+                    </Switch>
                     
                     <br /><br />
                     <br /><br /><br /><br />

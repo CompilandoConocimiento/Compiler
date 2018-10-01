@@ -1,5 +1,8 @@
-import {stateID, token} from "./Types"
-import {FiniteStateAutomata} from "./FiniteStateAutomata"
+import {FiniteStateAutomata, automataToken} from "./FiniteStateAutomata"
+import {TokenEOF} from "./Token"
+import {stateID} from "./State"
+
+export type stateID = number
 
 export class Lexer {
     private FSA: FiniteStateAutomata
@@ -30,18 +33,18 @@ export class Lexer {
         return finalState
     }
 
-    private getToken(states: Set<stateID>): token {
-        let token: token = -1
+    private getautomataToken(states: Set<stateID>): automataToken {
+        let automataToken: automataToken = -1
         states.forEach (
             id => {
-                if (this.FSA.isFinalState(id)) token = this.FSA.states.get(id)!.token
+                if (this.FSA.isFinalState(id)) automataToken = this.FSA.states.get(id)!.token
             }
         )
-        return token
+        return automataToken
     }
 
-    getNextToken(): token {
-        if (this.position == this.testString.length) return token.EOF
+    getNextToken(): automataToken {
+        if (this.position == this.testString.length) return TokenEOF
 
         let currentStates: Set<stateID> = this.FSA.epsilonClosure(this.FSA.initialState)
         let lastMatchedState: Set<stateID> = new Set()
@@ -61,11 +64,11 @@ export class Lexer {
                 currentStates = toStates
             else {
                 this.position = endMatchPosition
-                return this.getToken(lastMatchedState)
+                return this.getautomataToken(lastMatchedState)
             }
         }
 
-        return token.EOF
+        return TokenEOF
     }
 
     

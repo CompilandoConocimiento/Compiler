@@ -21,7 +21,7 @@ export default function Header() {
                             <i className="material-icons white-text">menu</i>
                         </a>
 
-                        <Link to="/" className="right" style={{height: "100%"}}>
+                        <Link to="/" className="right" style={{height: "100%"}} onClick={() => scroll(0, 0)}>
                             <i className="material-icons">home</i>
                         </Link>
 
@@ -30,15 +30,25 @@ export default function Header() {
             </div>
 
             <ul id="SideNav" className="sidenav">
-                <li className="center">
+                <li className="center blue-grey-text text-darken-4">
                     <br />
                     <h5 style={{fontWeight: 200, fontSize: "1.9rem"}}>
-                        <b>Menu</b>
+                        <b>Parts</b>
                     </h5>
                 </li>
 				<br />
                 <li><div className="divider"></div></li>
-                <li><a className="subheader">Basic Ideas</a></li>
+                <li>
+                    <Link className="waves-effect" to="/tokens">
+                        <span style={{fontSize: "1.3rem"}} onClick={() => scroll(0, 0)}>Tokens</span>
+                    </Link>
+                </li>
+                <li>
+                    <Link className="waves-effect" to="/automatas">
+                        <span style={{fontSize: "1.3rem"}} onClick={() => scroll(0, 0)}>Automatas</span>
+                    </Link>
+                </li>
+
             </ul>
         </React.Fragment>
     )
