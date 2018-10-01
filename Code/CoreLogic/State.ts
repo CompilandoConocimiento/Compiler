@@ -5,7 +5,7 @@ export const metaCharacters = {
     Letter: String.raw`\w`
 }
 
-const range: (start: number, end: number, char: string)=>any = (start, end, char) => Array.from({length: (end - start)}, (_, k) => [String.fromCharCode(k + start), char])
+const range: (start: number, end: number, char: string) => any = (start, end, char) => Array.from({length: (end - start)}, (_, k) => [String.fromCharCode(k + start), char])
 
 export class State {
     id: stateID
