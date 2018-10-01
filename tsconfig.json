@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "noEmit": false,
-        "jsx": "preserve",
+        "jsx": "react",
         "allowSyntheticDefaultImports": true,
         "alwaysStrict": true,
         "target": "esnext",

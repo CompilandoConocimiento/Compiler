@@ -1,12 +1,10 @@
 import React from "react"
-
+import {Link} from "react-router-dom"
 import Style from "./Style.css"
 
-export interface propsType {
-}
 
 
-export default function Header(props: propsType) {
+export default function Header() {
     return (
         <React.Fragment>
             <div className="navbar-fixed blue-grey darken-3">
@@ -15,7 +13,7 @@ export default function Header(props: propsType) {
                         
                         <a className="brand-logo center">
                             <span className={Style.Header}>
-                                <b>Finite</b> State Automata
+                                <b>Compiler</b> DIY
                             </span>
                         </a>
                         
@@ -23,9 +21,9 @@ export default function Header(props: propsType) {
                             <i className="material-icons white-text">menu</i>
                         </a>
 
-                        <a href="/" className="right" style={{height: "100%"}}>
+                        <Link to="/" className="right" style={{height: "100%"}}>
                             <i className="material-icons">home</i>
-                        </a>
+                        </Link>
 
                     </div>
                 </nav>
