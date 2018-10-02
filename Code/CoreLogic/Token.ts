@@ -1,3 +1,6 @@
+export const TokenEOF = 0
+export const TokenError = -1
+
 export interface EssencialToken {
 	readonly name: String,
 	readonly description: String,
@@ -15,6 +18,13 @@ export interface TokenItem {
 export const DefaultTokens: Array<[String, TokenItem]> =
 [
     [
+        "Default", 
+        {
+            description: "Default token",
+            id: -2,
+        }
+    ],
+    [
         "Error", 
         {
             description: "Error token",
@@ -29,9 +39,6 @@ export const DefaultTokens: Array<[String, TokenItem]> =
         }
     ]
 ]
-
-export const TokenEOF = 0
-export const TokenError = -1
 
 export const getNewTokenID = function() {
     let counter: number = 1

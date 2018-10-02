@@ -94,7 +94,7 @@ class App extends React.Component<{}, AppState> {
                                 return (
                                     <React.Fragment>
                                         <div className="row">
-                                            <div className="col s10 m6 l4 offset-s1 offset-m3 offset-4">
+                                            <div className="col s10 m6 l4 offset-s1 offset-m3 offset-l4">
                                                 <CardToTopic 
                                                     name	= {"Tokens"} 
                                                     link	= {"/tokens"}
@@ -103,7 +103,7 @@ class App extends React.Component<{}, AppState> {
                                             </div>
                                         </div>
                                         <div className="row">
-                                            <div className="col s10 m6 l4 offset-s1 offset-m3 offset-4">
+                                            <div className="col s10 m6 l4 offset-s1 offset-m3 offset-l4">
                                                 <CardToTopic 
                                                     name	= {"Automatas"} 
                                                     link	= {"/automatas"}
@@ -143,6 +143,7 @@ class App extends React.Component<{}, AppState> {
                                 <AutomataPage 
                                     Tokens = {this.state.Tokens}
                                     Automatas = {this.state.Automatas}
+                                    addNewTokens   = {(newTokens: EssencialToken[]) => this.addNewTokens(newTokens)}
                                     DeleteAutomata = {(index: number) => {
                                         this.setState(preState => {
                                             return {Automatas: preState.Automatas.filter( (_, i) => i != index )}

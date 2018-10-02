@@ -1,6 +1,6 @@
 import {State, getNewStateID, stateID, StateDeterministicJSON} from "./State"
-export type automataToken = number
 
+export type automataToken = number
 export type Automata = FiniteStateAutomata
 
 export interface AutomataJSON {
@@ -9,7 +9,6 @@ export interface AutomataJSON {
     initialState: number,
     states: Array<StateDeterministicJSON>
 }
-
 
 export class FiniteStateAutomata {
 
@@ -399,5 +398,48 @@ export class FiniteStateAutomata {
         })
 
         return newFSA
+    }
+
+    static createDFAFromJSON(JSONData: AutomataJSON): FiniteStateAutomata | null {
+
+        try {
+
+            const stateTranslator = new Map<number, number>(
+                JSONData.states
+                    .map(state => state.id)
+                    .map(JSONNumber => [JSONNumber, getNewStateID()] as [number, number])
+            )
+
+            const States = JSONData.states.map( jsonState => {
+
+                const newID = stateTranslator.get(jsonState.id)!
+
+                const currentState: State = {
+                    id: newID,
+                    token: Number(jsonState.token),
+                    isFinalState: jsonState.isFinalState,
+                    transitions:  new Map(
+                        jsonState.transitions.map(
+                            (transition) => 
+                            [transition[0], new Set<number>([stateTranslator.get(transition[1])!])] as [string, Set<number>]
+                        )
+                    )
+                }
+
+               return [newID, currentState] as [stateID, State]
+            })
+
+            const result = new FiniteStateAutomata(new Set(JSONData.alphabeth))
+            result.name = JSONData.name as string
+            result.epsilonCharacter = '\0'
+            result.initialState = stateTranslator.get(JSONData.initialState)!,
+            result.states = new Map<stateID, State>(States)
+
+            return result
+        }
+        catch (e) {
+            return null
+        }
+        return null
     }
 }

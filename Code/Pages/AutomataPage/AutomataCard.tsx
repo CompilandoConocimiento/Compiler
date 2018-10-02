@@ -8,6 +8,7 @@ import Style from "./Style.css"
 interface propsType {
     name: string,
     ShowAutomata: (FSA: FiniteStateAutomata) => any,
+    ShowLexer: (FSA: FiniteStateAutomata) => any,
     SelectAutomata: () => any,
     isSelected: boolean,
     FSA: FiniteStateAutomata,
@@ -52,7 +53,7 @@ export default function AutomataCard (props: propsType) {
                     <li>
                         <a 
                             className   = "waves-effect waves-green btn-flat"
-                            onClick     = { () => {}}>
+                            onClick     = {() => props.ShowLexer(props.FSA)}>
                             <i className="material-icons">format_list_bulleted</i>
                             &nbsp;
                             &nbsp;

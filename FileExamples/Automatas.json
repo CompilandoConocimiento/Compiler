@@ -1,0 +1,65 @@
+{
+  "Tokens": [
+    {
+      "id": 18,
+      "description": "Symbol",
+      "name": "Symbol"
+    }
+  ],
+  "Automatas": [
+    {
+      "alphabeth": [
+        "b",
+        "a"
+      ],
+      "initialState": 28,
+      "name": "(Deterministic : ((b | a))+)",
+      "states": [
+        {
+          "id": 28,
+          "isFinalState": false,
+          "transitions": [
+            [
+              "b",
+              29
+            ],
+            [
+              "a",
+              30
+            ]
+          ]
+        },
+        {
+          "id": 29,
+          "isFinalState": true,
+          "transitions": [
+            [
+              "b",
+              29
+            ],
+            [
+              "a",
+              30
+            ]
+          ],
+          "token": 18
+        },
+        {
+          "id": 30,
+          "isFinalState": true,
+          "transitions": [
+            [
+              "b",
+              29
+            ],
+            [
+              "a",
+              30
+            ]
+          ],
+          "token": 18
+        }
+      ]
+    }
+  ]
+}

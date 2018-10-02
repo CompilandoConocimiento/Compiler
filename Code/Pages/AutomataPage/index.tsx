@@ -2,11 +2,12 @@ import React from "react"
 
 import {FiniteStateAutomata, AutomataJSON} from "../../CoreLogic/FiniteStateAutomata"
 import {StateDeterministicJSON} from "../../CoreLogic/State"
-import {TokenItem, Token} from "../../CoreLogic/Token"
+import {TokenItem, Token, EssencialToken} from "../../CoreLogic/Token"
 import AutomataCard from "./AutomataCard"
 import SeeAutomata from "./SeeAutomata"
+import LexerViewer from "./LexerViewer"
 import { saveFile } from '../../Helpers/SaveFile'
-import { loadFileAsJSON } from '../../Helpers/loadFile'
+import { loadFileAsJSON } from '../../Helpers/LoadFile'
 
 import Style from "./Style.css"
 
@@ -18,6 +19,7 @@ type AutomataPageState = {
 
 type AutomataPageProps = {
     Tokens: Map<String, TokenItem>,
+    addNewTokens(newTokens: Array<EssencialToken>): void,
     Automatas: FiniteStateAutomata[],
     DeleteAutomata: (number) => void,
     AddAutomata: (newFSA: FiniteStateAutomata) => void
@@ -66,14 +68,11 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                     states: [...fsa.states.values()].map(state => {
                         const dataState: StateDeterministicJSON = {
                             id: state.id,
-                            token: state.token,
                             isFinalState: state.isFinalState,
                             transitions: [...state.transitions.keys()].map(
                                 (character) => {
-                                    const transition 
-                                        = state.transitions.size == 0?
-                                        null : [...state.transitions.get(character)!.values()][0]
-                                    const newTransition: [string, number | null]
+                                    const transition = [...state.transitions.get(character)!.values()][0]
+                                    const newTransition: [string, number]
                                         = [character, transition]
 
                                     return newTransition
@@ -272,6 +271,14 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                                             })
                                         }
                                     }
+                                    ShowLexer = {
+                                        (FSA: FiniteStateAutomata) => {
+                                            this.setState(() => {
+                                                this.state.ModalData!.open()
+                                                return {ModalContent: <LexerViewer FSA={FSA} Tokens={this.props.Tokens}/>}
+                                            })
+                                        }
+                                    }
                                 />
                             )
                         }
@@ -297,7 +304,43 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                                 onChange = {
                                     (e) => {
                                         loadFileAsJSON(e.target, (data) => {
-                                            console.log("hi")
+                                            const Tokens = data.Tokens as Array<Token>
+                                            const Automatas = data.Automatas as Array<AutomataJSON>
+
+                                            const TokenTranslator: Map<number, [string, string]> 
+                                            = new Map(Tokens.map(token => [token.id, [token.name, token.description]] as [number, [string, string]]))
+
+                                            let maxValue = Math.max(...Array.from(this.props.Tokens.values()).map(e => e.id as number))
+
+                                            let tokenToChange: Array<EssencialToken> =  []
+                                            let newTokensID: Map<number, number> = new Map()
+                                            
+                                            TokenTranslator.forEach( (tokenData, tokenId) => {
+                                                if (this.props.Tokens.has(tokenData[0]) == false) {
+                                                    tokenToChange.push({name: tokenData[0], description: tokenData[1]})
+                                                    newTokensID.set(tokenId, ++maxValue)
+                                                }
+                                            })
+
+                                            this.props.addNewTokens(tokenToChange)
+
+                                            Automatas
+                                                .map( fsa => FiniteStateAutomata.createDFAFromJSON(fsa))
+                                                .filter (fsa => fsa != null)
+                                                .forEach(fsa => {
+                                                    fsa!.states.forEach(
+                                                        (state) => {
+                                                            if (state.isFinalState) {
+                                                                const tokenName = TokenTranslator.get(state.token)![0]
+                                                                if (this.props.Tokens.get(tokenName)) 
+                                                                    state.token = this.props.Tokens.get(tokenName)!.id as number
+                                                                else state.token = newTokensID.get(state.token) as number
+                                                            }
+                                                        }
+                                                    )
+                                                    
+                                                    this.props.AddAutomata(fsa!)
+                                                })
                                         })
                                     }
                                 }
