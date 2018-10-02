@@ -144,7 +144,9 @@ class App extends React.Component<{}, AppState> {
                                     Tokens = {this.state.Tokens}
                                     Automatas = {this.state.Automatas}
                                     DeleteAutomata = {(index: number) => {
-                                        
+                                        this.setState(preState => {
+                                            return {Automatas: preState.Automatas.filter( (_, i) => i != index )}
+                                        })
                                     }}
                                     AddAutomata = {(newFSA: FiniteStateAutomata) => {
                                         this.setState(preState => {

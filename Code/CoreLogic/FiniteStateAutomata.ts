@@ -4,6 +4,7 @@ export type automataToken = number
 export type Automata = FiniteStateAutomata
 
 export interface AutomataJSON {
+    name: String,
     alphabeth: Array<string>,
     initialState: number,
     states: Array<StateDeterministicJSON>

@@ -1,6 +1,6 @@
 import React from "react"
 
-import {FiniteStateAutomata, AutomataJSON} from "../../CoreLogic/FiniteStateAutomata"
+import {FiniteStateAutomata} from "../../CoreLogic/FiniteStateAutomata"
 import {TokenItem} from "../../CoreLogic/Token"
 import Style from "./Style.css"
 
@@ -11,6 +11,7 @@ interface propsType {
     SelectAutomata: () => any,
     isSelected: boolean,
     FSA: FiniteStateAutomata,
+    DeleteAutomata: () => any,
     Tokens: Map<String,TokenItem>, 
     forceUpdate: () => void,
 }
@@ -120,6 +121,16 @@ export default function AutomataCard (props: propsType) {
                             &nbsp;
                             &nbsp;
                             Rename
+                        </a>
+                    </li>
+                    <li>
+                        <a className = "waves-effect waves-green btn-flat"
+                            onClick  = {() => props.DeleteAutomata()}
+                        >
+                            <i className="material-icons">delete_forever</i>
+                            &nbsp;
+                            &nbsp;
+                            Delete
                         </a>
                     </li>
                 </ul>

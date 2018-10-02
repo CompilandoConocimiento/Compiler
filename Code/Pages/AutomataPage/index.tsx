@@ -2,9 +2,11 @@ import React from "react"
 
 import {FiniteStateAutomata, AutomataJSON} from "../../CoreLogic/FiniteStateAutomata"
 import {StateDeterministicJSON} from "../../CoreLogic/State"
-import {TokenItem} from "../../CoreLogic/Token"
+import {TokenItem, Token} from "../../CoreLogic/Token"
 import AutomataCard from "./AutomataCard"
 import SeeAutomata from "./SeeAutomata"
+import { saveFile } from '../../Helpers/SaveFile'
+import { loadFileAsJSON } from '../../Helpers/loadFile'
 
 import Style from "./Style.css"
 
@@ -44,6 +46,69 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
     
     callForceUpdate () {
         this.forceUpdate()
+    }
+
+    saveAutomatas (Automatas: FiniteStateAutomata[]) {
+        const tokenAsArray: Array<[Number, String]> = [...this.props.Tokens.keys()].map( (tokenName) => {
+            const data: [Number, String] = [this.props.Tokens.get(tokenName)!.id, tokenName]
+            return data
+        })
+
+        const TokenID: Map<Number, String> = new Map(tokenAsArray)
+        const TokensUsed: Set<Number> = new Set()
+
+        const JSONAutomatas = Automatas.map(
+            (fsa) => {
+                const JSONAutomata: AutomataJSON = {
+                    alphabeth: Array.from(fsa.alphabeth),
+                    initialState: fsa.initialState,
+                    name: fsa.name,
+                    states: [...fsa.states.values()].map(state => {
+                        const dataState: StateDeterministicJSON = {
+                            id: state.id,
+                            token: state.token,
+                            isFinalState: state.isFinalState,
+                            transitions: [...state.transitions.keys()].map(
+                                (character) => {
+                                    const transition 
+                                        = state.transitions.size == 0?
+                                        null : [...state.transitions.get(character)!.values()][0]
+                                    const newTransition: [string, number | null]
+                                        = [character, transition]
+
+                                    return newTransition
+                                }
+                            )
+                        }
+                        if (state.isFinalState) {
+                            dataState["token"] = state.token
+                            TokensUsed.add(state.token)
+                        }
+
+                        return dataState
+                    })
+                }
+
+                return JSONAutomata
+            }
+        )
+
+        const TokenData: Array<Token> = Array.from(TokensUsed).map( tokenID => {
+            const item = this.props.Tokens.get(TokenID.get(tokenID)!)
+
+            return {
+                id: tokenID, 
+                description: item!.description,
+                name: TokenID.get(tokenID)!
+            }
+        })
+
+        const data = {
+            Tokens: TokenData,
+            Automatas: JSONAutomatas,
+        }
+
+        saveFile("Automatas.json", JSON.stringify(data,null,2) )
     }
 
     showOperationFAB() {
@@ -150,46 +215,11 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                             className = "btn-floating" 
                             style     = {{"width": "120px"}} 
                             onClick   = {() => {
+                                const data = this.state.selectedAutomatas
+                                    .map( index => this.props.Automatas[index] )
+                                    .map( (fsa) => fsa.clone().toDFA() )
 
-                                let data2 = this.state.selectedAutomatas
-                                .map( index => this.props.Automatas[index] )
-                                .map( (fsa) => fsa.clone().toDFA().clone() )
-
-                                console.log(data2)
-
-                                let data = data2
-                                .map(fsa => {
-                                    const example: AutomataJSON = {
-                                        alphabeth: Array.from(fsa.alphabeth),
-                                        initialState: fsa.initialState,
-                                        states: [...fsa.states.values()].map(state => {
-                                            const dataState: StateDeterministicJSON = {
-                                                id: state.id,
-                                                token: state.token,
-                                                isFinalState: state.isFinalState,
-                                                transitions: [...state.transitions.keys()].map(
-                                                    (character) => {
-                                                        const transition 
-                                                            = state.transitions.size == 0?
-                                                            null : [...state.transitions.get(character)!.values()][0]
-                                                        const newTransition: [string, number | null]
-                                                            = [character, transition]
-
-                                                        return newTransition
-                                                    }
-                                                )
-                                            }
-                                            if (state.isFinalState) dataState["token"] = state.token
-
-                                            return dataState
-                                        })
-                                    }
-
-                                    return example
-                                })
-                                    
-                                console.log(data)
-
+                                this.saveAutomatas(data)
                             }}
                         >
                             Download
@@ -220,6 +250,7 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                                     FSA            = {fsa}
                                     isSelected     = {this.state.selectedAutomatas!.indexOf(index) != -1}
                                     Tokens         = {this.props.Tokens}
+                                    DeleteAutomata = {() => this.props.DeleteAutomata(index)}
                                     forceUpdate    = {() => this.callForceUpdate()}
                                     SelectAutomata = {() => {
                                         this.setState( preState => {
@@ -246,7 +277,43 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                         }
                     )}
                 </div>
+
+                <br />
+                <br />
+
+                <div className="row">
+                    <div className="file-field input-field col s12">
+                        <div 
+                            className = "waves-effect waves-teal btn-flat btn-large indigo lighten-5"
+                            style     = {{textTransform: "initial", width: "100%"}}
+                        >
+                            <i className="material-icons">attach_file</i>
+                            &nbsp;
+                            &nbsp;
+                            <span>Load File</span>
+                            <input 
+                                id       = "fileTokens"
+                                type     = "file" 
+                                onChange = {
+                                    (e) => {
+                                        loadFileAsJSON(e.target, (data) => {
+                                            console.log("hi")
+                                        })
+                                    }
+                                }
+                            />
+                        </div>
+                        <div className="file-path-wrapper" style={{display: "none"}}>
+                            <input id = "fileTokensMCSS" className="file-path validate" type="text" />
+                        </div>
+
+                        <br />
+
+                    </div>
+                </div>
+
             </div>
+
 
             <div id="ModalAutomata" className="modal modal-fixed-footer">
                 <div className="modal-content">
