@@ -4,16 +4,16 @@ import {TokenItem} from "../../CoreLogic/Token"
 
 export interface propsType {
     FSA: FiniteStateAutomata,
-    Tokens: Map<String, TokenItem>
+    Tokens: Map<string, TokenItem>
 }
 
 const SeeAutomata: React.StatelessComponent<propsType> = (props: propsType) => {
 
-    const tokenAsArray: Array<[Number, String]> = [...props.Tokens.keys()].map( (tokenName) => {
-        const data: [Number, String] = [props.Tokens.get(tokenName)!.id, tokenName]
+    const tokenAsArray: Array<[number, string]> = [...props.Tokens.keys()].map( (tokenName) => {
+        const data: [number, string] = [props.Tokens.get(tokenName)!.id, tokenName]
         return data
     })
-    const TokenID: Map<Number, String> = new Map(tokenAsArray)
+    const TokenID: Map<number, string> = new Map(tokenAsArray)
     
     const finalStateItems: JSX.Element[] = Array.from(props.FSA.states.values())
             .filter(state => state.isFinalState)

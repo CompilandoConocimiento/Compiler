@@ -1,5 +1,5 @@
-import {FiniteStateAutomata, automataToken} from "./FiniteStateAutomata"
-import {TokenEOF} from "./Token"
+import {FiniteStateAutomata} from "./FiniteStateAutomata"
+import {tokenID, TokenEOF, TokenError} from "./Token"
 import {stateID} from "./State"
 
 export type stateID = number
@@ -33,8 +33,8 @@ export class Lexer {
         return finalState
     }
 
-    private getautomataToken(states: Set<stateID>): automataToken {
-        let automataToken: automataToken = -1
+    private getautomataToken(states: Set<stateID>): tokenID {
+        let automataToken: tokenID = TokenError
         states.forEach (
             id => {
                 if (this.FSA.isFinalState(id)) automataToken = this.FSA.states.get(id)!.token
@@ -43,7 +43,7 @@ export class Lexer {
         return automataToken
     }
 
-    getNextToken(): automataToken {
+    getNextToken(): tokenID {
         if (this.position == this.testString.length) return TokenEOF
 
         let currentStates: Set<stateID> = this.FSA.epsilonClosure(this.FSA.initialState)

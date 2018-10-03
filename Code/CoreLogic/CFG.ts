@@ -1,17 +1,24 @@
-import {token, production, productionText} from "./Types"
-import {FiniteStateAutomata} from "./FiniteStateAutomata"
+import {FiniteStateAutomata, AutomataJSON} from "./FiniteStateAutomata"
 import {Lexer} from "./Lexer"
+import { tokenID, TokenError, TokenEOF, TokenDefault } from "./Token";
+
+export type productionText = Array<any>
+export type nonTerminal = string
+export interface production {
+	RHS: productionText,
+	callback: (args: Array<any>)=>any
+}
 
 export class item {
 
-	LHS: string
+	LHS: nonTerminal
 	rule: production
 	start: number
 	position: number
 	prev: null | item
 	complete: null | item
 
-	constructor (LHS: string, rule: production, start: number, position: number) {
+	constructor (LHS: nonTerminal, rule: production, start: number, position: number) {
 		this.LHS = LHS
 		this.rule = rule
 		this.start = start
@@ -40,11 +47,11 @@ export class item {
 }
 
 export class node {
-	LHS: string
+	LHS: nonTerminal
 	rule: production
 	children: Array<node>
 
-	constructor (LHS: string, rule: production, children: Array<node>) {
+	constructor (LHS: nonTerminal, rule: production, children: Array<node>) {
 		this.LHS = LHS
 		this.rule = rule
 		this.children = children
@@ -56,18 +63,36 @@ export interface ParseInfo {
 	derivations: Array<node>
 }
 
+export interface ProductionJSON {
+	RHS: productionText,
+	callback: string
+}
+
+export interface CFGJSON {
+	name: string
+	S: nonTerminal
+	terminalSymbols: Array<tokenID>
+	nonTerminalSymbols: Array<nonTerminal>
+	productions: Array<[nonTerminal, Array<ProductionJSON>]>
+	FSA: AutomataJSON
+}
+
 export class CFG {
 	
-	terminalSymbols: Set<token>
-	nonTerminalSymbols: Set<string>
-	S: string
-	productions: Map<string, Set<production> >
+	terminalSymbols: Set<tokenID>
+	nonTerminalSymbols: Set<nonTerminal>
+	S: nonTerminal
+	productions: Map<nonTerminal, Array<production> >
+	first: Map<nonTerminal, Set<tokenID> >
+	follow: Map<nonTerminal, Set<tokenID> >
 	name: string
 	private FSA: FiniteStateAutomata
 
-	constructor (terminalSymbols: Set<token>, nonTerminalSymbols: Set<string>, initialSymbol: string, FSA: FiniteStateAutomata) {
+	constructor (terminalSymbols: Set<tokenID>, nonTerminalSymbols: Set<nonTerminal>, initialSymbol: nonTerminal, FSA: FiniteStateAutomata) {
 		this.terminalSymbols = new Set(terminalSymbols)
 		this.nonTerminalSymbols = new Set(nonTerminalSymbols)
+		this.first = new Map()
+		this.follow = new Map()
 		this.productions = new Map()
 		this.S = initialSymbol
 		this.name = ""
@@ -82,9 +107,12 @@ export class CFG {
         this.name = name
     }
 
-    private addProductionIfNotExist(LHS: string): void {
-    	if (!this.productions.has(LHS))
-    		this.productions.set(LHS, new Set())
+    private addProductionIfNotExist(LHS: nonTerminal): void {
+    	if (!this.productions.has(LHS)){
+			this.productions.set(LHS, [])
+			this.first.set(LHS, new Set())
+			this.follow.set(LHS, new Set())
+		}
     }
 
     isTerminal(token: any): boolean {
@@ -95,16 +123,163 @@ export class CFG {
     	return this.nonTerminalSymbols.has(LHS)
     }
 
-    addRule(LHS: string, RHS: productionText, callback: (args: Array<any>)=>any): boolean {
+    addRule(LHS: nonTerminal, RHS: productionText, callback: (args: Array<any>)=>any): boolean {
     	if (!this.isNonTerminal(LHS)) return false
     	this.addProductionIfNotExist(LHS)
-    	this.productions.get(LHS)!.add({
+    	this.productions.get(LHS)!.push({
     		RHS: RHS,
     		callback: callback
     	})
     	return true
-    }
+	}
 
+	removeLeftRecursion(): CFG {
+		let goodRules: Set<nonTerminal> = new Set()
+		let badRules: Set<nonTerminal> = new Set()
+		this.productions.forEach( (rules, LHS) => {
+			rules.forEach(production => {
+				if(production.RHS.length > 0 && production.RHS[0] == LHS)
+					badRules.add(LHS)
+			})
+		})
+		this.nonTerminalSymbols.forEach(LHS => {
+			if(!badRules.has(LHS))
+				goodRules.add(LHS)
+		})
+
+		let result: CFG = new CFG(new Set(this.terminalSymbols), new Set(this.nonTerminalSymbols), this.S, this.FSA)
+
+		badRules.forEach(LHS => {
+			let productions: Array<production> = this.productions.get(LHS)!
+			let newLHS = LHS + "'"
+			result.nonTerminalSymbols.add(newLHS)
+			productions.forEach(production => {
+				let RHS: productionText = production.RHS
+				if(RHS.length > 0 && RHS[0] == LHS){
+					let newRHS: Array<any> = [...RHS]
+					newRHS.splice(0, 1)
+					newRHS.push(newLHS)
+					result.addRule(newLHS, newRHS, function(){})
+				}else{
+					let newRHS: Array<any> = [...RHS]
+					newRHS.push(newLHS)
+					result.addRule(LHS, newRHS, function(){})
+				}
+			})
+			result.addRule(newLHS, [], function(){})
+		})
+
+		goodRules.forEach(LHS => {
+			let productions: Array<production> = this.productions.get(LHS)!
+			productions.forEach(production => {
+				result.addRule(LHS, [...production.RHS], production.callback)
+			})
+		})
+
+		return result
+	}
+
+	private hashSet(statesIDs: Set<tokenID>): string {
+        return Array.from(statesIDs).sort((a, b) => a - b).join(',')
+	}
+	
+	private nullable(LHS: nonTerminal): boolean {
+		return this.first.get(LHS)!.has(TokenDefault)
+	}
+	
+	calculateFirstSets(): void {
+		let change: boolean = true
+		while(change){
+			change = false
+			this.productions.forEach( (rules, LHS) => {
+				let newSet: Set<tokenID> = new Set(this.first.get(LHS)!)
+				rules.forEach(production => {
+					let i = 0
+					for(; i < production.RHS.length; ++i){
+						let c = production.RHS[i]
+						if(this.isTerminal(c)){
+							newSet.add(c)
+							break
+						}
+						let firstOfC: Set<tokenID> = new Set(this.first.get(c)!)
+						firstOfC.delete(TokenDefault)
+						newSet = new Set([...newSet, ...firstOfC])
+						if(!this.nullable(c)) break
+					}
+
+					if(i == production.RHS.length)
+						newSet.add(TokenDefault)
+				})
+
+				change = change || (this.hashSet(newSet) != this.hashSet(this.first.get(LHS)!))
+				this.first.set(LHS, newSet)
+			})
+		}
+	}
+
+	calculateFollowSets(): void {
+		this.follow.get(this.S)!.add(TokenEOF)
+
+		this.productions.forEach( (rules, _) => {
+			rules.forEach(production => {
+				for(let i = 0; i < production.RHS.length; ++i){
+					let c = production.RHS[i]
+					if(this.isNonTerminal(c)){
+						for(let j = i+1; j < production.RHS.length; ++j){
+							let d = production.RHS[j]
+							if(this.isTerminal(d)){
+								this.follow.get(c)!.add(d)
+								break
+							}
+							this.follow.set(c, new Set([...this.follow.get(c)!, ...this.first.get(d)!]))
+							if(!this.nullable(d)) break
+						}
+					}
+				}
+			})
+		})
+
+		let change: boolean = true
+		while(change){
+			change = false
+			this.productions.forEach( (rules, LHS) => {
+				rules.forEach(production => {
+					for(let i = production.RHS.length-1; i >= 0; --i){
+						let c = production.RHS[i]
+						if(this.isTerminal(c)) break
+						let newSet: Set<tokenID> = new Set([...this.follow.get(c)!, ...this.follow.get(LHS)!])
+						change = change || (this.hashSet(newSet) != this.hashSet(this.follow.get(c)!))
+						this.follow.set(c, newSet)
+						if(!this.nullable(c)) break
+					}
+				})
+			})
+		}
+
+		this.follow.forEach(followSet => followSet.delete(TokenDefault))
+	}
+
+	firstRHS(RHS: productionText): Set<tokenID> {
+		let result: Set<tokenID> = new Set()
+		let i = 0
+		for(; i < RHS.length; ++i){
+			let c = RHS[i]
+			if(this.isTerminal(c)){
+				result.add(c)
+				break
+			}
+			let firstOfC: Set<tokenID> = this.first.get(c)!
+			let nullable: boolean = firstOfC.has(TokenDefault)
+			firstOfC.delete(TokenDefault)
+			result = new Set([...result, ...firstOfC])
+			if(!nullable) break
+		}
+		if(i == RHS.length)
+			result.add(TokenDefault)
+		return result
+	}
+
+	//Begin of Earley parser
     private hashItem(item: item): string {
     	return item.LHS + ";" + item.rule.RHS.join(",") + ";" + item.start.toString() + ";" + item.position.toString()
     }
@@ -144,15 +319,15 @@ export class CFG {
     	let lexer: Lexer = new Lexer(this.FSA, testString)
 		let dp: Array<Array<item> > = []
 		dp[0] = []
-		let init: Set<production> = this.productions.get(this.S)!
+		let init: Array<production> = this.productions.get(this.S)!
 		init.forEach(rule => dp[0].push(new item(this.S, rule, 0, 0)))
 		let n: number = 0
 		let prevIndex = 0
 		let lexemes: Array<string> = []
 
 		while (true) {
-			let currentToken: token = lexer.getNextToken()
-			if (currentToken == token.Error) lexer.advance()
+			let currentToken: tokenID = lexer.getNextToken()
+			if (currentToken == TokenError) lexer.advance()
 
 			let change: boolean = true
 			while (change) {
@@ -196,7 +371,7 @@ export class CFG {
 				}
 			}
 
-			if (currentToken == token.EOF) break
+			if (currentToken == TokenEOF) break
 			lexemes.push(testString.substring(prevIndex, lexer.position));
 			prevIndex = lexer.position
 			n++
@@ -214,6 +389,7 @@ export class CFG {
 			derivations: nodes
 		}
 	}
+	//End of Earley parser
 
 	executeActions(info: ParseInfo, index: number = 0): any {
 		let posTerminal: number = 0
@@ -235,6 +411,37 @@ export class CFG {
 		if(info.derivations[index])
 			return dfs(info.derivations[index])
 		return null
+	}
+
+	serialize(): CFGJSON {
+		const JSONCFG: CFGJSON = {
+			name: this.name,
+			S: this.S,
+			terminalSymbols: Array.from(this.terminalSymbols),
+			nonTerminalSymbols: Array.from(this.nonTerminalSymbols),
+			FSA: this.FSA.serialize(),
+			productions: Array.from(this.productions).map(production => [production[0], production[1].map(rule => {return {RHS: rule.RHS, callback: rule.callback.toString()}})] as [nonTerminal, Array<ProductionJSON>])
+		}
+
+		return JSONCFG
+	}
+
+	static deserialize(JSONData: CFGJSON) : CFG | null {
+		try {
+			const result = new CFG(new Set(JSONData.terminalSymbols), new Set(JSONData.nonTerminalSymbols), JSONData.S, FiniteStateAutomata.deserialize(JSONData.FSA)!)
+			result.setName(JSONData.name)
+			JSONData.productions.forEach(productionData => {
+				const LHS: nonTerminal = productionData[0]
+				const rules: Array<ProductionJSON> = productionData[1]
+				rules.forEach(JSONrule => {
+					result.addRule(LHS, JSONrule.RHS, new Function("return " + JSONrule.callback)())
+				})
+			})
+
+			return result
+		} catch(e) {
+            return null
+        }
 	}
 
 }

@@ -1,13 +1,18 @@
-import {State, getNewStateID, stateID, StateDeterministicJSON} from "./State"
+import {tokenID, TokenJSON, TokenDefault} from "./Token"
+import {State, getNewStateID, stateID, StateJSON} from "./State"
 
-export type automataToken = number
 export type Automata = FiniteStateAutomata
 
 export interface AutomataJSON {
-    name: String,
+    name: string,
     alphabeth: Array<string>,
     initialState: number,
-    states: Array<StateDeterministicJSON>
+    states: Array<StateJSON>
+}
+
+export interface serializedAutomata {
+    Tokens: Array<TokenJSON>
+    Automatas: Array<AutomataJSON>
 }
 
 export class FiniteStateAutomata {
@@ -67,7 +72,7 @@ export class FiniteStateAutomata {
         this.states.get(id)!.isFinalState = false
     }
 
-    setFinalToken(automataToken: automataToken): void {
+    setFinalToken(automataToken: tokenID): void {
         this.states.forEach( state => {
             if (state.isFinalState) state.token = automataToken
         })
@@ -293,7 +298,7 @@ export class FiniteStateAutomata {
             const oldStates: Set<stateID> = pending[i]
             const fromStateID: stateID = mapping.get(this.hashSet(oldStates))!
             let finalState: boolean = false
-            let automataToken: automataToken = -1
+            let automataToken: tokenID = TokenDefault
 
             oldStates.forEach(
                 id => {
@@ -339,15 +344,17 @@ export class FiniteStateAutomata {
         const newCopy = new FiniteStateAutomata(new Set(this.alphabeth))
         newCopy.setEpsilonCharacter(this.epsilonCharacter)
         newCopy.setName(this.getName())
-        const newIDs: Map<stateID, stateID> = new Map()
+        const stateTranslator: Map<stateID, stateID> = new Map()
+
+        this.states.forEach( (_1, fromID, _2) => {
+            stateTranslator.set(fromID, getNewStateID())
+        })
 
         this.states.forEach( (state, fromID, _2) => {
-            if (!newIDs.has(fromID)) newIDs.set(fromID, getNewStateID())
-            const newFromID: stateID = newIDs.get(fromID)!
+            const newFromID: stateID = stateTranslator.get(fromID)!
             state.transitions.forEach((toStates, character, _) => {
                 toStates.forEach(toID => {
-                    if (!newIDs.has(toID)) newIDs.set(toID, getNewStateID())
-                    const newToID: stateID = newIDs.get(toID)!
+                    const newToID: stateID = stateTranslator.get(toID)!
                     newCopy.addTransition(newFromID, character, newToID)
                 })
             })
@@ -357,7 +364,7 @@ export class FiniteStateAutomata {
             }
         })
 
-        newCopy.setInitialState(newIDs.get(this.initialState)!)
+        newCopy.setInitialState(stateTranslator.get(this.initialState)!)
 
         return newCopy
     }
@@ -400,41 +407,57 @@ export class FiniteStateAutomata {
         return newFSA
     }
 
-    static createDFAFromJSON(JSONData: AutomataJSON): FiniteStateAutomata | null {
+    serialize(): AutomataJSON {
+        const JSONAutomata: AutomataJSON = {
+            alphabeth: Array.from(this.alphabeth),
+            initialState: this.initialState,
+            name: this.name,
+            states: [...this.states.values()].map(state => {
+                const dataState: StateJSON = {
+                    id: state.id,
+                    isFinalState: state.isFinalState,
+                    transitions: Array.from(state.transitions).map(transition => [transition[0], [...transition[1]]] as [string, Array<stateID>])
+                }
+                dataState.isFinalState = state.isFinalState
+                dataState.token = state.token
+                return dataState
+            })
+        }
+
+        return JSONAutomata
+    }
+
+    static deserialize(JSONData: AutomataJSON): FiniteStateAutomata | null {
 
         try {
 
-            const stateTranslator = new Map<number, number>(
+            const stateTranslator = new Map<stateID, stateID>(
                 JSONData.states
-                    .map(state => state.id)
-                    .map(JSONNumber => [JSONNumber, getNewStateID()] as [number, number])
+                    .map(state => [state.id, getNewStateID()] as [stateID, stateID])
             )
 
-            const States = JSONData.states.map( jsonState => {
+            const result = new FiniteStateAutomata(new Set(JSONData.alphabeth))
+            result.setName(JSONData.name)
+            result.setEpsilonCharacter('\0')
 
-                const newID = stateTranslator.get(jsonState.id)!
-
-                const currentState: State = {
-                    id: newID,
-                    token: Number(jsonState.token),
-                    isFinalState: jsonState.isFinalState,
-                    transitions:  new Map(
-                        jsonState.transitions.map(
-                            (transition) => 
-                            [transition[0], new Set<number>([stateTranslator.get(transition[1])!])] as [string, Set<number>]
-                        )
-                    )
+            JSONData.states.forEach(jsonState => {
+                const fromID: stateID = jsonState.id
+                const newFromID: stateID = stateTranslator.get(fromID)!
+                jsonState.transitions.forEach(jsonTransition => {
+                    const character: string = jsonTransition[0]
+                    const toStates: Array<stateID> = jsonTransition[1]
+                    toStates.forEach(toID => {
+                        const newToID: stateID = stateTranslator.get(toID)!
+                        result.addTransition(newFromID, character, newToID)
+                    })
+                })
+                if(jsonState.isFinalState){
+                    result.setFinalState(newFromID)
+                    result.states.get(newFromID)!.token = jsonState.token!
                 }
-
-               return [newID, currentState] as [stateID, State]
             })
 
-            const result = new FiniteStateAutomata(new Set(JSONData.alphabeth))
-            result.name = JSONData.name as string
-            result.epsilonCharacter = '\0'
-            result.initialState = stateTranslator.get(JSONData.initialState)!,
-            result.states = new Map<stateID, State>(States)
-
+            result.setInitialState(stateTranslator.get(JSONData.initialState)!)
             return result
         }
         catch (e) {

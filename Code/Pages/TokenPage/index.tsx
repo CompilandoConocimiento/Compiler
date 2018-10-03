@@ -1,15 +1,15 @@
 import React from "react"
 
 import { loadFileAsJSON } from "../../Helpers/LoadFile"
-import { EssencialToken, TokenItem } from '../../CoreLogic/Token'
+import { Token, TokenItem } from '../../CoreLogic/Token'
 import { saveFile } from '../../Helpers/SaveFile'
 
 import Style from "./Style.css"
 
 export type TokenPageProps = {
-    Tokens: Map<String, TokenItem>, 
-    addNewTokens(newTokens: Array<EssencialToken>): void,
-    deleteToken(tokenName: String): void,
+    Tokens: Map<string, TokenItem>, 
+    addNewTokens(newTokens: Array<Token>): void,
+    deleteToken(tokenName: string): void,
 }
 
 export default function TokenPage(props: TokenPageProps) {
@@ -20,7 +20,7 @@ export default function TokenPage(props: TokenPageProps) {
 
         if (newTokenName == null || newDescription ==  null) return
         
-        const newToken: EssencialToken = {name: newTokenName, description: newDescription}
+        const newToken: Token = {name: newTokenName, description: newDescription}
         props.addNewTokens([newToken])
     }
 
@@ -56,7 +56,7 @@ export default function TokenPage(props: TokenPageProps) {
 
                 <tbody>
                 {
-                    [ ...props.Tokens.keys() ].map( (tokenName: String) => {
+                    [ ...props.Tokens.keys() ].map( (tokenName: string) => {
                         const tokenData = props.Tokens.get(tokenName)
                         return (
                             <tr key={`token ${tokenData!.id}`}>

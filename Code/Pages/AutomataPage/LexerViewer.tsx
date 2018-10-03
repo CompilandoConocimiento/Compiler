@@ -5,7 +5,7 @@ import {TokenItem, TokenError, TokenEOF} from "../../CoreLogic/Token"
 
 export interface propsType {
     FSA: FiniteStateAutomata,
-    Tokens: Map<String, TokenItem>,
+    Tokens: Map<string, TokenItem>,
 }
 
 export interface stateType {
@@ -35,12 +35,12 @@ export default class LexerViewer extends React.Component<propsType, stateType> {
 
     createNewTable () {
 
-        const tokenAsArray: Array<[Number, String]> = [...this.props.Tokens.keys()].map( (tokenName) => {
-            const data: [Number, String] = [this.props.Tokens.get(tokenName)!.id, tokenName]
+        const tokenAsArray: Array<[number, string]> = [...this.props.Tokens.keys()].map( (tokenName) => {
+            const data: [number, string] = [this.props.Tokens.get(tokenName)!.id, tokenName]
             return data
         })
 
-        const TokenID: Map<Number, String> = new Map(tokenAsArray)
+        const TokenID: Map<number, string> = new Map(tokenAsArray)
 
         const lexer = new Lexer(this.state.FSA, this.state.stringData)
         const newTable: Array<JSX.Element> = []

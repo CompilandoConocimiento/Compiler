@@ -1,8 +1,7 @@
 import React from "react"
 
-import {FiniteStateAutomata, AutomataJSON} from "../../CoreLogic/FiniteStateAutomata"
-import {StateDeterministicJSON} from "../../CoreLogic/State"
-import {TokenItem, Token, EssencialToken} from "../../CoreLogic/Token"
+import {FiniteStateAutomata, serializedAutomata} from "../../CoreLogic/FiniteStateAutomata"
+import {TokenItem, TokenJSON, Token, tokenID} from "../../CoreLogic/Token"
 import AutomataCard from "./AutomataCard"
 import SeeAutomata from "./SeeAutomata"
 import LexerViewer from "./LexerViewer"
@@ -18,8 +17,8 @@ type AutomataPageState = {
 }
 
 type AutomataPageProps = {
-    Tokens: Map<String, TokenItem>,
-    addNewTokens(newTokens: Array<EssencialToken>): void,
+    Tokens: Map<string, TokenItem>,
+    addNewTokens(newTokens: Array<Token>): void,
     Automatas: FiniteStateAutomata[],
     DeleteAutomata: (number) => void,
     AddAutomata: (newFSA: FiniteStateAutomata) => void
@@ -51,59 +50,32 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
     }
 
     saveAutomatas (Automatas: FiniteStateAutomata[]) {
-        const tokenAsArray: Array<[Number, String]> = [...this.props.Tokens.keys()].map( (tokenName) => {
-            const data: [Number, String] = [this.props.Tokens.get(tokenName)!.id, tokenName]
-            return data
+        const tokenById: Map<tokenID, Token> = new Map()
+        this.props.Tokens.forEach( (item, name) => {
+            tokenById.set(item.id, {name: name, description: item.description})
         })
 
-        const TokenID: Map<Number, String> = new Map(tokenAsArray)
-        const TokensUsed: Set<Number> = new Set()
+        let TokensUsed: Set<tokenID> = new Set()
 
         const JSONAutomatas = Automatas.map(
-            (fsa) => {
-                const JSONAutomata: AutomataJSON = {
-                    alphabeth: Array.from(fsa.alphabeth),
-                    initialState: fsa.initialState,
-                    name: fsa.name,
-                    states: [...fsa.states.values()].map(state => {
-                        const dataState: StateDeterministicJSON = {
-                            id: state.id,
-                            isFinalState: state.isFinalState,
-                            transitions: [...state.transitions.keys()].map(
-                                (character) => {
-                                    const transition = [...state.transitions.get(character)!.values()][0]
-                                    const newTransition: [string, number]
-                                        = [character, transition]
-
-                                    return newTransition
-                                }
-                            )
-                        }
-                        if (state.isFinalState) {
-                            dataState["token"] = state.token
-                            TokensUsed.add(state.token)
-                        }
-
-                        return dataState
-                    })
-                }
-
-                return JSONAutomata
+            fsa => {
+                TokensUsed = new Set([...TokensUsed, ...[...fsa.states.values()].map(state => state.token)])
+                return fsa.serialize()
             }
         )
 
-        const TokenData: Array<Token> = Array.from(TokensUsed).map( tokenID => {
-            const item = this.props.Tokens.get(TokenID.get(tokenID)!)
+        const JSONTokens: Array<TokenJSON> = Array.from(TokensUsed).map( tokenID => {
+            const token = tokenById.get(tokenID)!
 
             return {
                 id: tokenID, 
-                description: item!.description,
-                name: TokenID.get(tokenID)!
+                description: token.description,
+                name: token.name
             }
         })
 
-        const data = {
-            Tokens: TokenData,
+        const data: serializedAutomata = {
+            Tokens: JSONTokens,
             Automatas: JSONAutomatas,
         }
 
@@ -216,7 +188,6 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                             onClick   = {() => {
                                 const data = this.state.selectedAutomatas
                                     .map( index => this.props.Automatas[index] )
-                                    .map( (fsa) => fsa.clone().toDFA() )
 
                                 this.saveAutomatas(data)
                             }}
@@ -303,39 +274,31 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                                 type     = "file" 
                                 onChange = {
                                     (e) => {
-                                        loadFileAsJSON(e.target, (data) => {
-                                            const Tokens = data.Tokens as Array<Token>
-                                            const Automatas = data.Automatas as Array<AutomataJSON>
+                                        loadFileAsJSON(e.target, (data: serializedAutomata) => {
+                                            const tokenById: Map<tokenID, Token> = new Map()
+                                            data.Tokens.forEach(tokenData => {
+                                                tokenById.set(tokenData.id, {name: tokenData.name, description: tokenData.description})
+                                            })
 
-                                            const TokenTranslator: Map<number, [string, string]> 
-                                            = new Map(Tokens.map(token => [token.id, [token.name, token.description]] as [number, [string, string]]))
-
-                                            let maxValue = Math.max(...Array.from(this.props.Tokens.values()).map(e => e.id as number))
-
-                                            let tokenToChange: Array<EssencialToken> =  []
-                                            let newTokensID: Map<number, number> = new Map()
+                                            let newTokens: Array<Token> =  []
                                             
-                                            TokenTranslator.forEach( (tokenData, tokenId) => {
-                                                if (this.props.Tokens.has(tokenData[0]) == false) {
-                                                    tokenToChange.push({name: tokenData[0], description: tokenData[1]})
-                                                    newTokensID.set(tokenId, ++maxValue)
+                                            tokenById.forEach( (tokenData, _) => {
+                                                if (!this.props.Tokens.has(tokenData.name)) {
+                                                    newTokens.push(tokenData)
                                                 }
                                             })
 
-                                            this.props.addNewTokens(tokenToChange)
+                                            this.props.addNewTokens(newTokens)
 
-                                            Automatas
-                                                .map( fsa => FiniteStateAutomata.createDFAFromJSON(fsa))
+                                            let newAutomatas: Array<FiniteStateAutomata> = data.Automatas
+                                                .map( fsa => FiniteStateAutomata.deserialize(fsa)!)
                                                 .filter (fsa => fsa != null)
-                                                .forEach(fsa => {
+                                                
+                                            newAutomatas.forEach(fsa => {
                                                     fsa!.states.forEach(
                                                         (state) => {
-                                                            if (state.isFinalState) {
-                                                                const tokenName = TokenTranslator.get(state.token)![0]
-                                                                if (this.props.Tokens.get(tokenName)) 
-                                                                    state.token = this.props.Tokens.get(tokenName)!.id as number
-                                                                else state.token = newTokensID.get(state.token) as number
-                                                            }
+                                                            const tokenName = tokenById.get(state.token)!.name
+                                                            state.token = this.props.Tokens.get(tokenName)!.id as tokenID
                                                         }
                                                     )
                                                     

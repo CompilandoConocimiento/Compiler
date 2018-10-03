@@ -1,44 +1,46 @@
+export const TokenDefault = -2
 export const TokenEOF = 0
 export const TokenError = -1
 
-export interface EssencialToken {
-	readonly name: String,
-	readonly description: String,
+export type tokenID = number
+
+export interface Token {
+	readonly name: string,
+	readonly description: string,
 }
 
-export interface Token extends EssencialToken {
-	readonly id: Number,
+export interface TokenJSON extends Token {
+	readonly id: tokenID,
 }
 
 export interface TokenItem {
-	readonly description: String,
-	readonly id: Number,
+	readonly description: string,
+	readonly id: tokenID,
 }
 
-export const DefaultTokens: Array<[String, TokenItem]> =
-[
+export const DefaultTokens: Map<string, TokenItem> = new Map([
     [
         "Default", 
         {
             description: "Default token",
-            id: -2,
+            id: TokenDefault,
         }
     ],
     [
         "Error", 
         {
             description: "Error token",
-            id: -1,
+            id: TokenError,
         }
     ],
     [
         "EOF", 
         {
             description: "End of File",
-            id: 0,
+            id: TokenEOF,
         }
     ]
-]
+])
 
 export const getNewTokenID = function() {
     let counter: number = 1

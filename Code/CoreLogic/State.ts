@@ -1,3 +1,5 @@
+import {tokenID, TokenDefault} from "./Token";
+
 export type stateID = number
 
 export const metaCharacters = {
@@ -5,11 +7,11 @@ export const metaCharacters = {
     Letter: String.raw`\w`
 }
 
-export interface StateDeterministicJSON {
-    id: number,
-    token?: number,
+export interface StateJSON {
+    id: stateID,
+    token?: tokenID,
     isFinalState: boolean,
-    transitions: Array<[string, number]>
+    transitions: Array<[string, Array<stateID>]>
 }
 
 export const getNewStateID = function() {
@@ -19,12 +21,12 @@ export const getNewStateID = function() {
 }()
 
 const range: (start: number, end: number, char: string) => any 
-= (start, end, char) => Array.from({length: (end - start)}, (_, k) => [String.fromCharCode(k + start), char])
+= (start, end, char) => Array.from({length: (end - start + 1)}, (_, k) => [String.fromCharCode(k + start), char])
 
 
 export class State {
     id: stateID
-    token: number
+    token: tokenID
     isFinalState: boolean
     transitions: Map<string, Set<stateID> >
 
@@ -37,7 +39,7 @@ export class State {
     constructor(id: stateID) {
         this.id = id
         this.isFinalState = false
-        this.token = -2
+        this.token = TokenDefault
         this.transitions = new Map()
         this.transitions.has = function(character: string): boolean {
             return Map.prototype.has.call(this, character) ||
