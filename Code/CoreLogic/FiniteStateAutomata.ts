@@ -14,7 +14,13 @@ export interface serializedAutomata {
     Tokens: Array<TokenJSON>
     Automatas: Array<AutomataJSON>
 }
-
+/*    FiniteStateAutomata Class
+    Methods: 
+        constructor(): Set states, alphabeth, initialState, epsilonCharacter,name.
+        getName(): Obtains the name of the finite State Automata
+        setName(): Change the name of the finite state automata
+        addStateIfNotExist(): Adds a new state
+*/
 export class FiniteStateAutomata {
 
     states: Map<stateID, State>
@@ -22,7 +28,12 @@ export class FiniteStateAutomata {
     initialState: stateID
     epsilonCharacter: string
     name: string
-
+/*
+constructor()
+        Set states, alphabeth, initialState, epsilonCharacter,name.
+            @param alphabeth(Set<string>)
+            @return FiniteStateAutomata
+*/
     constructor(alphabeth: Set<string>) {
         this.states = new Map()
         this.alphabeth = new Set(alphabeth)
@@ -30,20 +41,33 @@ export class FiniteStateAutomata {
         this.epsilonCharacter = '\0'
         this.name = ""
     }
-
+/*getName():
+        Obtains the name of the finite State Automata
+            @param void
+            @return string name*/
     getName(): string {
         return this.name
     }
-
+/*setName():
+        Change the name of the finite state automata
+            @param string name
+            @return void*/
     setName(name: string): void {
         this.name = name
     }
-
+/*addStateIfNotExist()
+        Adds a new state only if this state dont exist
+        @param stateID id
+        @return void*/
     private addStateIfNotExist(id: stateID): void {
         if (!this.states.has(id))
             this.states.set(id, new State(id))
     }
-
+/*isValidCharacterOrEpsilon()
+        Checks if the character is a valid character or epsilon
+        @param string character
+        @return true if is a valida character or epsilon or false if isn't a valid character or epsilon.
+ */
     isValidCharacterOrEpsilon(character: string): boolean {
         return (
             State.specialTransitions.has(character) || 
@@ -51,40 +75,63 @@ export class FiniteStateAutomata {
             this.epsilonCharacter == character
         )
     }
-
+/*isFinalState()
+        @param stateID is
+        @return boolean
+ */
     isFinalState(id: stateID): boolean {
         this.addStateIfNotExist(id)
         return this.states.has(id) && this.states.get(id)!.isFinalState
     }
-
+/*setInitialState()
+    Add the state if it does not exist and set it as the initial state.
+    @param StateID id
+    @return void
+*/
     setInitialState(id: stateID): void {
         this.addStateIfNotExist(id)
         this.initialState = id
     }
-
+/*setFinalState()
+     Add the state if it does not exist and set it as a final state.
+     @param stateID id
+     @return void
+     */
     setFinalState(id: stateID): void {
         this.addStateIfNotExist(id)
         this.states.get(id)!.isFinalState = true
     }
-
+/*unsetFinalState()
+     Add the state if it does not exist and unset it as a final state.
+     @param stateID id
+     @return void
+     */
     unsetFinalState(id: stateID): void {
         this.addStateIfNotExist(id)
         this.states.get(id)!.isFinalState = false
     }
-
+/*setFinalToken()
+    For each state set the state token to automataToken
+    @param tokenID automataToken
+    @return void */
     setFinalToken(automataToken: tokenID): void {
         this.states.forEach( state => {
             if (state.isFinalState) state.token = automataToken
         })
     }
-
+/*setEpsilonCharacter()
+    Set the epsilon character 
+    @param string character
+    @return false if it already exists or true if set the character to epsilonCharacter  */
     setEpsilonCharacter(character: string): boolean {
         if (this.alphabeth.has(character)) return false
        
         this.epsilonCharacter = character
         return true
     }
-
+/*isDFA()
+    @param void
+    @return isStillPossible */
     isDFA (): boolean {
         let isStillPossible: boolean = true
         this.states.forEach( (fromState, _1, _2) => {
@@ -96,7 +143,11 @@ export class FiniteStateAutomata {
 
         return isStillPossible
     }   
-    
+/*addTransition()
+    Add a new transition in the state.
+    @param stateID fromStateID, string character, stateID toStateID
+    @return false if its not possible to create the transition
+            true if the transition was created */    
     addTransition(fromStateID: stateID, character: string, toStateID: stateID): boolean {
         if (!this.isValidCharacterOrEpsilon(character)) return false
         this.addStateIfNotExist(fromStateID)
@@ -109,7 +160,10 @@ export class FiniteStateAutomata {
 
         return true
     }
-
+/*epsilonClosure()
+    Create the epsilon closure of the finite state automata
+    @param stateID id
+    @return Set<number> visited */
     epsilonClosure (id: stateID): Set<number> {
         this.addStateIfNotExist(id)
 
@@ -134,7 +188,10 @@ export class FiniteStateAutomata {
         
         return visited
     }
-
+/*epsilonClosureSet()
+    Obtains the epsilon closure on a set
+    @param Set<stateID> statesIDs
+    @return Set<stateID> visited */
     epsilonClosureSet(statesIDs: Set<stateID>): Set<stateID>  {
         let visited: Set<stateID> = new Set()
         statesIDs.forEach(

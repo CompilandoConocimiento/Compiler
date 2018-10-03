@@ -23,7 +23,12 @@ export const getNewStateID = function() {
 const range: (start: number, end: number, char: string) => any 
 = (start, end, char) => Array.from({length: (end - start + 1)}, (_, k) => [String.fromCharCode(k + start), char])
 
-
+/*
+    State Class
+    Constructor of states with an id type stateID(number), a token type tokenID(number), a boolean isFinalState, 
+    and a map for transcitions.
+    specialTransitions is a map with the digits in utf8, and uppercase and lowercaswe characters.
+*/
 export class State {
     id: stateID
     token: tokenID
