@@ -3,21 +3,21 @@ import {FiniteStateAutomata} from "../../CoreLogic/FiniteStateAutomata"
 import {Lexer} from "../../CoreLogic/Lexer"
 import {TokenItem, TokenError, TokenEOF} from "../../CoreLogic/Token"
 
-export interface propsType {
+export interface LexerViewerProps {
     FSA: FiniteStateAutomata,
     Tokens: Map<string, TokenItem>,
 }
 
-export interface stateType {
+export interface LexerViewerState {
     stringData: string,
     FSA: FiniteStateAutomata,
     table: Array<JSX.Element> | null
 }
 
 
-export default class LexerViewer extends React.Component<propsType, stateType> {
+export default class LexerViewer extends React.Component<LexerViewerProps, LexerViewerState> {
 
-    constructor(props: propsType) {
+    constructor(props: LexerViewerProps) {
         super (props)
 
         this.state = {
@@ -28,7 +28,7 @@ export default class LexerViewer extends React.Component<propsType, stateType> {
 
     }
 
-    static getDerivedStateFromProps(nextProps: propsType, preState: stateType) {
+    static getDerivedStateFromProps(nextProps: LexerViewerProps, preState: LexerViewerState) {
         if (nextProps.FSA == preState.FSA) return null
         return {stringData: preState.stringData, FSA: nextProps.FSA}
     }

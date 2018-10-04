@@ -7,6 +7,7 @@ import SeeAutomata from "./SeeAutomata"
 import LexerViewer from "./LexerViewer"
 import { saveFile } from '../../Helpers/SaveFile'
 import { loadFileAsJSON } from '../../Helpers/LoadFile'
+import {regularExpressionsGrammar} from '../../Helpers/DefaultCreations'
 
 import Style from "./Style.css"
 
@@ -170,6 +171,25 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                             }}
                         >
                             Create Basic Automata
+                        </a>
+                    </li>
+                    <li>
+                        <a 
+                            className = "btn-floating" style={{"width": "130px"}}
+                            onClick   = {() => {
+                                let regularExpresion = prompt("Give me a Regular Expression")!
+                                const result = regularExpressionsGrammar.parseString(regularExpresion)
+
+                                if (result.derivations.length == 0) {
+                                    M.toast({html: "Not a valid Regular Expresion"})
+                                    return
+                                }
+                                
+                                const newAutomata = regularExpressionsGrammar.executeActions(result) 
+                                this.props.AddAutomata(newAutomata)
+                            }}
+                        >
+                            Create with R.E.
                         </a>
                     </li>
                     <li>

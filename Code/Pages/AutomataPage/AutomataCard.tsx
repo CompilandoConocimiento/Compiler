@@ -2,8 +2,8 @@ import React from "react"
 
 import {FiniteStateAutomata} from "../../CoreLogic/FiniteStateAutomata"
 import {TokenItem} from "../../CoreLogic/Token"
-import Style from "./Style.css"
 
+import Style from "./Style.css"
 
 interface propsType {
     name: string,

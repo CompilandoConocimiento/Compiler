@@ -473,7 +473,9 @@ constructor()
                 const dataState: StateJSON = {
                     id: state.id,
                     isFinalState: state.isFinalState,
-                    transitions: Array.from(state.transitions).map(transition => [transition[0], [...transition[1]]] as [string, Array<stateID>])
+                    transitions: Array.from(state.transitions)
+                                    .map( transition => 
+                                        [transition[0], [...transition[1]]] as [string, Array<stateID>])
                 }
                 dataState.isFinalState = state.isFinalState
                 dataState.token = state.token
