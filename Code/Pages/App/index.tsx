@@ -176,7 +176,7 @@ class App extends React.Component<{}, AppState> {
                                 () => 
                                 <GrammarPage 
                                     Grammars = {this.state.Grammars}
-                                    
+                                    Tokens   = {this.state.Tokens}
                                 />
                             }
                         />

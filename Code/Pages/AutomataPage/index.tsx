@@ -188,8 +188,10 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                             className = "btn-floating indigo" style={{"width": "130px"}}
                             onClick   = {() => {
                                 let regularExpresion = prompt("Give me a Regular Expression")!
+                                console.log(regularExpresion)
                                 const result = regularExpressionsGrammar.parseString(regularExpresion)
-
+                                console.log(result)
+                                
                                 if (result.derivations.length == 0) {
                                     M.toast({html: "Not a valid Regular Expresion"})
                                     return

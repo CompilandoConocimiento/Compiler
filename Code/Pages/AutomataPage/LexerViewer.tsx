@@ -48,6 +48,7 @@ export default class LexerViewer extends React.Component<LexerViewerProps, Lexer
         let currentToken = 0;
         while (true) {
             currentToken = lexer.getNextToken()
+            
             if (currentToken == TokenError) lexer.advance()
 
             newTable.push(

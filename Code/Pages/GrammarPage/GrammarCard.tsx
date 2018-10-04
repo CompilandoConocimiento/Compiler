@@ -6,6 +6,7 @@ import Style from "./Style.css"
 
 interface propsType {
     Grammar: CFG,
+    SeeGrammar: any
 }
 
 export default function AutomataCard (props: propsType) {
@@ -36,21 +37,28 @@ export default function AutomataCard (props: propsType) {
                                     return                                
                                 }
 
-                                console.log(props.Grammar.executeActions(result))
-                                M.toast({html: props.Grammar.executeActions(result)})
+                                let parseResult = props.Grammar.executeActions(result)
+                                window['parseResult'] = parseResult
+                                console.log(parseResult)
+
+                                if (typeof parseResult === 'string' || typeof parseResult === 'number') 
+                                    M.toast({html: String(parseResult)})
                             }}
                         >
                             <i className="material-icons">check</i>
                             &nbsp;
                             &nbsp;
-                            Validate String
+                            Parse String
                         </a>
                     </li>
                 </ul>
                 <ul>
                     <li>
                         <a 
-                            className   = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            className = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            onClick   = {
+                                () => props.SeeGrammar()
+                            }
                         > 
                             <i className="material-icons">open_in_new</i>
                             &nbsp;

@@ -1,7 +1,9 @@
 import React from "react"
 
 import { CFG } from "../../CoreLogic/ContextFreeGrammar"
+import { TokenItem } from "../../CoreLogic/Token"
 import GrammarCard from './GrammarCard'
+import SeeGrammar from './SeeGrammar'
 
 import Style from './Style.css'
 
@@ -12,6 +14,7 @@ type GrammarPageState = {
 
 type GrammarPageProps = {
     Grammars: Array<CFG>,
+    Tokens: Map<string, TokenItem>,
 }
 
 export default class GrammarPage extends React.Component<GrammarPageProps, GrammarPageState> {
@@ -56,6 +59,19 @@ export default class GrammarPage extends React.Component<GrammarPageProps, Gramm
                                 <GrammarCard 
                                     key     = {`grammar ${index}`}
                                     Grammar = {grammar}
+                                    SeeGrammar = {
+                                        () => {
+                                            this.setState(() => {
+                                                this.state.ModalData!.open()
+                                                return {ModalContent: 
+                                                    <SeeGrammar 
+                                                        Grammar = {grammar}
+                                                        Tokens  = {this.props.Tokens}
+                                                    />
+                                                }
+                                            })
+                                        }
+                                    }
                                 />
                             )
                         }
