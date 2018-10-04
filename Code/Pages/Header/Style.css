@@ -1,0 +1,16 @@
+.Header {
+    font-size: 2rem;
+}
+
+@media screen and (max-width: 800px) {
+    .Header {
+        font-size: 1.8rem;
+    }
+}
+
+@media screen and (max-width: 500px) {
+    .Header {
+        font-size: 1.2rem;
+    }
+}
+  
