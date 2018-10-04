@@ -86,6 +86,11 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
     showOperationFAB() {
 
         const binaryOperation = (operation: (a, b) => any) => {
+            if (this.state.selectedAutomatas.length == 0) {
+                M.toast({html: "No selected automatas"})
+                return
+            }
+
             let fsa1: FiniteStateAutomata = this.props.Automatas[this.state.selectedAutomatas[0]].clone()
             const fsa2 = !this.props.Automatas[this.state.selectedAutomatas[1]]? null: 
             this.props.Automatas[this.state.selectedAutomatas[1]].clone()
@@ -96,6 +101,11 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
         }
 
         const SuperJoinOperation = () => {
+            if (this.state.selectedAutomatas.length == 0) {
+                M.toast({html: "No selected automatas"})
+                return
+            }
+
             const FSAs = this.state.selectedAutomatas.map(index => {
                 return this.props.Automatas[index].clone()
             })
@@ -157,7 +167,7 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                     </li>
                     <li>
                         <a 
-                            className = "btn-floating" style={{"width": "130px"}}
+                            className = "btn-floating indigo" style={{"width": "130px"}}
                             onClick   = {() => {
                                 const stringText = prompt("Give me a string to recognize")
                                 if (stringText == null) return 
@@ -175,7 +185,7 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                     </li>
                     <li>
                         <a 
-                            className = "btn-floating" style={{"width": "130px"}}
+                            className = "btn-floating indigo" style={{"width": "130px"}}
                             onClick   = {() => {
                                 let regularExpresion = prompt("Give me a Regular Expression")!
                                 const result = regularExpressionsGrammar.parseString(regularExpresion)
@@ -194,7 +204,7 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                     </li>
                     <li>
                         <a 
-                            className = "btn-floating" 
+                            className = "btn-floating blue" 
                             style     = {{"width": "120px"}} 
                             onClick   = {() => {this.setState({selectedAutomatas: []})}}
                         >
@@ -203,7 +213,7 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                     </li>
                     <li>
                         <a 
-                            className = "btn-floating" 
+                            className = "btn-floating green" 
                             style     = {{"width": "120px"}} 
                             onClick   = {() => {
                                 const data = this.state.selectedAutomatas
@@ -236,7 +246,6 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                             return (
                                 <AutomataCard
                                     key            = {String(`automata ${index}`)}
-                                    name           = {fsa.getName()}
                                     FSA            = {fsa}
                                     isSelected     = {this.state.selectedAutomatas!.indexOf(index) != -1}
                                     Tokens         = {this.props.Tokens}

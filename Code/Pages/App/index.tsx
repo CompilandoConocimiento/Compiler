@@ -11,15 +11,19 @@ import Footer from "../Footer"
 
 import { DefaultTokens, Token, getNewTokenID, TokenItem } from '../../CoreLogic/Token'
 import { FiniteStateAutomata, } from '../../CoreLogic/FiniteStateAutomata'
+import { arithmeticGrammar } from '../../Helpers/DefaultCreations'
 import TokenPage from '../TokenPage/'
 import AutomataPage from '../AutomataPage/'
+import GrammarPage from '../GrammarPage/'
 import CardToTopic from './CardToTopic'
+import { CFG } from "../../CoreLogic/ContextFreeGrammar";
+
 
 type AppState = {
     SideMenu: M.Sidenav | null,
     Tokens: Map<string, TokenItem>,
-    Automatas: Array<any>,
-    Grammars: Array<any>,
+    Automatas: Array<FiniteStateAutomata>,
+    Grammars: Array<CFG>,
 }
 
 class App extends React.Component<{}, AppState> {
@@ -31,7 +35,7 @@ class App extends React.Component<{}, AppState> {
             SideMenu: null,
             Tokens: new Map(DefaultTokens),
             Automatas: [],
-            Grammars: [],
+            Grammars: [arithmeticGrammar],
         }
     }
  
@@ -108,6 +112,15 @@ class App extends React.Component<{}, AppState> {
                                                 />
                                             </div>
                                         </div>
+                                        <div className="row">
+                                            <div className="col s10 m6 l4 offset-s1 offset-m3 offset-l4">
+                                                <CardToTopic 
+                                                    name	= {"Grammars"} 
+                                                    link	= {"/grammars"}
+                                                    materializeCSSColor = {colors[2]} 
+                                                />
+                                            </div>
+                                        </div>
                                     </React.Fragment>
                                 )
                             }}
@@ -156,6 +169,18 @@ class App extends React.Component<{}, AppState> {
                                 />
                             }
                         />
+
+                        <Route 
+                            path   = '/grammars'
+                            render = {
+                                () => 
+                                <GrammarPage 
+                                    Grammars = {this.state.Grammars}
+                                    
+                                />
+                            }
+                        />
+
                     </Switch>
                     
                     <br /><br />

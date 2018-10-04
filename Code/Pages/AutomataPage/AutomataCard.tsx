@@ -6,7 +6,6 @@ import {TokenItem} from "../../CoreLogic/Token"
 import Style from "./Style.css"
 
 interface propsType {
-    name: string,
     ShowAutomata: (FSA: FiniteStateAutomata) => any,
     ShowLexer: (FSA: FiniteStateAutomata) => any,
     SelectAutomata: () => any,
@@ -28,7 +27,7 @@ export default function AutomataCard (props: propsType) {
             <div className="card-content white-text" onClick={props.SelectAutomata}>
                 <div className={Style.unselectable}>
                     <span className="flow-text" style={{overflow: "auto"}}>
-                        Automata: {props.name}
+                        Automata: {props.FSA.getName()}
                     </span>
                 </div>
             </div>
@@ -92,7 +91,7 @@ export default function AutomataCard (props: propsType) {
                             onClick  = {() => {
                                 const tokenIndex = Number(prompt("Give me a token ID"))
                                 let validToken = false
-                                props.Tokens.forEach( (data) =>  { validToken = (validToken || data.id == tokenIndex)})
+                                props.Tokens.forEach( (data) =>  { validToken = (validToken || data.id === tokenIndex)})
 
                                 if (typeof tokenIndex !== 'number' || !validToken) {
                                     M.toast({html: "No valid ID"})
