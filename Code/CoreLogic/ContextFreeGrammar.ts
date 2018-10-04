@@ -4,7 +4,6 @@ import { tokenID, TokenError, TokenEOF, TokenDefault } from "./Token";
 
 export type productionText = Array<any>
 export type nonTerminal = string
-
 export interface production {
 	RHS: productionText,
 	callback: (args: Array<any>)=>any
