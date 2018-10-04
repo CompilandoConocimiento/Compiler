@@ -82,7 +82,7 @@ export class CFG {
 	terminalSymbols: Set<tokenID>
 	nonTerminalSymbols: Set<nonTerminal>
 	S: nonTerminal
-	productions: Map<nonTerminal, Array<production> >
+	productions: Map<nonTerminal, Set<production> >
 	first: Map<nonTerminal, Set<tokenID> >
 	follow: Map<nonTerminal, Set<tokenID> >
 	name: string
@@ -109,7 +109,7 @@ export class CFG {
 
     private addProductionIfNotExist(LHS: nonTerminal): void {
     	if (!this.productions.has(LHS)){
-			this.productions.set(LHS, [])
+			this.productions.set(LHS, new Set())
 			this.first.set(LHS, new Set())
 			this.follow.set(LHS, new Set())
 		}
@@ -126,7 +126,7 @@ export class CFG {
     addRule(LHS: nonTerminal, RHS: productionText, callback: (args: Array<any>)=>any): boolean {
     	if (!this.isNonTerminal(LHS)) return false
     	this.addProductionIfNotExist(LHS)
-    	this.productions.get(LHS)!.push({
+    	this.productions.get(LHS)!.add({
     		RHS: RHS,
     		callback: callback
     	})
@@ -150,7 +150,7 @@ export class CFG {
 		let result: CFG = new CFG(new Set(this.terminalSymbols), new Set(this.nonTerminalSymbols), this.S, this.FSA)
 
 		badRules.forEach(LHS => {
-			let productions: Array<production> = this.productions.get(LHS)!
+			let productions: Set<production> = this.productions.get(LHS)!
 			let newLHS = LHS + "'"
 			result.nonTerminalSymbols.add(newLHS)
 			productions.forEach(production => {
@@ -159,24 +159,38 @@ export class CFG {
 					let newRHS: Array<any> = [...RHS]
 					newRHS.splice(0, 1)
 					newRHS.push(newLHS)
-					result.addRule(newLHS, newRHS, function(){})
+					let strFunc: string = 'function(args){'+
+						'var strFunc = ' + production.callback.toString() + ';'+
+						'var list = args.pop();'+
+						'list.push([args, strFunc]);'+
+						'return list;'+
+					'}'
+					result.addRule(newLHS, newRHS, new Function("return " + strFunc)())
 				}else{
 					let newRHS: Array<any> = [...RHS]
 					newRHS.push(newLHS)
-					result.addRule(LHS, newRHS, function(){})
+					let strFunc: string = 'function(args){'+
+						'var strFunc = ' + production.callback.toString() + ';'+
+						'var list = args.pop();'+
+						'var result = new Function("return " + strFunc)()(args);'+
+						'list.reverse().forEach(elem => {result = new Function("return " + elem[1])()([result, ...elem[0]])});'+
+						'return result;'+
+					'}'
+					result.addRule(LHS, newRHS, new Function("return " + strFunc)())
 				}
 			})
-			result.addRule(newLHS, [], function(){})
+			result.addRule(newLHS, [], function(){return []})
 		})
 
 		goodRules.forEach(LHS => {
-			let productions: Array<production> = this.productions.get(LHS)!
+			let productions: Set<production> = this.productions.get(LHS)!
 			productions.forEach(production => {
 				result.addRule(LHS, [...production.RHS], production.callback)
 			})
 		})
 
-		return result
+		if(badRules.size == 0) return result
+		else return result.removeLeftRecursion()
 	}
 
 	private hashSet(statesIDs: Set<tokenID>): string {
@@ -319,7 +333,7 @@ export class CFG {
     	let lexer: Lexer = new Lexer(this.FSA, testString)
 		let dp: Array<Array<item> > = []
 		dp[0] = []
-		let init: Array<production> = this.productions.get(this.S)!
+		let init: Set<production> = this.productions.get(this.S)!
 		init.forEach(rule => dp[0].push(new item(this.S, rule, 0, 0)))
 		let n: number = 0
 		let prevIndex = 0
@@ -420,7 +434,7 @@ export class CFG {
 			terminalSymbols: Array.from(this.terminalSymbols),
 			nonTerminalSymbols: Array.from(this.nonTerminalSymbols),
 			FSA: this.FSA.serialize(),
-			productions: Array.from(this.productions).map(production => [production[0], production[1].map(rule => {return {RHS: rule.RHS, callback: rule.callback.toString()}})] as [nonTerminal, Array<ProductionJSON>])
+			productions: Array.from(this.productions).map(production => [production[0], [...production[1]].map(rule => {return {RHS: rule.RHS, callback: rule.callback.toString()}})] as [nonTerminal, Array<ProductionJSON>])
 		}
 
 		return JSONCFG

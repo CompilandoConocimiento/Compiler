@@ -224,7 +224,7 @@ class App extends React.Component<{}, AppState> {
         arithGrammar.setName("Arithmetic expressions")
 
         window["arithGrammar"] = arithGrammar
-        console.log(arithGrammar.executeActions(arithGrammar.parseString("(sin(2*pi/7)+sin(4*pi/7)+sin(8*pi/7))^2*4+abs(-1)+3*arcsin(sqrt(3)/2)")))
+        console.log(arithGrammar.executeActions(arithGrammar.parseString("(sin(2*pi/7)+sin(4*pi/7)+sin(8*pi/7))^2*4+abs(-1)+3*arcsin(sqrt(3)/2)+2^3^2")))
 
         const regExpGrammar = new CFG(new Set([6, 7, 21, 22, 23, 24, 25, 26]), new Set(['E', 'T', 'C', 'F']), 'E', regularExpressions);
         regExpGrammar.addRule('E', ['E', 21, 'T'], function(args){return args[0].join(args[2]);});
