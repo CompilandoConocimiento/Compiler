@@ -14,12 +14,12 @@ export interface serializedAutomata {
     Tokens: Array<TokenJSON>
     Automatas: Array<AutomataJSON>
 }
-/*    FiniteStateAutomata Class
-    Methods: 
-        constructor(): Set states, alphabeth, initialState, epsilonCharacter,name.
-        getName(): Obtains the name of the finite State Automata
-        setName(): Change the name of the finite state automata
-        addStateIfNotExist(): Adds a new state
+/*  @class  FiniteStateAutomata 
+    
+    @method constructor(): Set states, alphabeth, initialState, epsilonCharacter and name.
+    @method getName(): Obtains the name of the finite State Automata
+    @method setName(): Change the name of the finite state automata
+    @method addStateIfNotExist(): Adds a new state
 */
 export class FiniteStateAutomata {
 
@@ -29,9 +29,9 @@ export class FiniteStateAutomata {
     epsilonCharacter: string
     name: string
 /*
-constructor()
+@method constructor()
         Set states, alphabeth, initialState, epsilonCharacter,name.
-            @param alphabeth(Set<string>)
+            @param {Set<string>} alphabeth
             @return FiniteStateAutomata
 */
     constructor(alphabeth: Set<string>) {
@@ -41,32 +41,37 @@ constructor()
         this.epsilonCharacter = '\0'
         this.name = ""
     }
-/*getName():
+/*@method getName():
         Obtains the name of the finite State Automata
-            @param void
-            @return string name*/
+            @param {void}
+            @return {string} name
+            */
     getName(): string {
         return this.name
     }
-/*setName():
+/*@method setName():
         Change the name of the finite state automata
-            @param string name
-            @return void*/
+            @param {string} name
+            @return {void}
+            */
     setName(name: string): void {
         this.name = name
     }
-/*addStateIfNotExist()
+/*@method addStateIfNotExist()
         Adds a new state only if this state dont exist
-        @param stateID id
-        @return void*/
+        @param {stateID} id
+        @return {void}
+        */
     private addStateIfNotExist(id: stateID): void {
         if (!this.states.has(id))
             this.states.set(id, new State(id))
     }
-/*isValidCharacterOrEpsilon()
+/*@method isValidCharacterOrEpsilon()
         Checks if the character is a valid character or epsilon
-        @param string character
-        @return true if is a valida character or epsilon or false if isn't a valid character or epsilon.
+        @param {string} character
+        @return {boolean} 
+        	true if is a valida character or epsilon OR 
+        	false if isn't a valid character or epsilon.
  */
     isValidCharacterOrEpsilon(character: string): boolean {
         return (
@@ -75,51 +80,54 @@ constructor()
             this.epsilonCharacter == character
         )
     }
-/*isFinalState()
-        @param stateID is
-        @return boolean
+/*@method isFinalState()
+        @param {stateID} is
+        @return {boolean}
+        	true
+        	false
  */
     isFinalState(id: stateID): boolean {
         this.addStateIfNotExist(id)
         return this.states.has(id) && this.states.get(id)!.isFinalState
     }
-/*setInitialState()
+/*@method setInitialState()
     Add the state if it does not exist and set it as the initial state.
-    @param StateID id
-    @return void
+    @param {stateID} id
+    @return {void}
 */
     setInitialState(id: stateID): void {
         this.addStateIfNotExist(id)
         this.initialState = id
     }
-/*setFinalState()
+/*@method setFinalState()
      Add the state if it does not exist and set it as a final state.
-     @param stateID id
-     @return void
+     @param {stateID} id
+     @return {void}
      */
     setFinalState(id: stateID): void {
         this.addStateIfNotExist(id)
         this.states.get(id)!.isFinalState = true
     }
-/*unsetFinalState()
+/*@method unsetFinalState()
      Add the state if it does not exist and unset it as a final state.
-     @param stateID id
-     @return void
+     @param {stateID} id
+     @return {void}
      */
     unsetFinalState(id: stateID): void {
         this.addStateIfNotExist(id)
         this.states.get(id)!.isFinalState = false
     }
-/*setFinalToken()
+/*@ method setFinalToken()
     For each state set the state token to automataToken
     @param tokenID automataToken
-    @return void */
+    @return void 
+    */
     setFinalToken(automataToken: tokenID): void {
         this.states.forEach( state => {
             if (state.isFinalState) state.token = automataToken
         })
     }
-/*setEpsilonCharacter()
+/*@method setEpsilonCharacter()
     Set the epsilon character 
     @param string character
     @return false if it already exists or true if set the character to epsilonCharacter  */
@@ -161,7 +169,9 @@ constructor()
         return true
     }
 /*epsilonClosure()
-    Create the epsilon closure of the finite state automata
+    Create the epsilon closure of the finite state automata:
+    Given a state M of NFA, we define ϵ-closure(M) to be the set with the state M and the 
+    states that you can reach only with ϵ transitions
     @param stateID id
     @return Set<number> visited */
     epsilonClosure (id: stateID): Set<number> {
@@ -189,9 +199,11 @@ constructor()
         return visited
     }
 /*epsilonClosureSet()
-    Obtains the epsilon closure on a set
-    @param Set<stateID> statesIDs
-    @return Set<stateID> visited */
+    Obtains the epsilon closure of the statesID set:
+    Given a set M of NFA states, we define ϵ-closure(M) to be the join of the ϵ-closure of each state of the set
+    @param {Set<stateID>} statesIDs
+    @return {Set<stateID>} visited 
+    */
     epsilonClosureSet(statesIDs: Set<stateID>): Set<stateID>  {
         let visited: Set<stateID> = new Set()
         statesIDs.forEach(
