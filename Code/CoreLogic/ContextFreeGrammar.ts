@@ -293,7 +293,7 @@ export class CFG {
 		return result
 	}
 
-	//Begin of Earley parser
+	// ============ Begin of Earley parser ============
     private hashItem(item: item): string {
     	return item.LHS + ";" + item.rule.RHS.join(",") + ";" + item.start.toString() + ";" + item.position.toString()
     }
@@ -336,12 +336,16 @@ export class CFG {
 		let init: Set<production> = this.productions.get(this.S)!
 		init.forEach(rule => dp[0].push(new item(this.S, rule, 0, 0)))
 		let n: number = 0
-		let prevIndex = 0
+		let prevPosition = 0
 		let lexemes: Array<string> = []
 
 		while (true) {
 			let currentToken: tokenID = lexer.getNextToken()
 			if (currentToken == TokenError) lexer.advance()
+			if (currentToken != TokenEOF && prevPosition == lexer.position) {
+                lexer.advance()
+                currentToken = TokenError
+            }
 
 			let change: boolean = true
 			while (change) {
@@ -386,8 +390,8 @@ export class CFG {
 			}
 
 			if (currentToken == TokenEOF) break
-			lexemes.push(testString.substring(prevIndex, lexer.position));
-			prevIndex = lexer.position
+			lexemes.push(testString.substring(prevPosition, lexer.position));
+			prevPosition = lexer.position
 			n++
 		}
 
@@ -403,7 +407,7 @@ export class CFG {
 			derivations: nodes
 		}
 	}
-	//End of Earley parser
+	// ============ End of Earley parser ============
 
 	executeActions(info: ParseInfo, index: number = 0): any {
 		let posTerminal: number = 0

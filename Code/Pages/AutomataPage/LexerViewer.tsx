@@ -44,22 +44,26 @@ export default class LexerViewer extends React.Component<LexerViewerProps, Lexer
 
         const lexer = new Lexer(this.state.FSA, this.state.stringData)
         const newTable: Array<JSX.Element> = []
-        let prevIndex = 0;
+        let prevPosition = 0;
         let currentToken = 0;
         while (true) {
             currentToken = lexer.getNextToken()
             
             if (currentToken == TokenError) lexer.advance()
+            if (currentToken != TokenEOF && prevPosition == lexer.position) {
+                lexer.advance()
+                currentToken = TokenError
+            }
 
             newTable.push(
-                <tr key={prevIndex}>
-                    <td> {this.state.stringData.substring(prevIndex, lexer.position)} </td>
+                <tr key={prevPosition}>
+                    <td> {this.state.stringData.substring(prevPosition, lexer.position)} </td>
                     <td> {currentToken} </td>
                     <td> {this.props.Tokens.get(TokenID.get(currentToken)!)!.description} </td>
                 </tr>
             )
 
-            prevIndex = lexer.position
+            prevPosition = lexer.position
             if (currentToken == TokenEOF) break
         }
 
