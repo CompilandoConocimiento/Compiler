@@ -31,7 +31,7 @@ export default function AutomataCard (props: propsType) {
                                 const value = prompt("Introduce the string to check:")
                                 if(value == null) return  
 
-                                const result = props.Grammar.parseString(value)
+                                const result = props.Grammar.parseStringWithEarley(value)
                                 if (result.derivations.length == 0) {
                                     M.toast({html: "Not a valid string"})
                                     return                                

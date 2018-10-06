@@ -125,17 +125,7 @@ const arithmetic = FiniteStateAutomata.superJoin(
 arithmetic.setName("Arithmetic expressions")
 
 
-
-
-
-
-
-
-
-
-
-
-        
+// =====  ARITMETHIC GRAMMARS  ========
 const arithGrammar: CFG = new CFG(new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), new Set(['E', 'T', 'P', 'U', 'F']), 'E', arithmetic);
 arithGrammar.addRule('E', ['E', 1, 'T'], function(args){return args[0]+args[2];});
 arithGrammar.addRule('E', ['E', 2, 'T'], function(args){return args[0]-args[2];});
@@ -169,31 +159,25 @@ arithGrammar.addRule('F', [10], function(){return Math.E;});
 
 arithGrammar.setName("Arithmetic expressions")
 
-//window["arithGrammar"] = arithmeticGrammar
-//console.log(arithmeticGrammar.executeActions(arithmeticGrammar.parseString("(sin(2*pi/7)+sin(4*pi/7)+sin(8*pi/7))^2*4+abs(-1)+3*arcsin(sqrt(3)/2)")))
+window["arithGrammar"] = arithGrammar
+//console.log(arithGrammar.executeActions(arithGrammar.parseString("(sin(2*pi/7)+sin(4*pi/7)+sin(8*pi/7))^2*4+abs(-1)+3*arcsin(sqrt(3)/2)+2^3^2")))
+
+
+let basic: CFG = new CFG(new Set([1, 2, 3, 4, 6, 7, 8]), new Set(["E", "T", "F"]), 'E', arithmetic)
+basic.addRule("E", ["E", 1, "T"], function(args){return args[0]+args[2];})
+basic.addRule("E", ["E", 2, "T"], function(args){return args[0]-args[2];})
+basic.addRule("E", ["T"], function(args){return args[0];})
+basic.addRule("T", ["T", 3, "F"], function(args){return args[0]*args[2];})
+basic.addRule("T", ["T", 4, "F"], function(args){return args[0]/args[2];})
+basic.addRule("T", ["F"], function(args){return args[0];})
+basic.addRule("F", [6, "E", 7], function(args){return args[1];})
+basic.addRule("F", [8], function(args){return Number(args[0]);})
+basic = basic.removeLeftRecursion()
+window["basic"] = basic
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// =====  REGULAR EXPRESSIONS  ========
+// =====  REGULAR EXPRESSIONS AUTOMATAS  ========
 const orFunc = FiniteStateAutomata.basicFSA('|');
 orFunc.setName("Or function");
 orFunc.setFinalToken(21);
@@ -235,10 +219,7 @@ const regularExpressions = FiniteStateAutomata.superJoin([
 regularExpressions.setName("Regular expressions");
 
 
-
-
-
-
+// =====  REGULAR EXPRESSIONS GRAMMARS  ========
 const regExpGrammar = new CFG(new Set([6, 7, 21, 22, 23, 24, 25, 26]), new Set(['E', 'T', 'C', 'F']), 'E', regularExpressions);
 regExpGrammar.addRule('E', ['E', 21, 'T'], function(args){return args[0].join(args[2]);});
 regExpGrammar.addRule('E', ['T'], function(args){return args[0]});

@@ -52,7 +52,7 @@ const SeeGrammar: React.StatelessComponent<SeeGrammarProps> = (props: SeeGrammar
 
             <h5 className="blue-grey-text text-darken-4">Rules</h5>
 
-            The initial symbol is {props.Grammar.S}
+            The initial symbol is {props.Grammar.initialSymbol}
             <table className="browser-default">
                 <tbody>
                     {
@@ -72,7 +72,7 @@ const SeeGrammar: React.StatelessComponent<SeeGrammarProps> = (props: SeeGrammar
                                                 <span
                                                     className     = "tooltipped" 
                                                     data-position = "top" 
-                                                    data-tooltip  = {production.callback.toString()}
+                                                    data-tooltip  = {production.callback == null ? "" : production.callback.toString()}
                                                 >
                                                 {
                                                     production.RHS.map( (element, rhsIndex) => {

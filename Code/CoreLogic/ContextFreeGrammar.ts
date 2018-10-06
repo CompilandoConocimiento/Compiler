@@ -6,7 +6,38 @@ export type nonTerminal = string
 export type productionText = Array< any >
 export interface production {
 	RHS: productionText,
-	callback: (args: Array<any>)=>any
+	callback: ((args: Array<any>)=>any) | null
+}
+
+export class node {
+	LHS: nonTerminal
+	rule: production
+	children: Array<node>
+
+	constructor (LHS: nonTerminal, rule: production = {RHS: [], callback: null}, children: Array<node> = []) {
+		this.LHS = LHS
+		this.rule = rule
+		this.children = children
+	}
+}
+
+export interface ParseInfo {
+	lexemes: Array<string>,
+	derivations: Array<node>
+}
+
+export interface ProductionJSON {
+	RHS: productionText,
+	callback: string | null
+}
+
+export interface CFGJSON {
+	name: string
+	initialSymbol: nonTerminal
+	terminalSymbols: Array<tokenID>
+	nonTerminalSymbols: Array<nonTerminal>
+	productions: Array<[nonTerminal, Array<ProductionJSON>]>
+	FSA: AutomataJSON
 }
 
 export class item {
@@ -46,45 +77,15 @@ export class item {
 	}
 }
 
-export class node {
-	LHS: nonTerminal
-	rule: production
-	children: Array<node>
-
-	constructor (LHS: nonTerminal, rule: production, children: Array<node>) {
-		this.LHS = LHS
-		this.rule = rule
-		this.children = children
-	}
-}
-
-export interface ParseInfo {
-	lexemes: Array<string>,
-	derivations: Array<node>
-}
-
-export interface ProductionJSON {
-	RHS: productionText,
-	callback: string
-}
-
-export interface CFGJSON {
-	name: string
-	S: nonTerminal
-	terminalSymbols: Array<tokenID>
-	nonTerminalSymbols: Array<nonTerminal>
-	productions: Array<[nonTerminal, Array<ProductionJSON>]>
-	FSA: AutomataJSON
-}
-
 export class CFG {
 	
 	terminalSymbols: Set<tokenID>
 	nonTerminalSymbols: Set<nonTerminal>
-	S: nonTerminal
+	initialSymbol: nonTerminal
 	productions: Map<nonTerminal, Set<production> >
 	first: Map<nonTerminal, Set<tokenID> >
 	follow: Map<nonTerminal, Set<tokenID> >
+	LL1Table: Map<nonTerminal, Map<tokenID, production> > | null
 	name: string
 	private FSA: FiniteStateAutomata
 
@@ -93,8 +94,9 @@ export class CFG {
 		this.nonTerminalSymbols = new Set(nonTerminalSymbols)
 		this.first = new Map()
 		this.follow = new Map()
+		this.LL1Table = null
 		this.productions = new Map()
-		this.S = initialSymbol
+		this.initialSymbol = initialSymbol
 		this.name = ""
 		this.FSA = FSA
 	}
@@ -120,10 +122,10 @@ export class CFG {
     }
 
     isNonTerminal(LHS: any): boolean {
-    	return this.nonTerminalSymbols.has(LHS)
+    	return LHS === TokenEOF || this.nonTerminalSymbols.has(LHS)
     }
 
-    addRule(LHS: nonTerminal, RHS: productionText, callback: (args: Array<any>)=>any): boolean {
+    addRule(LHS: nonTerminal, RHS: productionText, callback: ((args: Array<any>)=>any) | null): boolean {
     	if (!this.isNonTerminal(LHS)) return false
     	this.addProductionIfNotExist(LHS)
     	this.productions.get(LHS)!.add({
@@ -147,7 +149,7 @@ export class CFG {
 				goodRules.add(LHS)
 		})
 
-		let result: CFG = new CFG(new Set(this.terminalSymbols), new Set(this.nonTerminalSymbols), this.S, this.FSA)
+		let result: CFG = new CFG(new Set(this.terminalSymbols), new Set(this.nonTerminalSymbols), this.initialSymbol, this.FSA)
 
 		badRules.forEach(LHS => {
 			let productions: Set<production> = this.productions.get(LHS)!
@@ -160,7 +162,7 @@ export class CFG {
 					newRHS.splice(0, 1)
 					newRHS.push(newLHS)
 					let strFunc: string = 'function(args){'+
-						'var strFunc = ' + production.callback.toString() + ';'+
+						'var strFunc = ' + (production.callback == null ? "function(){return null}" : production.callback.toString()) + ';'+
 						'var list = args.pop();'+
 						'list.push([args, strFunc]);'+
 						'return list;'+
@@ -170,7 +172,7 @@ export class CFG {
 					let newRHS: Array<any> = [...RHS]
 					newRHS.push(newLHS)
 					let strFunc: string = 'function(args){'+
-						'var strFunc = ' + production.callback.toString() + ';'+
+						'var strFunc = ' + (production.callback == null ? "function(){return null}" : production.callback.toString()) + ';'+
 						'var list = args.pop();'+
 						'var result = new Function("return " + strFunc)()(args);'+
 						'list.reverse().forEach(elem => {result = new Function("return " + elem[1])()([result, ...elem[0]])});'+
@@ -193,6 +195,7 @@ export class CFG {
 		else return result.removeLeftRecursion()
 	}
 
+	// ============ Begin of LL(1) parser ============
 	private hashSet(statesIDs: Set<tokenID>): string {
         return Array.from(statesIDs).sort((a, b) => a - b).join(',')
 	}
@@ -201,7 +204,7 @@ export class CFG {
 		return this.first.get(LHS)!.has(TokenDefault)
 	}
 	
-	calculateFirstSets(): void {
+	private calculateFirstSets(): void {
 		let change: boolean = true
 		while(change){
 			change = false
@@ -231,8 +234,8 @@ export class CFG {
 		}
 	}
 
-	calculateFollowSets(): void {
-		this.follow.get(this.S)!.add(TokenEOF)
+	private calculateFollowSets(): void {
+		this.follow.get(this.initialSymbol)!.add(TokenEOF)
 
 		this.productions.forEach( (rules, _) => {
 			rules.forEach(production => {
@@ -273,7 +276,7 @@ export class CFG {
 		this.follow.forEach(followSet => followSet.delete(TokenDefault))
 	}
 
-	firstRHS(RHS: productionText): Set<tokenID> {
+	private firstRHS(RHS: productionText): Set<tokenID> {
 		let result: Set<tokenID> = new Set()
 		let i = 0
 		for(; i < RHS.length; ++i){
@@ -292,6 +295,100 @@ export class CFG {
 			result.add(TokenDefault)
 		return result
 	}
+
+	buildLL1Table(): boolean {
+		let result: boolean = true
+		this.calculateFirstSets()
+		this.calculateFollowSets()
+		this.LL1Table = new Map()
+
+		this.productions.forEach( (rules, LHS) => {
+			this.LL1Table!.set(LHS, new Map())
+			let row: Map<tokenID, production> = this.LL1Table!.get(LHS)!
+			rules.forEach(production => {
+				let domain: Set<tokenID> = this.firstRHS(production.RHS)
+				if(domain.has(TokenDefault)){
+					domain = new Set([...domain, ...this.follow.get(LHS)!])
+					domain.delete(TokenDefault)
+				}
+				domain.forEach(arg => {
+					if(row.has(arg))
+						result = false
+					row.set(arg, production)
+				})
+			})
+		})
+		return result
+	}
+
+	parseStringWithLL1(testString: string): ParseInfo {
+		let valid: boolean = true
+		if(this.LL1Table == null) valid = this.buildLL1Table()
+		
+		let derivation = new node(this.initialSymbol)
+		let stack: Array<any> = [TokenEOF, derivation]
+		let nodes: Array<node> = []
+
+		let lexer: Lexer = new Lexer(this.FSA, testString)
+		let prevPosition = 0
+		let lexemes: Array<string> = []
+
+		while (true) {
+			let currentToken: tokenID = lexer.getNextToken()
+			if (currentToken == TokenError) lexer.advance()
+			if (currentToken != TokenEOF && prevPosition == lexer.position) {
+                lexer.advance()
+                currentToken = TokenError
+			}
+
+			if(valid){
+				if(stack.length == 0) break;
+				let top: any
+				do{
+					top = stack.pop()!
+					if(top === TokenEOF || this.isTerminal(top)){
+						if(top == currentToken){
+							if(top == TokenEOF){
+								nodes.push(derivation)
+								break
+							}
+						}else{
+							valid = false
+							break
+						}
+					}else{
+						let row = this.LL1Table!.get(top.LHS)!
+						if(!row.has(currentToken)){
+							valid = false
+							break
+						}
+						top.rule = row.get(currentToken)!
+						let newStack: Array<any> = []
+						top.rule.RHS.forEach(c => {
+							if(this.isNonTerminal(c)){
+								let newNode = new node(c)
+								top.children.push(newNode)
+								newStack.push(newNode)
+							}else{
+								newStack.push(c)
+							}
+						})
+						newStack.reverse().forEach(c => stack.push(c))
+					}
+				}while(!this.isTerminal(top))
+			}
+
+			if (currentToken == TokenEOF) break
+			lexemes.push(testString.substring(prevPosition, lexer.position));
+			prevPosition = lexer.position
+		}
+
+		return {
+			lexemes: lexemes,
+			derivations: nodes
+		}
+	}
+	// ============ End of LL(1) parser ============
 
 	// ============ Begin of Earley parser ============
     private hashItem(item: item): string {
@@ -329,12 +426,12 @@ export class CFG {
     		return nodes
     }
 
-    parseString (testString: string): ParseInfo {
+    parseStringWithEarley (testString: string): ParseInfo {
     	let lexer: Lexer = new Lexer(this.FSA, testString)
 		let dp: Array<Array<item> > = []
 		dp[0] = []
-		let init: Set<production> = this.productions.get(this.S)!
-		init.forEach(rule => dp[0].push(new item(this.S, rule, 0, 0)))
+		let init: Set<production> = this.productions.get(this.initialSymbol)!
+		init.forEach(rule => dp[0].push(new item(this.initialSymbol, rule, 0, 0)))
 		let n: number = 0
 		let prevPosition = 0
 		let lexemes: Array<string> = []
@@ -398,7 +495,7 @@ export class CFG {
 		let nodes: Array<node> = []
 
 		dp[n].forEach(currItem =>{
-			if(currItem.end() && currItem.start == 0 && currItem.LHS == this.S)
+			if(currItem.end() && currItem.start == 0 && currItem.LHS == this.initialSymbol)
 				nodes = [...nodes, ...this.createTree(currItem)]
 		})
 
@@ -434,11 +531,11 @@ export class CFG {
 	serialize(): CFGJSON {
 		const JSONCFG: CFGJSON = {
 			name: this.name,
-			S: this.S,
+			initialSymbol: this.initialSymbol,
 			terminalSymbols: Array.from(this.terminalSymbols),
 			nonTerminalSymbols: Array.from(this.nonTerminalSymbols),
 			FSA: this.FSA.serialize(),
-			productions: Array.from(this.productions).map(production => [production[0], [...production[1]].map(rule => {return {RHS: rule.RHS, callback: rule.callback.toString()}})] as [nonTerminal, Array<ProductionJSON>])
+			productions: Array.from(this.productions).map(production => [production[0], [...production[1]].map(rule => {return {RHS: rule.RHS, callback: (rule.callback == null ? null : rule.callback.toString())}})] as [nonTerminal, Array<ProductionJSON>])
 		}
 
 		return JSONCFG
@@ -446,7 +543,7 @@ export class CFG {
 
 	static deserialize(JSONData: CFGJSON) : CFG | null {
 		try {
-			const result = new CFG(new Set(JSONData.terminalSymbols), new Set(JSONData.nonTerminalSymbols), JSONData.S, FiniteStateAutomata.deserialize(JSONData.FSA)!)
+			const result = new CFG(new Set(JSONData.terminalSymbols), new Set(JSONData.nonTerminalSymbols), JSONData.initialSymbol, FiniteStateAutomata.deserialize(JSONData.FSA)!)
 			result.setName(JSONData.name)
 			JSONData.productions.forEach(productionData => {
 				const LHS: nonTerminal = productionData[0]

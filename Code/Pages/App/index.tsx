@@ -11,7 +11,7 @@ import Footer from "../Footer"
 
 import { DefaultTokens, Token, getNewTokenID, TokenItem } from '../../CoreLogic/Token'
 import { FiniteStateAutomata, } from '../../CoreLogic/FiniteStateAutomata'
-import { arithmeticGrammar } from '../../Helpers/DefaultCreations'
+import { arithmeticGrammar, regularExpressionsGrammar } from '../../Helpers/DefaultCreations'
 import TokenPage from '../TokenPage/'
 import AutomataPage from '../AutomataPage/'
 import GrammarPage from '../GrammarPage/'
@@ -35,7 +35,7 @@ class App extends React.Component<{}, AppState> {
             SideMenu: null,
             Tokens: new Map(DefaultTokens),
             Automatas: [],
-            Grammars: [arithmeticGrammar],
+            Grammars: [arithmeticGrammar, regularExpressionsGrammar],
         }
     }
  

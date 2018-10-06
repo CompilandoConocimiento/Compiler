@@ -189,7 +189,7 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                             onClick   = {() => {
                                 let regularExpresion = prompt("Give me a Regular Expression")!
                                 console.log(regularExpresion)
-                                const result = regularExpressionsGrammar.parseString(regularExpresion)
+                                const result = regularExpressionsGrammar.parseStringWithEarley(regularExpresion)
                                 console.log(result)
                                 
                                 if (result.derivations.length == 0) {
