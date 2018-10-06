@@ -1,6 +1,6 @@
 import {FiniteStateAutomata, AutomataJSON} from "./FiniteStateAutomata"
 import {Lexer} from "./Lexer"
-import { tokenID, TokenError, TokenEOF, TokenDefault } from "./Token";
+import { tokenID, TokenError, TokenEOF, TokenDefault, TokenJSON } from "./Token";
 
 export type nonTerminal = string
 export type productionText = Array< any >
@@ -38,6 +38,11 @@ export interface CFGJSON {
 	nonTerminalSymbols: Array<nonTerminal>
 	productions: Array<[nonTerminal, Array<ProductionJSON>]>
 	FSA: AutomataJSON
+}
+
+export interface serializedCFG {
+	Tokens: Array<TokenJSON>
+	Grammars: Array<CFGJSON>
 }
 
 export class item {
@@ -285,7 +290,7 @@ export class CFG {
 				result.add(c)
 				break
 			}
-			let firstOfC: Set<tokenID> = this.first.get(c)!
+			let firstOfC: Set<tokenID> = new Set(this.first.get(c)!)
 			let nullable: boolean = firstOfC.has(TokenDefault)
 			firstOfC.delete(TokenDefault)
 			result = new Set([...result, ...firstOfC])
@@ -512,7 +517,7 @@ export class CFG {
 		let lexemes: Array<string> = info.lexemes
 		let dfs: (current: node) => any = function(current: node): any{
 		    let posChild: number = 0
-		    let args: Array<string> = []
+		    let args: Array<any> = []
 		    current.rule.RHS.forEach(c => {
 		        if(self.isNonTerminal(c))
 		            args.push(dfs(current.children[posChild++]));

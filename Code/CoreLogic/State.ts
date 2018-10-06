@@ -4,7 +4,8 @@ export type stateID = number
 
 export const metaCharacters = {
     Digit: String.raw`\d`,
-    Letter: String.raw`\w`
+    Letter: String.raw`\w`,
+    Symbol: String.raw`\W`
 }
 
 export interface StateJSON {
@@ -38,7 +39,8 @@ export class State {
     static specialTransitions: Map<string, string> = new Map([
         ...range(48, 57, metaCharacters.Digit),
         ...range(65, 90, metaCharacters.Letter),
-        ...range(97, 122, metaCharacters.Letter)
+        ...range(97, 122, metaCharacters.Letter),
+        ..."°¬¿¡!$%^_~-=`{}[]:\";'<>,./ ".split("").map(w => [w, metaCharacters.Symbol])
     ])
 
     constructor(id: stateID) {

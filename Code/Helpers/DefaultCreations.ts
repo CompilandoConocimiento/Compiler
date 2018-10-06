@@ -198,23 +198,25 @@ const optionalClosure = FiniteStateAutomata.basicFSA("?");
 optionalClosure.setName("Optional closure");
 optionalClosure.setFinalToken(25);
 
-const symbol = FiniteStateAutomata.basicFSA(String.raw`\w`);
-symbol.join(FiniteStateAutomata.basicFSA(String.raw`\d`));
-symbol.join(FiniteStateAutomata.basicFSA(String.raw`\+`, false));
-symbol.join(FiniteStateAutomata.basicFSA(String.raw`\*`, false));
-symbol.join(FiniteStateAutomata.basicFSA(String.raw`\?`, false));
-symbol.join(FiniteStateAutomata.basicFSA(String.raw`\(`, false));
-symbol.join(FiniteStateAutomata.basicFSA(String.raw`\)`, false));
-symbol.join(FiniteStateAutomata.basicFSA(String.raw`\|`, false));
-symbol.join(FiniteStateAutomata.basicFSA(String.raw`\&`, false));
-symbol.join(FiniteStateAutomata.basicFSA(String.raw`\\`, false));
-symbol.join(FiniteStateAutomata.basicFSA(String.raw`\d`, false));
-symbol.join(FiniteStateAutomata.basicFSA(String.raw`\w`, false));
-symbol.setName("Symbol");
-symbol.setFinalToken(26);
+const char = FiniteStateAutomata.basicFSA(String.raw`\w`);
+char.join(FiniteStateAutomata.basicFSA(String.raw`\d`));
+char.join(FiniteStateAutomata.basicFSA(String.raw`\W`));
+char.join(FiniteStateAutomata.basicFSA(String.raw`\+`, false));
+char.join(FiniteStateAutomata.basicFSA(String.raw`\*`, false));
+char.join(FiniteStateAutomata.basicFSA(String.raw`\?`, false));
+char.join(FiniteStateAutomata.basicFSA(String.raw`\(`, false));
+char.join(FiniteStateAutomata.basicFSA(String.raw`\)`, false));
+char.join(FiniteStateAutomata.basicFSA(String.raw`\|`, false));
+char.join(FiniteStateAutomata.basicFSA(String.raw`\&`, false));
+char.join(FiniteStateAutomata.basicFSA(String.raw`\\`, false));
+char.join(FiniteStateAutomata.basicFSA(String.raw`\d`, false));
+char.join(FiniteStateAutomata.basicFSA(String.raw`\w`, false));
+char.join(FiniteStateAutomata.basicFSA(String.raw`\W`, false))
+char.setName("Character");
+char.setFinalToken(26);
 
 const regularExpressions = FiniteStateAutomata.superJoin([
-    orFunc, andFunc, positiveClosure, kleeneClosure, optionalClosure, symbol, openParenthesis, closeParenthesis
+    orFunc, andFunc, positiveClosure, kleeneClosure, optionalClosure, char, openParenthesis, closeParenthesis
 ]);
 regularExpressions.setName("Regular expressions");
 
