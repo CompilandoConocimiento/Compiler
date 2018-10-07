@@ -8,6 +8,7 @@ import SeeGrammar from './SeeGrammar'
 import Style from './Style.css'
 import { saveFile } from "../../Helpers/SaveFile";
 import { loadFileAsJSON } from "../../Helpers/LoadFile";
+import { FiniteStateAutomata } from "../../CoreLogic/FiniteStateAutomata";
 
 type GrammarPageState = {
     selectedGrammars: Array<number>
@@ -19,6 +20,7 @@ type GrammarPageProps = {
     Grammars: Array<CFG>,
     addNewTokens(newTokens: Array<Token>): void,
     Tokens: Map<string, TokenItem>,
+    AddAutomata: (newFSA: FiniteStateAutomata) => void,
     AddGrammar: (newCFG: CFG) => void,
     DeleteGrammar: (number) => void
 }
@@ -144,6 +146,7 @@ export default class GrammarPage extends React.Component<GrammarPageProps, Gramm
                                 <GrammarCard 
                                     key     = {`grammar ${index}`}
                                     Grammar = {grammar}
+                                    Tokens = {this.props.Tokens}
                                     isSelected = {this.state.selectedGrammars!.indexOf(index) != -1}
                                     forceUpdate    = {() => this.callForceUpdate()}
                                     DeleteGrammar = {() => this.props.DeleteGrammar(index)}
@@ -243,9 +246,11 @@ export default class GrammarPage extends React.Component<GrammarPageProps, Gramm
                                                     return this.props.Tokens.get(tokenName)!.id as tokenID
                                                 }))
                                                 
+                                                this.props.AddAutomata(cfg.FSA)
                                                 this.props.AddGrammar(cfg)
                                             })
                                         })
+                                        e.currentTarget.value = ""
                                     }
                                 }
                             />

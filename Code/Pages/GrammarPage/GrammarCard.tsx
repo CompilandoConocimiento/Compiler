@@ -3,9 +3,11 @@ import { CFG } from "../../CoreLogic/ContextFreeGrammar";
 
 
 import Style from "./Style.css"
+import { TokenItem } from "../../CoreLogic/Token";
 
 interface propsType {
     Grammar: CFG,
+    Tokens: Map<string, TokenItem>
     SeeGrammar: any,
     isSelected: boolean,
     DeleteGrammar: () => any,
@@ -34,7 +36,36 @@ export default function GrammarCard (props: propsType) {
                     <li>
                         <a 
                             className = "waves-effect waves-green btn-flat blue-text text-lighten-5"
-                            onClick  = {() => {return null}}
+                            onClick  = {() => {
+                                const LHS = prompt("Introduce the LHS:")
+                                if(LHS == null) return
+                                if(!props.Grammar.isNonTerminal(LHS)){
+                                    M.toast({html: "Invalid non-terminal"})
+                                    return
+                                }
+                                const rhs = prompt("Introduce the RHS (separated by spaces):\nFor terminal symbols, use the name of the token.")
+                                if(rhs == null) return
+                                const callbackStr = prompt("Introduce the callback for this rule:")
+                                let callback = null
+                                if(callbackStr != null && callbackStr.length > 0){
+                                    try{
+                                        callback = new Function("return " + callbackStr)()
+                                    }catch(e){}
+                                }
+                                const RHS = rhs.split(" ").filter(c => c.length > 0).map(c =>{
+                                    if(props.Grammar.isNonTerminal(c)){
+                                        return c
+                                    }else if(props.Tokens.has(c)){
+                                        const id = props.Tokens.get(c)!.id
+                                        props.Grammar.terminalSymbols.add(id)
+                                        return id
+                                    }else{
+                                        return null
+                                    }
+                                }).filter(c => c != null)
+                                props.Grammar.addRule(LHS, RHS, callback)
+                                M.toast({html: "New rule added"})
+                            }}
                         >
                             <i className="material-icons">text_rotation_none</i>
                             &nbsp;
@@ -98,6 +129,16 @@ export default function GrammarCard (props: propsType) {
                 <div className="divider" style={{backgroundColor: "#e3f2fd"}}></div>
 
                 <ul>
+                    <li>
+                        <a className = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            onClick  = {() => {return}}
+                        >
+                            <i className="material-icons">edit</i>
+                            &nbsp;
+                            &nbsp;
+                            Change associated automata
+                        </a>
+                    </li>
                     <li>
                         <a className = "waves-effect waves-green btn-flat blue-text text-lighten-5"
                             onClick  = {() => {

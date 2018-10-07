@@ -336,6 +336,7 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                                                 this.props.AddAutomata(fsa!)
                                             })
                                         })
+                                        e.currentTarget.value = ""
                                     }
                                 }
                             />

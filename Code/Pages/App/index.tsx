@@ -15,14 +15,14 @@ import TokenPage from '../TokenPage/'
 import AutomataPage from '../AutomataPage/'
 import GrammarPage from '../GrammarPage/'
 import CardToTopic from './CardToTopic'
-import { CFG } from "../../CoreLogic/ContextFreeGrammar";
+import { CFG } from "../../CoreLogic/ContextFreeGrammar"
 
 
 type AppState = {
     SideMenu: M.Sidenav | null,
     Tokens: Map<string, TokenItem>,
     Automatas: Array<FiniteStateAutomata>,
-    Grammars: Array<CFG>,
+    Grammars: Array<CFG>
 }
 
 class App extends React.Component<{}, AppState> {
@@ -177,6 +177,12 @@ class App extends React.Component<{}, AppState> {
                                     Grammars = {this.state.Grammars}
                                     Tokens   = {this.state.Tokens}
                                     addNewTokens   = {(newTokens: Token[]) => this.addNewTokens(newTokens)}
+                                    AddAutomata = {(newFSA: FiniteStateAutomata) => {
+                                        this.setState(preState => {
+                                            preState.Automatas.push(newFSA)
+                                            return {Automatas : preState.Automatas}
+                                        })
+                                    }}
                                     AddGrammar = {(newCFG: CFG) => {
                                         this.setState(preState => {
                                             preState.Grammars.push(newCFG)

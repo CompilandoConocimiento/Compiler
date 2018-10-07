@@ -249,5 +249,7 @@ regExpGrammar.addRule('F', [26], function(args){
 
 regExpGrammar.setName("Regular expressions")
 
+export const arithmeticAutomata = arithmetic
+export const regularExpressionsAutomata = regularExpressions
 export const regularExpressionsGrammar = regExpGrammar
 export const arithmeticGrammar = arithGrammar
