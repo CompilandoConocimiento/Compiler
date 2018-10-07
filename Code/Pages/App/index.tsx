@@ -11,7 +11,6 @@ import Footer from "../Footer"
 
 import { DefaultTokens, Token, getNewTokenID, TokenItem } from '../../CoreLogic/Token'
 import { FiniteStateAutomata, } from '../../CoreLogic/FiniteStateAutomata'
-import { arithmeticGrammar, regularExpressionsGrammar } from '../../Helpers/DefaultCreations'
 import TokenPage from '../TokenPage/'
 import AutomataPage from '../AutomataPage/'
 import GrammarPage from '../GrammarPage/'
@@ -35,7 +34,7 @@ class App extends React.Component<{}, AppState> {
             SideMenu: null,
             Tokens: new Map(DefaultTokens),
             Automatas: [],
-            Grammars: [arithmeticGrammar, regularExpressionsGrammar],
+            Grammars: [],
         }
     }
  
@@ -177,6 +176,18 @@ class App extends React.Component<{}, AppState> {
                                 <GrammarPage 
                                     Grammars = {this.state.Grammars}
                                     Tokens   = {this.state.Tokens}
+                                    addNewTokens   = {(newTokens: Token[]) => this.addNewTokens(newTokens)}
+                                    AddGrammar = {(newCFG: CFG) => {
+                                        this.setState(preState => {
+                                            preState.Grammars.push(newCFG)
+                                            return {Automatas : preState.Automatas}
+                                        })
+                                    }}
+                                    DeleteGrammar = {(index: number) => {
+                                        this.setState(preState => {
+                                            return {Grammars: preState.Grammars.filter( (_, i) => i != index )}
+                                        })
+                                    }}
                                 />
                             }
                         />

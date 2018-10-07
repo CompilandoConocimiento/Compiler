@@ -12,7 +12,7 @@ export function loadFileAsJSON(input: React.ChangeEvent<HTMLInputElement>["targe
                 const data = JSON.parse(textFromFileLoaded) 
                 onLoaded(data)
             } 
-            catch (e) { alert("Not a valid file") }
+            catch (e) { alert("Not a valid file.\n" + e) }
         }
     }
 }

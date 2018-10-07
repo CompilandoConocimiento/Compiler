@@ -98,7 +98,7 @@ const absFunc = FiniteStateAutomata.basicFSA('abs');
 absFunc.setName("Absolute value function");
 absFunc.setFinalToken(20);
 
-const arithmetic = FiniteStateAutomata.superJoin(
+let arithmetic = FiniteStateAutomata.superJoin(
     [   
         plusSign.clone(), 
         minusSign.clone(), 
@@ -122,6 +122,7 @@ const arithmetic = FiniteStateAutomata.superJoin(
         number.clone()
     ]
 );
+arithmetic = arithmetic.toDFA()
 arithmetic.setName("Arithmetic expressions")
 
 
@@ -215,9 +216,10 @@ char.join(FiniteStateAutomata.basicFSA(String.raw`\W`, false))
 char.setName("Character");
 char.setFinalToken(26);
 
-const regularExpressions = FiniteStateAutomata.superJoin([
+let regularExpressions = FiniteStateAutomata.superJoin([
     orFunc, andFunc, positiveClosure, kleeneClosure, optionalClosure, char, openParenthesis, closeParenthesis
 ]);
+regularExpressions = regularExpressions.toDFA()
 regularExpressions.setName("Regular expressions");
 
 

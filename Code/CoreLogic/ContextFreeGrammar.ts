@@ -92,7 +92,7 @@ export class CFG {
 	follow: Map<nonTerminal, Set<tokenID> >
 	LL1Table: Map<nonTerminal, Map<tokenID, production> > | null
 	name: string
-	private FSA: FiniteStateAutomata
+	FSA: FiniteStateAutomata
 
 	constructor (terminalSymbols: Set<tokenID>, nonTerminalSymbols: Set<nonTerminal>, initialSymbol: nonTerminal, FSA: FiniteStateAutomata) {
 		this.terminalSymbols = new Set(terminalSymbols)

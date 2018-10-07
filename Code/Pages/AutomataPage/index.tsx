@@ -326,15 +326,15 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                                                 .filter (fsa => fsa != null)
                                                 
                                             newAutomatas.forEach(fsa => {
-                                                    fsa!.states.forEach(
-                                                        (state) => {
-                                                            const tokenName = tokenById.get(state.token)!.name
-                                                            state.token = this.props.Tokens.get(tokenName)!.id as tokenID
-                                                        }
-                                                    )
-                                                    
-                                                    this.props.AddAutomata(fsa!)
-                                                })
+                                                fsa!.states.forEach(
+                                                    (state) => {
+                                                        const tokenName = tokenById.get(state.token)!.name
+                                                        state.token = this.props.Tokens.get(tokenName)!.id as tokenID
+                                                    }
+                                                )
+                                                
+                                                this.props.AddAutomata(fsa!)
+                                            })
                                         })
                                     }
                                 }

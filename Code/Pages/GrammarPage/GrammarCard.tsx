@@ -6,15 +6,22 @@ import Style from "./Style.css"
 
 interface propsType {
     Grammar: CFG,
-    SeeGrammar: any
+    SeeGrammar: any,
+    isSelected: boolean,
+    DeleteGrammar: () => any,
+    forceUpdate: () => void,
+    SelectGrammar: () => any
 }
 
-export default function AutomataCard (props: propsType) {
+export default function GrammarCard (props: propsType) {
+
+    const colorStyle = `darken-${props.isSelected? "1": "3"}`
+    const depthStyle = props.isSelected? "z-depth-5" : "hoverable"
 
     return (
-        <div className={`card blue darken-2`} >
+        <div className={`card blue ${colorStyle} ${depthStyle}`} >
             
-            <div className="card-content white-text">
+            <div className="card-content white-text" onClick={props.SelectGrammar}>
                 <div className={Style.unselectable}>
                     <span className="flow-text" style={{overflow: "auto"}}>
                         Grammar: {props.Grammar.getName()}
@@ -24,6 +31,17 @@ export default function AutomataCard (props: propsType) {
 
             <div className="card-action">
                 <ul>
+                    <li>
+                        <a 
+                            className = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            onClick  = {() => {return null}}
+                        >
+                            <i className="material-icons">text_rotation_none</i>
+                            &nbsp;
+                            &nbsp;
+                            Add Rule
+                        </a>
+                    </li>
                     <li>
                         <a 
                             className   = "waves-effect waves-green btn-flat blue-text text-lighten-5"
@@ -51,8 +69,17 @@ export default function AutomataCard (props: propsType) {
                             Parse String
                         </a>
                     </li>
-                </ul>
-                <ul>
+                    <li>
+                        <a 
+                            className = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            onClick  = {props.SelectGrammar}
+                        >
+                            <i className="material-icons">radio_button_checked</i>
+                            &nbsp;
+                            &nbsp;
+                            Select
+                        </a>
+                    </li>
                     <li>
                         <a 
                             className = "waves-effect waves-green btn-flat blue-text text-lighten-5"
@@ -73,6 +100,22 @@ export default function AutomataCard (props: propsType) {
                 <ul>
                     <li>
                         <a className = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            onClick  = {() => {
+                                const newName = prompt("Give me a new name:", props.Grammar.getName())
+                                if (newName != null) props.Grammar.setName(newName)
+                                props.forceUpdate()
+                            }}
+                        >
+                            <i className="material-icons">edit</i>
+                            &nbsp;
+                            &nbsp;
+                            Rename
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            className = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            onClick  = {() => props.DeleteGrammar()}
                         >
                             <i className="material-icons">delete_forever</i>
                             &nbsp;
