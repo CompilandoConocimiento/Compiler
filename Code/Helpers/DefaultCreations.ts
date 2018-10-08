@@ -249,6 +249,76 @@ regExpGrammar.addRule('F', [26], function(args){
 
 regExpGrammar.setName("Regular expressions")
 
+
+
+
+
+
+let arrow: FiniteStateAutomata = FiniteStateAutomata.basicFSA("->");
+arrow.setName("Arrow");
+arrow.setFinalToken(27);
+
+let semicolon: FiniteStateAutomata = FiniteStateAutomata.basicFSA(";\n");
+semicolon.setName("Semicolon");
+semicolon.setFinalToken(28);
+
+let sep: FiniteStateAutomata = FiniteStateAutomata.basicFSA("|");
+sep.setName("Separator");
+sep.setFinalToken(29);
+
+let symbol: FiniteStateAutomata = FiniteStateAutomata.basicFSA(String.raw`\w`);
+symbol.join(FiniteStateAutomata.basicFSA(String.raw`\d`));
+symbol.join(FiniteStateAutomata.basicFSA(String.raw`'`));
+symbol.join(FiniteStateAutomata.basicFSA('ε'));
+symbol.positiveClosure();
+symbol.setName("Symbol");
+symbol.setFinalToken(30);
+
+let space: FiniteStateAutomata = FiniteStateAutomata.basicFSA(" ");
+space.setName("Space");
+space.setFinalToken(31);
+
+
+let grammarOfGrammarsAutomata: FiniteStateAutomata = FiniteStateAutomata.superJoin([
+    arrow, semicolon, sep, symbol, space
+]);
+
+let newGramar: CFG = new CFG(new Set([]), new Set([]), '', null);
+window["newGramar"] = newGramar
+
+let grammarOfGrammars: CFG = new CFG(new Set([27, 28, 29, 30, 31]), new Set(['G', 'Reglas', 'Regla', 'LHS', 'RHS', 'ListaRHS']), 'G', grammarOfGrammarsAutomata);
+grammarOfGrammars.addRule('G', ['Reglas'], function(){
+    newGramar.nonTerminalSymbols.forEach(c => {
+        newGramar.terminalSymbols.delete(Number(c));
+    })
+});
+grammarOfGrammars.addRule('Reglas', ['Regla', 28], null);
+grammarOfGrammars.addRule('Reglas', ['Reglas', 'Regla', 28], null);
+grammarOfGrammars.addRule('Regla', ['LHS', 31, 27, 'ListaRHS'], function(args){
+    newGramar.nonTerminalSymbols.add(args[0]);
+    args[3].forEach(RHS => {
+        RHS = RHS.filter(c => c != 'ε');
+        RHS.forEach(c => newGramar.terminalSymbols.add(Number(c)));
+        newGramar.addRule(args[0], RHS, null);
+    })
+});
+grammarOfGrammars.addRule('LHS', [30], function(args){return args[0];});
+grammarOfGrammars.addRule('ListaRHS', ['RHS'], function (args){return [args[0]]});
+grammarOfGrammars.addRule('ListaRHS', ['ListaRHS', 29, 'RHS'], function (args){args[0].push(args[2]); return args[0];});
+grammarOfGrammars.addRule('RHS', [31, 30], function(args){return [args[1]]});
+grammarOfGrammars.addRule('RHS', ['RHS', 31, 30], function(args){args[0].push(args[2]); return args[0];});
+
+grammarOfGrammars = grammarOfGrammars.removeLeftRecursion();
+
+window["result"] = grammarOfGrammars.parseStringWithLL1("E -> T E';\n"+
+"E' -> 1 T E'| 2 T E'| ε;\n"+
+"T -> F T';\n"+
+"T' -> 3 F T'| 4 F T'| ε;\n"+
+"F -> 6 E 7| 8;\n");
+grammarOfGrammars.executeActions(window["result"]);
+
+
+
 export const arithmeticAutomata = arithmetic
 export const regularExpressionsAutomata = regularExpressions
 export const regularExpressionsGrammar = regExpGrammar
