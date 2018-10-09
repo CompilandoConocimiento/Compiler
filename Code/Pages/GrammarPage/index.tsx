@@ -1,7 +1,7 @@
 import React from "react"
 
 import { CFG, serializedCFG } from "../../CoreLogic/ContextFreeGrammar"
-import { TokenItem, tokenID, Token, TokenJSON } from "../../CoreLogic/Token"
+import { TokenItem, tokenID, Token, TokenJSON, TokenError } from "../../CoreLogic/Token"
 import GrammarCard from './GrammarCard'
 import SeeGrammar from './SeeGrammar'
 
@@ -17,6 +17,7 @@ type GrammarPageState = {
 }
 
 type GrammarPageProps = {
+    Automatas: Array<FiniteStateAutomata>,
     Grammars: Array<CFG>,
     addNewTokens(newTokens: Array<Token>): void,
     Tokens: Map<string, TokenItem>,
@@ -85,34 +86,102 @@ export default class GrammarPage extends React.Component<GrammarPageProps, Gramm
     }
 
     ShowOperations() {
+
+        const unaryOperation = (operation: (a: CFG) => CFG) => {
+            if (this.state.selectedGrammars.length == 0) {
+                M.toast({html: "No selected grammars"})
+                return
+            }
+
+            const newCFGs = this.state.selectedGrammars.map(index => {
+                return this.props.Grammars[index]
+            })
+
+            newCFGs.forEach(cfg => this.props.AddGrammar(operation(cfg)))
+
+            this.setState({selectedGrammars: []})
+        }
+
+        const removeLeftRecursion = () => unaryOperation((a) => a.removeLeftRecursion())
+
         return (
             <div className="fixed-action-btn">
                 <a className="btn-floating btn-large red">
                     <i className="large material-icons">mode_edit</i>
                 </a>
 
-                <ul className="left-align" style={{"marginLeft": "-4.5rem"}}>
+                <ul className="left-align" style={{"marginLeft": "-5rem"}}>
                     <li>
                         <a 
-                            className = "btn-floating indigo" style={{"width": "130px"}}
-                            onClick   = {() => {return null}}
+                            className = "btn-floating indigo" style={{"width": "140px"}}
+                            onClick   = {() => {
+                                const nonTerminalsStr = prompt("Introduce the non-terminal symbols, separated with spaces:")
+                                if(nonTerminalsStr == null) return
+                                const nonTerminals = nonTerminalsStr.split(" ").filter(c => c.length > 0)
+
+                                const terminalsStr = prompt("Introduce the terminal symbols, separated with spaces. Use the name of the tokens:")
+                                if(terminalsStr == null) return
+                                let validTerminals: boolean = true
+                                const terminals = terminalsStr.split(" ").filter(c => c.length > 0).map(c => {
+                                    if(this.props.Tokens.has(c)){
+                                        const id = this.props.Tokens.get(c)!.id
+                                        return id
+                                    }else{
+                                        return TokenError
+                                    }
+                                }).filter(c => {validTerminals = validTerminals && (c != TokenError); return c != TokenError})
+                                if(!validTerminals){
+                                    M.toast({html: "Invalid terminal symbols"})
+                                    return
+                                }
+
+                                const initial = prompt("Introduce the initial non-terminal:")
+                                if(initial == null || initial.length == 0) return
+                                if(nonTerminals.indexOf(initial) === -1){
+                                    M.toast({html: "Invalid initial non-terminal"})
+                                    return
+                                }
+
+                                let message = "Introduce the ID for the associated automata for this grammar:\n"
+                                let i = 0
+                                message += this.props.Automatas.map(fsa => "" + (i++) + ": " + fsa.getName()).join("\n")
+                                let idx = prompt(message)
+                                if(idx == null) return
+                                let newIdx = Number(idx)
+                                if(isNaN(newIdx)) return
+                                if(0 <= newIdx && newIdx < i){
+                                    let name = prompt("Introduce a name for ths grammar:")
+                                    const newCFG = new CFG(new Set(terminals), new Set(nonTerminals), initial, this.props.Automatas[newIdx])
+                                    newCFG.setName(name == null ? "" : name)
+                                    this.props.AddGrammar(newCFG)
+                                    M.toast({html: "Grammar added"})
+                                }
+                            }}
                         >
                             Create Grammar
                         </a>
                     </li>
                     <li>
                         <a 
+                            className = "btn-floating indigo" style={{"width": "140px"}}
+                            onClick   = {removeLeftRecursion}
+                        >
+                            Remove left recursion
+                        </a>
+                    </li>
+                    <li>
+                        <a 
                             className = "btn-floating blue" 
-                            style     = {{"width": "120px"}} 
+                            style     = {{"width": "140px"}} 
                             onClick   = {() => {this.setState({selectedGrammars: []})}}
                         >
-                            Clear
+                            Clear selection
                         </a>
                     </li>
                     <li>
                         <a 
                             className = "btn-floating green" 
-                            style     = {{"width": "120px"}} 
+                            style     = {{"width": "140px"}} 
                             onClick   = {() => {
                                 const data = this.state.selectedGrammars
                                     .map( index => this.props.Grammars[index] )
@@ -145,6 +214,7 @@ export default class GrammarPage extends React.Component<GrammarPageProps, Gramm
                             return (
                                 <GrammarCard 
                                     key     = {`grammar ${index}`}
+                                    Automatas = {this.props.Automatas}
                                     Grammar = {grammar}
                                     Tokens = {this.props.Tokens}
                                     isSelected = {this.state.selectedGrammars!.indexOf(index) != -1}

@@ -16,6 +16,7 @@ import AutomataPage from '../AutomataPage/'
 import GrammarPage from '../GrammarPage/'
 import CardToTopic from './CardToTopic'
 import { CFG } from "../../CoreLogic/ContextFreeGrammar"
+import { arithmeticAutomata, regularExpressionsAutomata, regularExpressionsGrammar, arithmeticGrammar, basicArithmeticGrammar } from "../../Helpers/DefaultCreations"
 
 
 type AppState = {
@@ -33,8 +34,8 @@ class App extends React.Component<{}, AppState> {
         this.state = {
             SideMenu: null,
             Tokens: new Map(DefaultTokens),
-            Automatas: [],
-            Grammars: [],
+            Automatas: [arithmeticAutomata, regularExpressionsAutomata],
+            Grammars: [regularExpressionsGrammar, arithmeticGrammar, basicArithmeticGrammar],
         }
     }
  
@@ -174,6 +175,7 @@ class App extends React.Component<{}, AppState> {
                             render = {
                                 () => 
                                 <GrammarPage 
+                                    Automatas = {this.state.Automatas}
                                     Grammars = {this.state.Grammars}
                                     Tokens   = {this.state.Tokens}
                                     addNewTokens   = {(newTokens: Token[]) => this.addNewTokens(newTokens)}

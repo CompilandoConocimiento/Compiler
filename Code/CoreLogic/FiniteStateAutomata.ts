@@ -248,6 +248,7 @@ export class FiniteStateAutomata {
 
 
     join(FSA2: FiniteStateAutomata): FiniteStateAutomata {
+        FSA2 = FSA2.clone()
         const newInitialStateID: stateID = getNewStateID()
         this.addTransition(newInitialStateID, this.epsilonCharacter, this.initialState)
         this.addTransition(newInitialStateID, this.epsilonCharacter, FSA2.initialState)
@@ -272,6 +273,7 @@ export class FiniteStateAutomata {
     }
 
     concat(FSA2: FiniteStateAutomata): FiniteStateAutomata {
+        FSA2 = FSA2.clone()
         this.alphabeth = new Set([...this.alphabeth, ...FSA2.alphabeth])
         this.setName(`(${this.getName()} & ${FSA2.getName()})`)
 
@@ -460,6 +462,7 @@ export class FiniteStateAutomata {
     }
 
     static superJoin(FSAs: Array<FiniteStateAutomata>): FiniteStateAutomata {
+        FSAs = FSAs.map(fsa => fsa.clone())
         const newInitialStateID: stateID = getNewStateID()
         const newFSA = new FiniteStateAutomata(new Set([]))
         newFSA.setInitialState(newInitialStateID)

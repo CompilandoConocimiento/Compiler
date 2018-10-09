@@ -3,10 +3,12 @@ import { CFG } from "../../CoreLogic/ContextFreeGrammar";
 
 
 import Style from "./Style.css"
-import { TokenItem } from "../../CoreLogic/Token";
+import { TokenItem, TokenError } from "../../CoreLogic/Token";
+import { FiniteStateAutomata } from "../../CoreLogic/FiniteStateAutomata";
 
 interface propsType {
     Grammar: CFG,
+    Automatas: Array<FiniteStateAutomata>
     Tokens: Map<string, TokenItem>
     SeeGrammar: any,
     isSelected: boolean,
@@ -43,15 +45,10 @@ export default function GrammarCard (props: propsType) {
                                     M.toast({html: "Invalid non-terminal"})
                                     return
                                 }
-                                const rhs = prompt("Introduce the RHS (separated by spaces):\nFor terminal symbols, use the name of the token.")
+                                
+                                const rhs = prompt("Introduce the RHS (separated with spaces):\nFor terminal symbols, use the name of the token.")
                                 if(rhs == null) return
-                                const callbackStr = prompt("Introduce the callback for this rule:")
-                                let callback = null
-                                if(callbackStr != null && callbackStr.length > 0){
-                                    try{
-                                        callback = new Function("return " + callbackStr)()
-                                    }catch(e){}
-                                }
+                                let validRHS: boolean = true
                                 const RHS = rhs.split(" ").filter(c => c.length > 0).map(c =>{
                                     if(props.Grammar.isNonTerminal(c)){
                                         return c
@@ -60,9 +57,22 @@ export default function GrammarCard (props: propsType) {
                                         props.Grammar.terminalSymbols.add(id)
                                         return id
                                     }else{
-                                        return null
+                                        return TokenError
                                     }
-                                }).filter(c => c != null)
+                                }).filter(c => {validRHS = validRHS && (c != TokenError); return c != TokenError})
+                                if(!validRHS){
+                                    M.toast({html: "Invalid RHS"})
+                                    return
+                                }
+
+                                const callbackStr = prompt("Introduce the callback for this rule:")
+                                let callback = null
+                                if(callbackStr != null && callbackStr.length > 0){
+                                    try{
+                                        callback = new Function("return " + callbackStr)()
+                                    }catch(e){}
+                                }
+
                                 props.Grammar.addRule(LHS, RHS, callback)
                                 M.toast({html: "New rule added"})
                             }}
@@ -80,24 +90,57 @@ export default function GrammarCard (props: propsType) {
                                 const value = prompt("Introduce the string to check:")
                                 if(value == null) return  
 
-                                const result = props.Grammar.parseStringWithEarley(value)
+                                const result = props.Grammar.parseStringWithLL1(value)
+                                if(result == null){
+                                    M.toast({html: "Not a LL(1) grammar"})
+                                    return
+                                }
                                 if (result.derivations.length == 0) {
                                     M.toast({html: "Not a valid string"})
                                     return                                
                                 }
+
+                                M.toast({html: "Valid string"})
 
                                 let parseResult = props.Grammar.executeActions(result)
                                 window['parseResult'] = parseResult
                                 console.log(parseResult)
 
                                 if (typeof parseResult === 'string' || typeof parseResult === 'number') 
-                                    M.toast({html: String(parseResult)})
+                                    M.toast({html: "Result: " + String(parseResult)})
                             }}
                         >
                             <i className="material-icons">check</i>
                             &nbsp;
                             &nbsp;
-                            Parse String
+                            Parse String with LL(1) algorithm
+                        </a>
+                        <a 
+                            className   = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            onClick={() => {
+                                const value = prompt("Introduce the string to check:")
+                                if(value == null) return  
+
+                                const result = props.Grammar.parseStringWithEarley(value)
+                                if (result.derivations.length == 0) {
+                                    M.toast({html: "Not a valid string"})
+                                    return                                
+                                }
+
+                                M.toast({html: "Valid string"})
+
+                                let parseResult = props.Grammar.executeActions(result)
+                                window['parseResult'] = parseResult
+                                console.log(parseResult)
+
+                                if (typeof parseResult === 'string' || typeof parseResult === 'number') 
+                                    M.toast({html: "Result: " + String(parseResult)})
+                            }}
+                        >
+                            <i className="material-icons">check</i>
+                            &nbsp;
+                            &nbsp;
+                            Parse String with Earley algorithm
                         </a>
                     </li>
                     <li>
@@ -131,7 +174,19 @@ export default function GrammarCard (props: propsType) {
                 <ul>
                     <li>
                         <a className = "waves-effect waves-green btn-flat blue-text text-lighten-5"
-                            onClick  = {() => {return}}
+                            onClick  = {() => {
+                                let message = "Introduce the ID for the new automata:\n"
+                                let i = 0
+                                message += props.Automatas.map(fsa => "" + (i++) + ": " + fsa.getName()).join("\n")
+                                let idx = prompt(message)
+                                if(idx == null) return
+                                let newIdx = Number(idx)
+                                if(isNaN(newIdx)) return
+                                if(0 <= newIdx && newIdx < i){
+                                    props.Grammar.FSA = props.Automatas[newIdx]
+                                    M.toast({html: "The new automata for the grammar \"" + props.Grammar.getName() + "\" is now \"" + props.Grammar.FSA.getName() + "\""})
+                                }
+                            }}
                         >
                             <i className="material-icons">edit</i>
                             &nbsp;

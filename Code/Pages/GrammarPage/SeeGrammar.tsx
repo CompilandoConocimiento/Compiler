@@ -65,7 +65,17 @@ const SeeGrammar: React.StatelessComponent<SeeGrammarProps> = (props: SeeGrammar
                                         Array.from(productionData[1])
                                         .map( (production, productionIndex) => {
                                             if (production.RHS.length == 0) 
-                                                return (<span key={`production ${productionIndex}`}> &epsilon; </span>)
+                                                return (
+                                                    <React.Fragment key={`production ${productionIndex}`}>
+                                                        <span
+                                                        className     = "tooltipped" 
+                                                        data-position = "top" 
+                                                        data-tooltip  = {production.callback == null ? "" : production.callback.toString()}
+                                                        >
+                                                            <span key={`production ${productionIndex}`}> &epsilon; </span>
+                                                        </span>
+                                                    </React.Fragment>
+                                                )
 
                                             return (
                                                 <React.Fragment key={`production ${productionIndex}`}>

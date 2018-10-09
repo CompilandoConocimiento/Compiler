@@ -140,7 +140,7 @@ export class CFG {
     	return true
 	}
 
-	removeLeftRecursion(): CFG {
+	removeLeftRecursion(depth: number = 0): CFG {
 		let goodRules: Set<nonTerminal> = new Set()
 		let badRules: Set<nonTerminal> = new Set()
 		this.productions.forEach( (rules, LHS) => {
@@ -155,6 +155,8 @@ export class CFG {
 		})
 
 		let result: CFG = new CFG(new Set(this.terminalSymbols), new Set(this.nonTerminalSymbols), this.initialSymbol, this.FSA)
+		if(depth == 0) result.setName(this.getName() + " non left-recursive")
+		else result.setName(this.getName())
 
 		badRules.forEach(LHS => {
 			let productions: Set<production> = this.productions.get(LHS)!
@@ -197,7 +199,7 @@ export class CFG {
 		})
 
 		if(badRules.size == 0) return result
-		else return result.removeLeftRecursion()
+		else return result.removeLeftRecursion(depth + 1)
 	}
 
 	// ============ Begin of LL(1) parser ============
@@ -326,9 +328,10 @@ export class CFG {
 		return result
 	}
 
-	parseStringWithLL1(testString: string): ParseInfo {
+	parseStringWithLL1(testString: string): ParseInfo|null {
 		let valid: boolean = true
 		if(this.LL1Table == null) valid = this.buildLL1Table()
+		if(!valid) return null
 		
 		let derivation = new node(this.initialSymbol)
 		let stack: Array<any> = [TokenEOF, derivation]

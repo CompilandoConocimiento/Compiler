@@ -83,20 +83,34 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
         saveFile("Automatas.json", JSON.stringify(data,null,2) )
     }
 
-    showOperationFAB() {
+    showOperations() {
 
-        const binaryOperation = (operation: (a, b) => any) => {
+        const unaryOperation = (operation: (a: FiniteStateAutomata) => FiniteStateAutomata, cloneFirst: boolean = true) => {
             if (this.state.selectedAutomatas.length == 0) {
                 M.toast({html: "No selected automatas"})
                 return
             }
 
-            let fsa1: FiniteStateAutomata = this.props.Automatas[this.state.selectedAutomatas[0]].clone()
-            const fsa2 = !this.props.Automatas[this.state.selectedAutomatas[1]]? null: 
-            this.props.Automatas[this.state.selectedAutomatas[1]].clone()
+            const newFSAs = this.state.selectedAutomatas.map(index => {
+                if(cloneFirst) return this.props.Automatas[index].clone()
+                else return this.props.Automatas[index]
+            })
 
-            fsa1 = operation(fsa1, fsa2)
-            this.props.AddAutomata(fsa1)
+            newFSAs.forEach(fsa => this.props.AddAutomata(operation(fsa)))
+
+            this.setState({selectedAutomatas: []})
+        }
+
+        const binaryOperation = (operation: (a: FiniteStateAutomata, b: FiniteStateAutomata) => FiniteStateAutomata) => {
+            if (this.state.selectedAutomatas.length != 2) {
+                M.toast({html: "You need two automatas for this operation"})
+                return
+            }
+
+            let fsa1 = this.props.Automatas[this.state.selectedAutomatas[0]].clone()
+            let fsa2 = this.props.Automatas[this.state.selectedAutomatas[1]]
+
+            this.props.AddAutomata(operation(fsa1, fsa2))
             this.setState({selectedAutomatas: []})
         }
 
@@ -107,7 +121,7 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
             }
 
             const FSAs = this.state.selectedAutomatas.map(index => {
-                return this.props.Automatas[index].clone()
+                return this.props.Automatas[index]
             })
 
             const newFSA = FiniteStateAutomata.superJoin(FSAs)
@@ -117,10 +131,10 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
 
         const join            = () => binaryOperation((a, b) => a.join(b))
         const concat          = () => binaryOperation((a, b) => a.concat(b))
-        const positiveClosure = () => binaryOperation((a, _) => a.positiveClosure(a))
-        const kleeneClosure   = () => binaryOperation((a, _) => a.kleeneClosure(a))
-        const optionalClosure = () => binaryOperation((a, _) => a.optionalClosure(a))
-        const toDFA           = () => binaryOperation((a, _) => a.toDFA())
+        const positiveClosure = () => unaryOperation((a) => a.positiveClosure())
+        const kleeneClosure   = () => unaryOperation((a) => a.kleeneClosure())
+        const optionalClosure = () => unaryOperation((a) => a.optionalClosure())
+        const toDFA           = () => unaryOperation((a) => a.toDFA(), false)
         const superJoin       = SuperJoinOperation
 
         return (
@@ -129,45 +143,45 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                     <i className="large material-icons">mode_edit</i>
                 </a>
 
-                <ul className="left-align" style={{"marginLeft": "-4.5rem"}}>
+                <ul className="left-align" style={{"marginLeft": "-5rem"}}>
                     <li>
-                        <a className="btn-floating" style={{"width": "130px"}} onClick={join}>
+                        <a className="btn-floating" style={{"width": "140px"}} onClick={join}>
                             Join
                         </a>
                     </li>
                     <li>
-                        <a className="btn-floating" style={{"width": "130px"}} onClick={concat}>
+                        <a className="btn-floating" style={{"width": "140px"}} onClick={concat}>
                             Concatenate
                         </a>
                     </li>
                     <li>
-                        <a className="btn-floating" style={{"width": "130px"}} onClick={positiveClosure}>
+                        <a className="btn-floating" style={{"width": "140px"}} onClick={positiveClosure}>
                             Positive Closure
                         </a>
                     </li>
                     <li>
-                        <a className="btn-floating" style={{"width": "130px"}} onClick={kleeneClosure} >
+                        <a className="btn-floating" style={{"width": "140px"}} onClick={kleeneClosure} >
                             Kleene Closure
                         </a>
                     </li>
                     <li>
-                        <a className="btn-floating" style={{"width": "130px"}} onClick={optionalClosure} >
+                        <a className="btn-floating" style={{"width": "140px"}} onClick={optionalClosure} >
                             Optional Closure
                         </a>
                     </li>
                     <li>
-                        <a className="btn-floating" style={{"width": "130px"}} onClick={toDFA} >
-                            Deterministic
+                        <a className="btn-floating" style={{"width": "140px"}} onClick={toDFA} >
+                            To Deterministic
                         </a>
                     </li>
                     <li>
-                        <a className="btn-floating" style={{"width": "130px"}} onClick={superJoin} >
+                        <a className="btn-floating" style={{"width": "140px"}} onClick={superJoin} >
                             Super Join
                         </a>
                     </li>
                     <li>
                         <a 
-                            className = "btn-floating indigo" style={{"width": "130px"}}
+                            className = "btn-floating indigo" style={{"width": "140px"}}
                             onClick   = {() => {
                                 const stringText = prompt("Give me a string to recognize")
                                 if (stringText == null) return 
@@ -185,7 +199,7 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                     </li>
                     <li>
                         <a 
-                            className = "btn-floating indigo" style={{"width": "130px"}}
+                            className = "btn-floating indigo" style={{"width": "140px"}}
                             onClick   = {() => {
                                 let regularExpresion = prompt("Give me a Regular Expression")!
                                 console.log(regularExpresion)
@@ -207,16 +221,16 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                     <li>
                         <a 
                             className = "btn-floating blue" 
-                            style     = {{"width": "120px"}} 
+                            style     = {{"width": "140px"}} 
                             onClick   = {() => {this.setState({selectedAutomatas: []})}}
                         >
-                            Clear
+                            Clear selection
                         </a>
                     </li>
                     <li>
                         <a 
                             className = "btn-floating green" 
-                            style     = {{"width": "120px"}} 
+                            style     = {{"width": "140px"}} 
                             onClick   = {() => {
                                 const data = this.state.selectedAutomatas
                                     .map( index => this.props.Automatas[index] )
@@ -367,7 +381,7 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                 </div>
             </div>
         
-            { this.showOperationFAB() }
+            { this.showOperations() }
             
             </React.Fragment>
         )

@@ -37,16 +37,16 @@ integer.setName("Integer");
 
 const decimal = integer.clone();
 decimal.concat(FiniteStateAutomata.basicFSA('.'));
-decimal.concat(integer.clone());
+decimal.concat(integer);
 decimal.setName("Decimal");
 
 const exponent = FiniteStateAutomata.basicFSA('E').join(FiniteStateAutomata.basicFSA('e'));
-exponent.concat(plusSign.clone().join(minusSign.clone()).optionalClosure().concat(integer.clone()));
+exponent.concat(plusSign.clone().join(minusSign).optionalClosure().concat(integer));
 
-const float = decimal.clone().concat(exponent.clone());
+const float = decimal.clone().concat(exponent);
 float.setName("Float");
 
-const number = FiniteStateAutomata.superJoin([integer.clone(), decimal.clone(), float.clone()]);
+const number = FiniteStateAutomata.superJoin([integer, decimal, float]);
 number.setName("Number");
 number.setFinalToken(8);
 
@@ -100,33 +100,33 @@ absFunc.setFinalToken(20);
 
 let arithmetic = FiniteStateAutomata.superJoin(
     [   
-        plusSign.clone(), 
-        minusSign.clone(), 
-        multSign.clone(),
-        divSign.clone(),
-        powSign.clone(),
-        piConstant.clone(),
-        eConstant.clone(),
-        sineFunc.clone(),
-        cosineFunc.clone(),
-        tangentFunc.clone(),
-        arcSineFunc.clone(),
-        arcCosineFunc.clone(),
-        arcTangentFunc.clone(),
-        logFunc.clone(),
-        lnFunc.clone(),
-        sqrtFunc.clone(),
-        absFunc.clone(),
-        openParenthesis.clone(),
-        closeParenthesis.clone(),
-        number.clone()
+        plusSign, 
+        minusSign, 
+        multSign,
+        divSign,
+        powSign,
+        piConstant,
+        eConstant,
+        sineFunc,
+        cosineFunc,
+        tangentFunc,
+        arcSineFunc,
+        arcCosineFunc,
+        arcTangentFunc,
+        logFunc,
+        lnFunc,
+        sqrtFunc,
+        absFunc,
+        openParenthesis,
+        closeParenthesis,
+        number
     ]
 );
 arithmetic = arithmetic.toDFA()
 arithmetic.setName("Arithmetic expressions")
 
 
-// =====  ARITMETHIC GRAMMARS  ========
+// =====  ARITMETHIC GRAMMAR  ========
 const arithGrammar: CFG = new CFG(new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), new Set(['E', 'T', 'P', 'U', 'F']), 'E', arithmetic);
 arithGrammar.addRule('E', ['E', 1, 'T'], function(args){return args[0]+args[2];});
 arithGrammar.addRule('E', ['E', 2, 'T'], function(args){return args[0]-args[2];});
@@ -164,6 +164,8 @@ window["arithGrammar"] = arithGrammar
 //console.log(arithGrammar.executeActions(arithGrammar.parseString("(sin(2*pi/7)+sin(4*pi/7)+sin(8*pi/7))^2*4+abs(-1)+3*arcsin(sqrt(3)/2)+2^3^2")))
 
 
+
+// =====  BASIC ARITMETHIC GRAMMAR  ========
 let basic: CFG = new CFG(new Set([1, 2, 3, 4, 6, 7, 8]), new Set(["E", "T", "F"]), 'E', arithmetic)
 basic.addRule("E", ["E", 1, "T"], function(args){return args[0]+args[2];})
 basic.addRule("E", ["E", 2, "T"], function(args){return args[0]-args[2];})
@@ -173,8 +175,7 @@ basic.addRule("T", ["T", 4, "F"], function(args){return args[0]/args[2];})
 basic.addRule("T", ["F"], function(args){return args[0];})
 basic.addRule("F", [6, "E", 7], function(args){return args[1];})
 basic.addRule("F", [8], function(args){return Number(args[0]);})
-basic = basic.removeLeftRecursion()
-window["basic"] = basic
+basic.setName("Basic arithmetic expressions")
 
 
 
@@ -253,7 +254,7 @@ regExpGrammar.setName("Regular expressions")
 
 
 
-
+// =====  GRAMMAR OF GRAMMARS AUTOMATAS  ========
 let arrow: FiniteStateAutomata = FiniteStateAutomata.basicFSA("->");
 arrow.setName("Arrow");
 arrow.setFinalToken(27);
@@ -286,6 +287,8 @@ let grammarOfGrammarsAutomata: FiniteStateAutomata = FiniteStateAutomata.superJo
 let newGramar: CFG = new CFG(new Set([]), new Set([]), '', null);
 window["newGramar"] = newGramar
 
+
+// =====  GRAMMAR OF GRAMMARS  ========
 let grammarOfGrammars: CFG = new CFG(new Set([27, 28, 29, 30, 31]), new Set(['G', 'Reglas', 'Regla', 'LHS', 'RHS', 'ListaRHS']), 'G', grammarOfGrammarsAutomata);
 grammarOfGrammars.addRule('G', ['Reglas'], function(){
     newGramar.nonTerminalSymbols.forEach(c => {
@@ -321,5 +324,6 @@ grammarOfGrammars.executeActions(window["result"]);
 
 export const arithmeticAutomata = arithmetic
 export const regularExpressionsAutomata = regularExpressions
-export const regularExpressionsGrammar = regExpGrammar
 export const arithmeticGrammar = arithGrammar
+export const basicArithmeticGrammar = basic
+export const regularExpressionsGrammar = regExpGrammar
