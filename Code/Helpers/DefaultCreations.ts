@@ -292,7 +292,7 @@ let grammarOfGrammarsAutomata: FiniteStateAutomata = FiniteStateAutomata.superJo
 let grammarOfGrammars: CFG = new CFG(new Set([27, 28, 29, 30, 31]), new Set(['G', 'Reglas', 'Regla', 'LHS', 'RHS', 'ListaRHS']), 'G', grammarOfGrammarsAutomata);
 grammarOfGrammars.addRule('G', ['Reglas'], function(args){
     let productions: Map<nonTerminal, Set<production>> = args[0]
-    let newGramar: CFG = new CFG(new Set([]), new Set([]), Array.from(productions.keys())[0], null);
+    let newGramar: CFG = new window["CFG"](new Set([]), new Set([]), Array.from(productions.keys())[0], null);
     productions.forEach( (rules, LHS) =>{
         newGramar.nonTerminalSymbols.add(LHS)
         rules.forEach(rule =>{

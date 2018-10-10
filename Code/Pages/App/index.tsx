@@ -160,7 +160,8 @@ class App extends React.Component<{}, AppState> {
                                     addNewTokens   = {(newTokens: Token[]) => this.addNewTokens(newTokens)}
                                     DeleteAutomata = {(index: number) => {
                                         this.setState(preState => {
-                                            return {Automatas: preState.Automatas.filter( (_, i) => i != index )}
+                                            preState.Automatas.splice(index, 1)
+                                            return {Automatas: preState.Automatas}
                                         })
                                     }}
                                     AddAutomata = {(newFSA: FiniteStateAutomata) => {
@@ -192,12 +193,13 @@ class App extends React.Component<{}, AppState> {
                                     AddGrammar = {(newCFG: CFG) => {
                                         this.setState(preState => {
                                             preState.Grammars.push(newCFG)
-                                            return {Automatas : preState.Automatas}
+                                            return {Grammars : preState.Grammars}
                                         })
                                     }}
                                     DeleteGrammar = {(index: number) => {
                                         this.setState(preState => {
-                                            return {Grammars: preState.Grammars.filter( (_, i) => i != index )}
+                                            preState.Grammars.splice(index, 1)
+                                            return {Grammars: preState.Grammars}
                                         })
                                     }}
                                 />

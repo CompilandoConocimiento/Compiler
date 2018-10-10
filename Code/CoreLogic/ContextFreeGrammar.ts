@@ -570,3 +570,5 @@ export class CFG {
 	}
 
 }
+
+window["CFG"] = CFG
