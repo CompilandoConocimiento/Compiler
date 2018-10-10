@@ -279,6 +279,7 @@ symbol.setName("Symbol");
 symbol.setFinalToken(30);
 
 let space: FiniteStateAutomata = FiniteStateAutomata.basicFSA(" ");
+space.positiveClosure();
 space.setName("Space");
 space.setFinalToken(31);
 
