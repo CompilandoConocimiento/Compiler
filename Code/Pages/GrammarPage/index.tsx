@@ -7,8 +7,9 @@ import SeeGrammar from './SeeGrammar'
 
 import Style from './Style.css'
 import { saveFile } from "../../Helpers/SaveFile";
-import { loadFileAsJSON } from "../../Helpers/LoadFile";
+import { loadFile } from "../../Helpers/LoadFile";
 import { FiniteStateAutomata } from "../../CoreLogic/FiniteStateAutomata";
+import { GrammarOfGrammars } from "../../Helpers/DefaultCreations";
 
 type GrammarPageState = {
     selectedGrammars: Array<number>
@@ -61,7 +62,7 @@ export default class GrammarPage extends React.Component<GrammarPageProps, Gramm
 
         const JSONGrammars = Grammars.map(
             cfg => {
-                TokensUsed = new Set([...TokensUsed, ...[...cfg.FSA.states.values()].map(state => state.token)])
+                TokensUsed = new Set([...TokensUsed, ...[...(cfg.FSA == null ? [] : cfg.FSA.states.values())].map(state => state.token)])
                 TokensUsed = new Set([...TokensUsed, ...cfg.terminalSymbols.values()])
                 return cfg.serialize()
             }
@@ -270,56 +271,74 @@ export default class GrammarPage extends React.Component<GrammarPageProps, Gramm
                                 type     = "file" 
                                 onChange = {
                                     e => {
-                                        loadFileAsJSON(e.target, (data: serializedCFG) => {
-                                            const tokenById: Map<tokenID, Token> = new Map()
-                                            data.Tokens.forEach(tokenData => {
-                                                tokenById.set(tokenData.id, {name: tokenData.name, description: tokenData.description})
-                                            })
-
-                                            let newTokens: Array<Token> =  []
-                                            
-                                            tokenById.forEach( (tokenData, _) => {
-                                                if (!this.props.Tokens.has(tokenData.name)) {
-                                                    newTokens.push(tokenData)
-                                                }
-                                            })
-
-                                            this.props.addNewTokens(newTokens)
-
-                                            let newGrammars: Array<CFG> = data.Grammars
-                                                .map( cfg => CFG.deserialize(cfg)!)
-                                                .filter (cfg => cfg != null)
-                                                
-                                            newGrammars.forEach(cfg => {
-                                                cfg.FSA.states.forEach(
-                                                    (state) => {
-                                                        const tokenName = tokenById.get(state.token)!.name
-                                                        state.token = this.props.Tokens.get(tokenName)!.id as tokenID
-                                                    }
-                                                )
-
-                                                cfg.productions.forEach( (rules, _) =>{
-                                                    rules.forEach(production =>{
-                                                        production.RHS = production.RHS.map(c =>{
-                                                            if(cfg.isTerminal(c)){
-                                                                const tokenName = tokenById.get(c)!.name
-                                                                return this.props.Tokens.get(tokenName)!.id as tokenID
-                                                            }else{
-                                                                return c
-                                                            }
-                                                        })
-                                                    })
+                                        if(e.target.files!.length == 0) return
+                                        let filename = e.target.files![0].name.toLowerCase().split(".")
+                                        let ext = filename.pop()
+                                        if(ext === "json"){
+                                            loadFile(e.target, (data: serializedCFG) => {
+                                                const tokenById: Map<tokenID, Token> = new Map()
+                                                data.Tokens.forEach(tokenData => {
+                                                    tokenById.set(tokenData.id, {name: tokenData.name, description: tokenData.description})
                                                 })
 
-                                                cfg.terminalSymbols = new Set(Array.from(cfg.terminalSymbols).map(terminal =>{
-                                                    const tokenName = tokenById.get(terminal)!.name
-                                                    return this.props.Tokens.get(tokenName)!.id as tokenID
-                                                }))
+                                                let newTokens: Array<Token> =  []
                                                 
-                                                this.props.AddAutomata(cfg.FSA)
-                                                this.props.AddGrammar(cfg)
+                                                tokenById.forEach( (tokenData, _) => {
+                                                    if (!this.props.Tokens.has(tokenData.name)) {
+                                                        newTokens.push(tokenData)
+                                                    }
+                                                })
+
+                                                this.props.addNewTokens(newTokens)
+
+                                                let newGrammars: Array<CFG> = data.Grammars
+                                                    .map( cfg => CFG.deserialize(cfg)!)
+                                                    .filter (cfg => cfg != null)
+                                                    
+                                                newGrammars.forEach(cfg => {
+                                                    if(cfg.FSA != null){
+                                                        cfg.FSA.states.forEach(
+                                                            (state) => {
+                                                                const tokenName = tokenById.get(state.token)!.name
+                                                                state.token = this.props.Tokens.get(tokenName)!.id as tokenID
+                                                            }
+                                                        )
+                                                    }
+
+                                                    cfg.productions.forEach( (rules, _) =>{
+                                                        rules.forEach(production =>{
+                                                            production.RHS = production.RHS.map(c =>{
+                                                                if(cfg.isTerminal(c)){
+                                                                    const tokenName = tokenById.get(c)!.name
+                                                                    return this.props.Tokens.get(tokenName)!.id as tokenID
+                                                                }else{
+                                                                    return c
+                                                                }
+                                                            })
+                                                        })
+                                                    })
+
+                                                    cfg.terminalSymbols = new Set(Array.from(cfg.terminalSymbols).map(terminal =>{
+                                                        const tokenName = tokenById.get(terminal)!.name
+                                                        return this.props.Tokens.get(tokenName)!.id as tokenID
+                                                    }))
+                                                    
+                                                    if(cfg.FSA != null) this.props.AddAutomata(cfg.FSA)
+                                                    this.props.AddGrammar(cfg)
+                                                })
                                             })
-                                        })
+                                        }else if(ext === "cfg"){
+                                            loadFile(e.target, (data: string) => {
+                                                let result = GrammarOfGrammars.parseStringWithLL1(data)!
+                                                if(result.derivations.length == 0){
+                                                    M.toast({html: "Not a valid grammar"})
+                                                }else{
+                                                    let newCFG = GrammarOfGrammars.executeActions(result)
+                                                    newCFG.setName(filename.join("."))
+                                                    this.props.AddGrammar(newCFG)
+                                                }
+                                            }, false)
+                                        }
                                         e.currentTarget.value = ""
                                     }
                                 }

@@ -6,7 +6,7 @@ import AutomataCard from "./AutomataCard"
 import SeeAutomata from "./SeeAutomata"
 import LexerViewer from "./LexerViewer"
 import { saveFile } from '../../Helpers/SaveFile'
-import { loadFileAsJSON } from '../../Helpers/LoadFile'
+import { loadFile } from '../../Helpers/LoadFile'
 import {regularExpressionsGrammar} from '../../Helpers/DefaultCreations'
 
 import Style from "./Style.css"
@@ -205,6 +205,8 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                                 console.log(regularExpresion)
                                 const result = regularExpressionsGrammar.parseStringWithEarley(regularExpresion)
                                 console.log(result)
+
+                                if(result == null) return
                                 
                                 if (result.derivations.length == 0) {
                                     M.toast({html: "Not a valid Regular Expresion"})
@@ -319,7 +321,7 @@ export default class AutomataPage extends React.Component<AutomataPageProps, Aut
                                 type     = "file" 
                                 onChange = {
                                     (e) => {
-                                        loadFileAsJSON(e.target, (data: serializedAutomata) => {
+                                        loadFile(e.target, (data: serializedAutomata) => {
                                             const tokenById: Map<tokenID, Token> = new Map()
                                             data.Tokens.forEach(tokenData => {
                                                 tokenById.set(tokenData.id, {name: tokenData.name, description: tokenData.description})

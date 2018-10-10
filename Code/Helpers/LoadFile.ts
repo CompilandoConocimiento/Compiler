@@ -1,4 +1,4 @@
-export function loadFileAsJSON(input: React.ChangeEvent<HTMLInputElement>["target"], onLoaded): any {
+export function loadFile(input: React.ChangeEvent<HTMLInputElement>["target"], onLoaded, json: boolean = true): any {
     
     if (input != null && input.files && input.files.length > 0) {
         const fileToLoad = input.files[0]
@@ -9,8 +9,7 @@ export function loadFileAsJSON(input: React.ChangeEvent<HTMLInputElement>["targe
             // @ts-ignore
             const textFromFileLoaded = fileLoadedEvent.target.result
             try { 
-                const data = JSON.parse(textFromFileLoaded) 
-                onLoaded(data)
+                onLoaded(json ? JSON.parse(textFromFileLoaded) : textFromFileLoaded)
             } 
             catch (e) { alert("Not a valid file.\n" + e) }
         }

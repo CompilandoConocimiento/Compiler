@@ -8,6 +8,8 @@ export const metaCharacters = {
     Symbol: String.raw`\W`
 }
 
+window["metaCharacters"] = metaCharacters
+
 export interface StateJSON {
     id: stateID,
     token?: tokenID,

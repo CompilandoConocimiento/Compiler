@@ -37,7 +37,7 @@ export interface CFGJSON {
 	terminalSymbols: Array<tokenID>
 	nonTerminalSymbols: Array<nonTerminal>
 	productions: Array<[nonTerminal, Array<ProductionJSON>]>
-	FSA: AutomataJSON
+	FSA: AutomataJSON|null
 }
 
 export interface serializedCFG {
@@ -92,9 +92,9 @@ export class CFG {
 	follow: Map<nonTerminal, Set<tokenID> >
 	LL1Table: Map<nonTerminal, Map<tokenID, production> > | null
 	name: string
-	FSA: FiniteStateAutomata
+	FSA: FiniteStateAutomata|null
 
-	constructor (terminalSymbols: Set<tokenID>, nonTerminalSymbols: Set<nonTerminal>, initialSymbol: nonTerminal, FSA: FiniteStateAutomata) {
+	constructor (terminalSymbols: Set<tokenID>, nonTerminalSymbols: Set<nonTerminal>, initialSymbol: nonTerminal, FSA: FiniteStateAutomata|null) {
 		this.terminalSymbols = new Set(terminalSymbols)
 		this.nonTerminalSymbols = new Set(nonTerminalSymbols)
 		this.first = new Map()
@@ -337,6 +337,7 @@ export class CFG {
 		let stack: Array<any> = [TokenEOF, derivation]
 		let nodes: Array<node> = []
 
+		if(this.FSA == null) return null
 		let lexer: Lexer = new Lexer(this.FSA, testString)
 		let prevPosition = 0
 		let lexemes: Array<string> = []
@@ -434,7 +435,8 @@ export class CFG {
     		return nodes
     }
 
-    parseStringWithEarley (testString: string): ParseInfo {
+    parseStringWithEarley (testString: string): ParseInfo|null {
+		if(this.FSA == null) return null
     	let lexer: Lexer = new Lexer(this.FSA, testString)
 		let dp: Array<Array<item> > = []
 		dp[0] = []
@@ -542,7 +544,7 @@ export class CFG {
 			initialSymbol: this.initialSymbol,
 			terminalSymbols: Array.from(this.terminalSymbols),
 			nonTerminalSymbols: Array.from(this.nonTerminalSymbols),
-			FSA: this.FSA.serialize(),
+			FSA: (this.FSA == null ? null : this.FSA.serialize()),
 			productions: Array.from(this.productions).map(production => [production[0], [...production[1]].map(rule => {return {RHS: rule.RHS, callback: (rule.callback == null ? null : rule.callback.toString())}})] as [nonTerminal, Array<ProductionJSON>])
 		}
 
@@ -551,7 +553,7 @@ export class CFG {
 
 	static deserialize(JSONData: CFGJSON) : CFG | null {
 		try {
-			const result = new CFG(new Set(JSONData.terminalSymbols), new Set(JSONData.nonTerminalSymbols), JSONData.initialSymbol, FiniteStateAutomata.deserialize(JSONData.FSA)!)
+			const result = new CFG(new Set(JSONData.terminalSymbols), new Set(JSONData.nonTerminalSymbols), JSONData.initialSymbol, (JSONData.FSA == null ? null : FiniteStateAutomata.deserialize(JSONData.FSA)!))
 			result.setName(JSONData.name)
 			JSONData.productions.forEach(productionData => {
 				const LHS: nonTerminal = productionData[0]

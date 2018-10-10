@@ -87,6 +87,10 @@ export default function GrammarCard (props: propsType) {
                         <a 
                             className   = "waves-effect waves-green btn-flat blue-text text-lighten-5"
                             onClick={() => {
+                                if(props.Grammar.FSA == null){
+                                    M.toast({html: "This grammar doesn't have any associated automata"})
+                                    return
+                                }
                                 const value = prompt("Introduce the string to check:")
                                 if(value == null) return  
 
@@ -118,10 +122,15 @@ export default function GrammarCard (props: propsType) {
                         <a 
                             className   = "waves-effect waves-green btn-flat blue-text text-lighten-5"
                             onClick={() => {
+                                if(props.Grammar.FSA == null){
+                                    M.toast({html: "This grammar doesn't have any associated automata"})
+                                    return
+                                }
                                 const value = prompt("Introduce the string to check:")
                                 if(value == null) return  
 
                                 const result = props.Grammar.parseStringWithEarley(value)
+                                if(result == null) return
                                 if (result.derivations.length == 0) {
                                     M.toast({html: "Not a valid string"})
                                     return                                

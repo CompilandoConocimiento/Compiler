@@ -1,6 +1,5 @@
 import { FiniteStateAutomata } from '../CoreLogic/FiniteStateAutomata'
-import { CFG } from '../CoreLogic/ContextFreeGrammar'
-import { metaCharacters } from '../CoreLogic/State'
+import { CFG, production, nonTerminal } from '../CoreLogic/ContextFreeGrammar'
 
 // =====  ARITMETHIC AUTOMATAS  ========
 const plusSign = FiniteStateAutomata.basicFSA('+');
@@ -166,16 +165,16 @@ window["arithGrammar"] = arithGrammar
 
 
 // =====  BASIC ARITMETHIC GRAMMAR  ========
-let basic: CFG = new CFG(new Set([1, 2, 3, 4, 6, 7, 8]), new Set(["E", "T", "F"]), 'E', arithmetic)
-basic.addRule("E", ["E", 1, "T"], function(args){return args[0]+args[2];})
-basic.addRule("E", ["E", 2, "T"], function(args){return args[0]-args[2];})
-basic.addRule("E", ["T"], function(args){return args[0];})
-basic.addRule("T", ["T", 3, "F"], function(args){return args[0]*args[2];})
-basic.addRule("T", ["T", 4, "F"], function(args){return args[0]/args[2];})
-basic.addRule("T", ["F"], function(args){return args[0];})
-basic.addRule("F", [6, "E", 7], function(args){return args[1];})
-basic.addRule("F", [8], function(args){return Number(args[0]);})
-basic.setName("Basic arithmetic expressions")
+let basicArith: CFG = new CFG(new Set([1, 2, 3, 4, 6, 7, 8]), new Set(["E", "T", "F"]), 'E', arithmetic)
+basicArith.addRule("E", ["E", 1, "T"], function(args){return args[0]+args[2];})
+basicArith.addRule("E", ["E", 2, "T"], function(args){return args[0]-args[2];})
+basicArith.addRule("E", ["T"], function(args){return args[0];})
+basicArith.addRule("T", ["T", 3, "F"], function(args){return args[0]*args[2];})
+basicArith.addRule("T", ["T", 4, "F"], function(args){return args[0]/args[2];})
+basicArith.addRule("T", ["F"], function(args){return args[0];})
+basicArith.addRule("F", [6, "E", 7], function(args){return args[1];})
+basicArith.addRule("F", [8], function(args){return Number(args[0]);})
+basicArith.setName("Basic arithmetic expressions")
 
 
 
@@ -240,12 +239,12 @@ regExpGrammar.addRule('C', ['F'], function(args){return args[0];});
 regExpGrammar.addRule('F', [6, 'E', 7], function(args){return args[1]});
 regExpGrammar.addRule('F', [26], function(args){
     let str = args[0];
-    if(Object.values(metaCharacters).includes(str))
-        return FiniteStateAutomata.basicFSA(str);
+    if(Object.values(window["metaCharacters"]).includes(str))
+        return window["FiniteStateAutomata"].basicFSA(str);
     if(str[0] == '\\')
-        return FiniteStateAutomata.basicFSA(str[1], false)
+        return window["FiniteStateAutomata"].basicFSA(str[1], false)
     else
-        return FiniteStateAutomata.basicFSA(str, false)
+        return window["FiniteStateAutomata"].basicFSA(str, false)
 });
 
 regExpGrammar.setName("Regular expressions")
@@ -259,7 +258,11 @@ let arrow: FiniteStateAutomata = FiniteStateAutomata.basicFSA("->");
 arrow.setName("Arrow");
 arrow.setFinalToken(27);
 
-let semicolon: FiniteStateAutomata = FiniteStateAutomata.basicFSA(";\n");
+let semicolon: FiniteStateAutomata = FiniteStateAutomata.basicFSA(";");
+let lineBreak: FiniteStateAutomata = FiniteStateAutomata.basicFSA("\r");
+lineBreak.join(FiniteStateAutomata.basicFSA("\n"));
+lineBreak.kleeneClosure();
+semicolon.concat(lineBreak);
 semicolon.setName("Semicolon");
 semicolon.setFinalToken(28);
 
@@ -284,26 +287,54 @@ let grammarOfGrammarsAutomata: FiniteStateAutomata = FiniteStateAutomata.superJo
     arrow, semicolon, sep, symbol, space
 ]);
 
-let newGramar: CFG = new CFG(new Set([]), new Set([]), '', null);
-window["newGramar"] = newGramar
-
 
 // =====  GRAMMAR OF GRAMMARS  ========
 let grammarOfGrammars: CFG = new CFG(new Set([27, 28, 29, 30, 31]), new Set(['G', 'Reglas', 'Regla', 'LHS', 'RHS', 'ListaRHS']), 'G', grammarOfGrammarsAutomata);
-grammarOfGrammars.addRule('G', ['Reglas'], function(){
-    newGramar.nonTerminalSymbols.forEach(c => {
-        newGramar.terminalSymbols.delete(Number(c));
+grammarOfGrammars.addRule('G', ['Reglas'], function(args){
+    let productions: Map<nonTerminal, Set<production>> = args[0]
+    let newGramar: CFG = new CFG(new Set([]), new Set([]), Array.from(productions.keys())[0], null);
+    productions.forEach( (rules, LHS) =>{
+        newGramar.nonTerminalSymbols.add(LHS)
+        rules.forEach(rule =>{
+            rule.RHS.forEach(c =>{
+                if(window["Tokens"].has(c)){
+                    newGramar.terminalSymbols.add(window["Tokens"].get(c)!.id)
+                }
+            })
+            rule.RHS = rule.RHS.map(c =>{
+                if(window["Tokens"].has(c)){
+                    return window["Tokens"].get(c)!.id
+                }else{
+                    return c
+                }
+            })
+        })
     })
+    productions.forEach( (rules, LHS) =>{
+        rules.forEach(rule =>{
+            newGramar.addRule(LHS, rule.RHS, rule.callback)
+        })
+    })
+    return newGramar
 });
-grammarOfGrammars.addRule('Reglas', ['Regla', 28], null);
-grammarOfGrammars.addRule('Reglas', ['Reglas', 'Regla', 28], null);
+grammarOfGrammars.addRule('Reglas', ['Regla', 28], function(args){return args[0]});
+grammarOfGrammars.addRule('Reglas', ['Reglas', 'Regla', 28], function(args){
+    let oldProductions: Map<nonTerminal, Set<production>> = args[1]
+    let newProductions: Map<nonTerminal, Set<production>> = args[0]
+    oldProductions.forEach( (rules, LHS) =>{
+        if(!newProductions.has(LHS)) newProductions.set(LHS, new Set())
+        newProductions.set(LHS, new Set(Array.from(newProductions.get(LHS)!).concat(Array.from(rules))))
+    })
+    return newProductions
+});
 grammarOfGrammars.addRule('Regla', ['LHS', 31, 27, 'ListaRHS'], function(args){
-    newGramar.nonTerminalSymbols.add(args[0]);
+    let productions: Map<nonTerminal, Set<production>> = new Map()
+    productions.set(args[0], new Set())
     args[3].forEach(RHS => {
         RHS = RHS.filter(c => c != 'ε');
-        RHS.forEach(c => newGramar.terminalSymbols.add(Number(c)));
-        newGramar.addRule(args[0], RHS, null);
+        productions.get(args[0])!.add({RHS: RHS, callback: null})
     })
+    return productions
 });
 grammarOfGrammars.addRule('LHS', [30], function(args){return args[0];});
 grammarOfGrammars.addRule('ListaRHS', ['RHS'], function (args){return [args[0]]});
@@ -312,18 +343,14 @@ grammarOfGrammars.addRule('RHS', [31, 30], function(args){return [args[1]]});
 grammarOfGrammars.addRule('RHS', ['RHS', 31, 30], function(args){args[0].push(args[2]); return args[0];});
 
 grammarOfGrammars = grammarOfGrammars.removeLeftRecursion();
-
-window["result"] = grammarOfGrammars.parseStringWithLL1("E -> T E';\n"+
-"E' -> 1 T E'| 2 T E'| ε;\n"+
-"T -> F T';\n"+
-"T' -> 3 F T'| 4 F T'| ε;\n"+
-"F -> 6 E 7| 8;\n");
-grammarOfGrammars.executeActions(window["result"]);
+grammarOfGrammars.setName("Grammar of grammars")
+window["grammarOfGrammars"] = grammarOfGrammars
 
 
 
 export const arithmeticAutomata = arithmetic
 export const regularExpressionsAutomata = regularExpressions
 export const arithmeticGrammar = arithGrammar
-export const basicArithmeticGrammar = basic
+export const basicArithmeticGrammar = basicArith
 export const regularExpressionsGrammar = regExpGrammar
+export const GrammarOfGrammars = grammarOfGrammars

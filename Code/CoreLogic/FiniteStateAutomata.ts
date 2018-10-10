@@ -540,3 +540,5 @@ export class FiniteStateAutomata {
         return null
     }
 }
+
+window["FiniteStateAutomata"] = FiniteStateAutomata

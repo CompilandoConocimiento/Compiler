@@ -1,6 +1,6 @@
 import React from "react"
 
-import { loadFileAsJSON } from "../../Helpers/LoadFile"
+import { loadFile } from "../../Helpers/LoadFile"
 import { Token, TokenItem } from '../../CoreLogic/Token'
 import { saveFile } from '../../Helpers/SaveFile'
 
@@ -109,7 +109,7 @@ export default function TokenPage(props: TokenPageProps) {
                             type     = "file" 
                             onChange = {
                                 (e) => {
-                                    loadFileAsJSON(e.target, (data) => {
+                                    loadFile(e.target, (data) => {
                                         const fileDOMNode1 = document.getElementById("fileTokens") as HTMLInputElement
                                         const fileDOMNode2 = document.getElementById("fileTokensMCSS") as HTMLInputElement
 
