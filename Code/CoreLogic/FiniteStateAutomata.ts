@@ -212,6 +212,11 @@ export class FiniteStateAutomata {
         
         return visited
     }
+    /*move()
+    
+    @param {Set<stateID>} statesIDs
+    @return {Set<stateID>} visited 
+    */
 
     move(id: stateID, character: string): Set<stateID> {
         if (!this.isValidCharacterOrEpsilon(character)) return new Set()
