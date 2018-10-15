@@ -6,7 +6,6 @@ import {TokenItem} from "../../CoreLogic/Token"
 import Style from "./Style.css"
 
 interface propsType {
-    name: string,
     ShowAutomata: (FSA: FiniteStateAutomata) => any,
     ShowLexer: (FSA: FiniteStateAutomata) => any,
     SelectAutomata: () => any,
@@ -28,7 +27,7 @@ export default function AutomataCard (props: propsType) {
             <div className="card-content white-text" onClick={props.SelectAutomata}>
                 <div className={Style.unselectable}>
                     <span className="flow-text" style={{overflow: "auto"}}>
-                        Automata: {props.name}
+                        Automata: {props.FSA.getName()}
                     </span>
                 </div>
             </div>
@@ -90,18 +89,16 @@ export default function AutomataCard (props: propsType) {
                     <li>
                         <a className = "waves-effect waves-green btn-flat"
                             onClick  = {() => {
-                                const tokenIndex = Number(prompt("Give me a token ID"))
-                                let validToken = false
-                                props.Tokens.forEach( (data) =>  { validToken = (validToken || data.id == tokenIndex)})
+                                const tokenName = prompt("Give me a token name")
 
-                                if (typeof tokenIndex !== 'number' || !validToken) {
+                                if(tokenName == null) return
+                                if (!props.Tokens.has(tokenName)) {
                                     M.toast({html: "No valid ID"})
                                     return
                                 }
 
-                                Array.from(props.FSA.states.values())
-                                    .filter(state => state.isFinalState)
-                                    .forEach(state => state.token = tokenIndex)
+                                props.FSA.setFinalToken(props.Tokens.get(tokenName)!.id)
+                                M.toast({html: "Success"})
                             }}
                         >
                             <i className="material-icons">add_circle</i>

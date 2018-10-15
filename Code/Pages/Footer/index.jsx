@@ -26,6 +26,11 @@ export default function Footer(props) {
                                     <b>Alaneos</b>777
                                 </li>
                             </a>
+                            <a href="https://github.com/Lalaandrea" target="_blank">
+                                <li className="white-text">
+                                    <b>Lala</b>Andrea
+                                </li>
+                            </a>
                         </ul>
 
                         <br />
