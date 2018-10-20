@@ -4,6 +4,9 @@ import { CFG, serializedCFG } from "../../CoreLogic/ContextFreeGrammar"
 import { TokenItem, tokenID, Token, TokenJSON, TokenError } from "../../CoreLogic/Token"
 import GrammarCard from './GrammarCard'
 import SeeGrammar from './SeeGrammar'
+import SeeLL1Table from './SeeLL1Table'
+import SeeFirstFollow from "./SeeFirstFollow";
+import LL1Viewer from "./LL1Viewer";
 
 import Style from './Style.css'
 import { saveFile } from "../../Helpers/SaveFile";
@@ -239,6 +242,45 @@ export default class GrammarPage extends React.Component<GrammarPageProps, Gramm
                                                 this.state.ModalData!.open()
                                                 return {ModalContent: 
                                                     <SeeGrammar 
+                                                        Grammar = {grammar}
+                                                        Tokens  = {this.props.Tokens}
+                                                    />
+                                                }
+                                            })
+                                        }
+                                    }
+                                    SeeLL1Table = {
+                                        () => {
+                                            this.setState(() => {
+                                                this.state.ModalData!.open()
+                                                return {ModalContent: 
+                                                    <SeeLL1Table 
+                                                        Grammar = {grammar}
+                                                        Tokens  = {this.props.Tokens}
+                                                    />
+                                                }
+                                            })
+                                        }
+                                    }
+                                    SeeFirstFollow = {
+                                        () => {
+                                            this.setState(() => {
+                                                this.state.ModalData!.open()
+                                                return {ModalContent: 
+                                                    <SeeFirstFollow 
+                                                        Grammar = {grammar}
+                                                        Tokens  = {this.props.Tokens}
+                                                    />
+                                                }
+                                            })
+                                        }
+                                    }
+                                    LL1Viewer = {
+                                        () => {
+                                            this.setState(() => {
+                                                this.state.ModalData!.open()
+                                                return {ModalContent: 
+                                                    <LL1Viewer 
                                                         Grammar = {grammar}
                                                         Tokens  = {this.props.Tokens}
                                                     />

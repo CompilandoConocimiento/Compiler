@@ -11,6 +11,9 @@ interface propsType {
     Automatas: Array<FiniteStateAutomata>
     Tokens: Map<string, TokenItem>
     SeeGrammar: any,
+    SeeFirstFollow: any,
+    SeeLL1Table: any,
+    LL1Viewer: any,
     isSelected: boolean,
     DeleteGrammar: () => any,
     forceUpdate: () => void,
@@ -85,33 +88,79 @@ export default function GrammarCard (props: propsType) {
                     </li>
                     <li>
                         <a 
+                            className = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            onClick  = {props.SelectGrammar}
+                        >
+                            <i className="material-icons">radio_button_checked</i>
+                            &nbsp;
+                            &nbsp;
+                            Select
+                        </a>
+                    </li>
+                    <li>
+                        <a 
+                            className = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            onClick   = {
+                                () => props.SeeGrammar()
+                            }
+                        > 
+                            <i className="material-icons">open_in_new</i>
+                            &nbsp;
+                            &nbsp;
+                            See it
+                        </a>
+                    </li>
+                </ul>
+
+                <div className="divider" style={{backgroundColor: "#e3f2fd"}}></div>
+
+                <ul>
+                    <li>
+                        <a 
+                            className   = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            onClick = {
+                                () => {
+                                    props.Grammar.calculateFirstSets()
+                                    props.Grammar.calculateFollowSets()
+                                    props.SeeFirstFollow()
+                                }
+                            }
+                        >
+                            <i className="material-icons">table_chart</i>
+                            &nbsp;
+                            &nbsp;
+                            See First and Follow sets
+                        </a>
+                    </li>
+                    <li>
+                        <a 
+                            className   = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            onClick   = {
+                                () => {
+                                    props.Grammar.buildLL1Table()
+                                    if(props.Grammar.LL1Table == null){
+                                        M.toast({html: "Not a LL(1) grammar"})
+                                    }else{
+                                        props.SeeLL1Table()
+                                    }
+                                }
+                            }
+                        >
+                            <i className="material-icons">table_chart</i>
+                            &nbsp;
+                            &nbsp;
+                            See LL(1) table
+                        </a>
+                    </li>
+                    <li>
+                        <a 
                             className   = "waves-effect waves-green btn-flat blue-text text-lighten-5"
                             onClick={() => {
                                 if(props.Grammar.FSA == null){
                                     M.toast({html: "This grammar doesn't have any associated automata"})
                                     return
                                 }
-                                const value = prompt("Introduce the string to check:")
-                                if(value == null) return  
-
-                                const result = props.Grammar.parseStringWithLL1(value)
-                                if(result == null){
-                                    M.toast({html: "Not a LL(1) grammar"})
-                                    return
-                                }
-                                if (result.derivations.length == 0) {
-                                    M.toast({html: "Not a valid string"})
-                                    return                                
-                                }
-
-                                M.toast({html: "Valid string"})
-
-                                let parseResult = props.Grammar.executeActions(result)
-                                window['parseResult'] = parseResult
-                                console.log(parseResult)
-
-                                if (typeof parseResult === 'string' || typeof parseResult === 'number') 
-                                    M.toast({html: "Result: " + String(parseResult)})
+                                props.LL1Viewer()
                             }}
                         >
                             <i className="material-icons">check</i>
@@ -119,6 +168,13 @@ export default function GrammarCard (props: propsType) {
                             &nbsp;
                             Parse String with LL(1) algorithm
                         </a>
+                    </li>
+                </ul>
+
+                <div className="divider" style={{backgroundColor: "#e3f2fd"}}></div>
+
+                <ul>
+                    <li>
                         <a 
                             className   = "waves-effect waves-green btn-flat blue-text text-lighten-5"
                             onClick={() => {
@@ -150,30 +206,6 @@ export default function GrammarCard (props: propsType) {
                             &nbsp;
                             &nbsp;
                             Parse String with Earley algorithm
-                        </a>
-                    </li>
-                    <li>
-                        <a 
-                            className = "waves-effect waves-green btn-flat blue-text text-lighten-5"
-                            onClick  = {props.SelectGrammar}
-                        >
-                            <i className="material-icons">radio_button_checked</i>
-                            &nbsp;
-                            &nbsp;
-                            Select
-                        </a>
-                    </li>
-                    <li>
-                        <a 
-                            className = "waves-effect waves-green btn-flat blue-text text-lighten-5"
-                            onClick   = {
-                                () => props.SeeGrammar()
-                            }
-                        > 
-                            <i className="material-icons">open_in_new</i>
-                            &nbsp;
-                            &nbsp;
-                            See it
                         </a>
                     </li>
                 </ul>

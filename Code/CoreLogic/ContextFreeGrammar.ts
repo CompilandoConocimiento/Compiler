@@ -74,7 +74,7 @@ export class item {
 		if (this.position < this.rule.RHS.length)
 			return this.rule.RHS[this.position]
 		else
-			return 0
+			return TokenEOF
 	}
 
 	end(): boolean {
@@ -211,7 +211,8 @@ export class CFG {
 		return this.first.get(LHS)!.has(TokenDefault)
 	}
 	
-	private calculateFirstSets(): void {
+	calculateFirstSets(): void {
+		this.first.forEach(set => set.clear())
 		let change: boolean = true
 		while(change){
 			change = false
@@ -241,7 +242,8 @@ export class CFG {
 		}
 	}
 
-	private calculateFollowSets(): void {
+	calculateFollowSets(): void {
+		this.follow.forEach(set => set.clear())
 		this.follow.get(this.initialSymbol)!.add(TokenEOF)
 
 		this.productions.forEach( (rules, _) => {
@@ -325,17 +327,17 @@ export class CFG {
 				})
 			})
 		})
+		if(!result) this.LL1Table = null
 		return result
 	}
 
-	parseStringWithLL1(testString: string): ParseInfo|null {
-		let valid: boolean = true
-		if(this.LL1Table == null) valid = this.buildLL1Table()
-		if(!valid) return null
+	parseStringWithLL1(testString: string, callback: ((stackContent: productionText, position: tokenID, action: productionText)=>any) | null = null): ParseInfo|null {
+		if(!this.buildLL1Table()) return null
 		
 		let derivation = new node(this.initialSymbol)
 		let stack: Array<any> = [TokenEOF, derivation]
 		let nodes: Array<node> = []
+		let valid: boolean = true
 
 		if(this.FSA == null) return null
 		let lexer: Lexer = new Lexer(this.FSA, testString)
@@ -354,25 +356,36 @@ export class CFG {
 				if(stack.length == 0) break;
 				let top: any
 				do{
+					let stackContent = stack.map(c => {
+						if(c === TokenEOF || this.isTerminal(c))
+							return c
+						else
+							return c.LHS
+					})
 					top = stack.pop()!
 					if(top === TokenEOF || this.isTerminal(top)){
 						if(top == currentToken){
 							if(top == TokenEOF){
 								nodes.push(derivation)
+								if(callback && valid) callback(stackContent, currentToken, ["accepted"])
 								break
 							}
+							if(callback && valid) callback(stackContent, currentToken, ["pop"])
 						}else{
+							if(callback && valid) callback(stackContent, currentToken, ["error"])
 							valid = false
 							break
 						}
 					}else{
 						let row = this.LL1Table!.get(top.LHS)!
 						if(!row.has(currentToken)){
+							if(callback && valid) callback(stackContent, currentToken, ["error"])
 							valid = false
 							break
 						}
 						top.rule = row.get(currentToken)!
 						let newStack: Array<any> = []
+						let newAction: productionText = []
 						top.rule.RHS.forEach(c => {
 							if(this.isNonTerminal(c)){
 								let newNode = new node(c)
@@ -381,8 +394,10 @@ export class CFG {
 							}else{
 								newStack.push(c)
 							}
+							newAction.push(c)
 						})
 						newStack.reverse().forEach(c => stack.push(c))
+						if(callback && valid) callback(stackContent, currentToken, newAction)
 					}
 				}while(!this.isTerminal(top))
 			}
@@ -394,7 +409,7 @@ export class CFG {
 
 		return {
 			lexemes: lexemes,
-			derivations: nodes
+			derivations: nodes,
 		}
 	}
 	// ============ End of LL(1) parser ============
@@ -511,7 +526,7 @@ export class CFG {
 
 		return {
 			lexemes: lexemes,
-			derivations: nodes
+			derivations: nodes,
 		}
 	}
 	// ============ End of Earley parser ============
