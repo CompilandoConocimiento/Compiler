@@ -16,3 +16,21 @@
     -ms-user-select: none;      /* IE 10+ */
     user-select: none;          /* Likely future */      
 }
+
+.TDText {
+    border: solid 1px #263238;
+    text-align: center;
+    font-weight: 200;
+    padding: 0.2rem;
+    font-size: 0.8rem;
+}
+
+
+.TDHeader {
+    border: solid 1px #263238;
+    background-color: bisque;
+    text-align: center;
+    font-weight: 600;
+    padding: 0.3rem;
+    font-size: 0.95rem;
+}

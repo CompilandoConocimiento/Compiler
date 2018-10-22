@@ -2,6 +2,8 @@ import React from "react"
 import { CFG } from "../../CoreLogic/ContextFreeGrammar"
 import { TokenItem, tokenID, Token, TokenEOF } from "../../CoreLogic/Token";
 
+import * as Style from "./Style.css"
+
 export interface SeeLL1TableProps {
     Grammar: CFG,
     Tokens: Map<string, TokenItem>
@@ -24,10 +26,10 @@ const SeeLL1Table: React.StatelessComponent<SeeLL1TableProps> = (props: SeeLL1Ta
                         <td>&nbsp;</td>
                         {
                             Array.from(props.Grammar.terminalSymbols).map(c => 
-                                <td key={`header ${c}`}>{tokenById.get(c)!.name}</td>
+                                <td className={Style.TDHeader} key={`header ${c}`}>{tokenById.get(c)!.name}</td>
                             )
                         }
-                        <td>EOF</td>
+                        <td className={Style.TDHeader}>EOF</td>
                     </tr>
                 </thead>
                 <tbody>
@@ -36,7 +38,7 @@ const SeeLL1Table: React.StatelessComponent<SeeLL1TableProps> = (props: SeeLL1Ta
                             let row = props.Grammar.LL1Table!.get(LHS)!
                             return (
                                 <tr key={`row ${LHS}`}>
-                                    <td>{LHS}</td>
+                                    <td className={Style.TDHeader} >{LHS}</td>
                                     {
                                         [...props.Grammar.terminalSymbols, TokenEOF].map(c => {
                                             let strProd = ""
@@ -52,7 +54,7 @@ const SeeLL1Table: React.StatelessComponent<SeeLL1TableProps> = (props: SeeLL1Ta
                                                 if(RHS.length == 0) strProd = "ε";
                                             }
                                             return (
-                                                <td key={`item ${LHS} ${c}`}>{strProd}</td>
+                                                <td className={Style.TDText} key={`item ${LHS} ${c}`}>{strProd}</td>
                                             )
                                         })
                                     }
@@ -62,18 +64,17 @@ const SeeLL1Table: React.StatelessComponent<SeeLL1TableProps> = (props: SeeLL1Ta
                     }
                     {
                         [...props.Grammar.terminalSymbols, TokenEOF].map(c =>
-                            <tr key={`row ${c}`}>
-                                <td>{tokenById.get(c)!.name}</td>
+                            <tr className={Style.TDText} key={`row ${c}`}>
+                                <td className={Style.TDHeader}>{tokenById.get(c)!.name}</td>
                                 {
                                     [...props.Grammar.terminalSymbols, TokenEOF].map(d => {
                                         if(c == d){
                                             if(c == TokenEOF) return (<td key={`item ${c} ${d}`}>accepted</td>)
-                                            else return (<td key={`item ${c} ${d}`}>pop</td>)
+                                            else return (<td className={Style.TDText} key={`item ${c} ${d}`}>pop</td>)
                                         }
-                                        else return (<td key={`item ${c} ${d}`}>&nbsp;</td>)
+                                        else return (<td className={Style.TDText} key={`item ${c} ${d}`}>&nbsp;</td>)
                                     })
                                 }
-                                <td>&nbsp;</td>
                             </tr>
                         )
                     }

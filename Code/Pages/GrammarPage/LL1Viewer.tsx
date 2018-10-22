@@ -9,22 +9,25 @@ export interface LL1ViewerProps {
 
 export interface LL1ViewerState {
     testString: string,
-    table: Array<JSX.Element> | null
+    table: Array<JSX.Element> | null,
+    tokenById: Map<tokenID, Token>
 }
 
 export default class LL1Viewer extends React.Component<LL1ViewerProps, LL1ViewerState> {
-    tokenById: Map<tokenID, Token> = new Map()
-
+    
     constructor(props: LL1ViewerProps) {
         super (props)
 
+        const tokenById: Map<tokenID, Token> = new Map()
+
         props.Tokens.forEach( (item, name) => {
-            this.tokenById.set(item.id, {name: name, description: item.description})
+            tokenById.set(item.id, {name: name, description: item.description})
         })
 
         this.state = {
             testString: "",
-            table: null,  
+            table: null, 
+            tokenById: tokenById,
         }
 
     }
@@ -45,7 +48,7 @@ export default class LL1Viewer extends React.Component<LL1ViewerProps, LL1Viewer
                         {
                             stackContent.map(c => {
                                 if(c === TokenEOF || this.props.Grammar.isTerminal(c)){
-                                    return this.tokenById.get(c)!.name
+                                    return this.state.tokenById.get(c)!.name
                                 }else{
                                     return c
                                 }
@@ -53,13 +56,13 @@ export default class LL1Viewer extends React.Component<LL1ViewerProps, LL1Viewer
                         }
                     </td>
                     <td>
-                        {this.tokenById.get(position)!.name}
+                        {this.state.tokenById.get(position)!.name}
                     </td>
                     <td>
                         {
                             action.map(c => {
                                 if(this.props.Grammar.isTerminal(c)){
-                                    return this.tokenById.get(c)!.name
+                                    return this.state.tokenById.get(c)!.name
                                 }else{
                                     return c
                                 }
