@@ -1,5 +1,6 @@
 import {tokenID, TokenJSON, TokenDefault} from "./Token"
 import {State, getNewStateID, stateID, StateJSON} from "./State"
+import * as Vis from 'vis';
 
 export type Automata = FiniteStateAutomata
 
@@ -543,6 +544,54 @@ export class FiniteStateAutomata {
             return null
         }
         return null
+    }
+
+    graph(container: HTMLElement): Vis.Network {
+        let nodes = new Vis.DataSet()
+        let edges = new Vis.DataSet()
+        let self = this
+
+        let visited: Set<stateID> = new Set()
+
+        let dfs: (fromStateID: stateID, level: number) => void = function(fromStateID: stateID, level: number): void {
+            visited.add(fromStateID)
+            let state = self.states.get(fromStateID)!
+            state.transitions.forEach((toStates, character) => {
+                toStates.forEach(toStateID => {
+                    if(!visited.has(toStateID)){
+                        nodes.add({id: toStateID, label: 'State ' + toStateID, color: {background: (toStateID == self.initialState ? 'cyan' : 'white'), border: (self.states.get(toStateID)!.isFinalState ? 'red' : 'black')}, level: level})
+                    }
+                    edges.add({from: fromStateID, to: toStateID, font: {multi: true}, label: '<b>' + (character == self.epsilonCharacter ? 'ε' : character) + '</b>', arrows: 'to', color: {color: 'black'}})
+                    if(!visited.has(toStateID)){
+                        dfs(toStateID, level + 1)
+                    }
+                })
+            })
+        }
+
+        nodes.add({id: this.initialState, label: 'State ' + this.initialState, color: {background: 'cyan', border: (this.states.get(this.initialState)!.isFinalState ? 'red' : 'black')}, level: 0})
+        dfs(this.initialState, 1)
+        
+        let data = {nodes: nodes, edges: edges}
+        let options = {
+            edges:{
+                smooth:{
+                    type: 'cubicBezier',
+                    forceDirection: 'horizontal',
+                    roundness: 0.4
+                },
+                color:{
+                    inherit: false
+                }
+            },
+            layout:{
+                hierarchical: {
+                    direction: 'LR'
+                }
+            },
+            physics:false
+        }
+        return new Vis.Network(container, data, options)
     }
 }
 

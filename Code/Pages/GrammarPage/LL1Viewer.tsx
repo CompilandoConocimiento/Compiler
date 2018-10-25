@@ -32,10 +32,6 @@ export default class LL1Viewer extends React.Component<LL1ViewerProps, LL1Viewer
 
     }
 
-    static getDerivedStateFromProps(_, preState: LL1ViewerState) {
-        return {testString: preState.testString}
-    }
-
     createNewTable () {
         const newTable: Array<JSX.Element> = []
         let row = 0
@@ -88,6 +84,8 @@ export default class LL1Viewer extends React.Component<LL1ViewerProps, LL1Viewer
             window['parseResult'] = parseResult
             console.log(parseResult)
 
+            this.props.Grammar.graph(document.getElementById("graphTree")!, result)
+
             if (typeof parseResult === 'string' || typeof parseResult === 'number') 
                 M.toast({html: "Result: " + String(parseResult)})
         }
@@ -103,9 +101,8 @@ export default class LL1Viewer extends React.Component<LL1ViewerProps, LL1Viewer
 
                 <div className="row">
                     <div className="input-field col s10">
-                        <input 
+                        <textarea 
                             id          = "testString"
-                            type        = "text" 
                             value       = {this.state.testString}
                             onChange    = {(e) => {this.setState({testString: e.target.value})}}
                         />
@@ -129,6 +126,8 @@ export default class LL1Viewer extends React.Component<LL1ViewerProps, LL1Viewer
                         {this.state.table}
                     </tbody>
                 </table>
+
+                <div id="graphTree" style={{height: 200}}></div>
 
             </div>
         )

@@ -1,6 +1,7 @@
 import {FiniteStateAutomata, AutomataJSON} from "./FiniteStateAutomata"
 import {Lexer} from "./Lexer"
 import { tokenID, TokenError, TokenEOF, TokenDefault, TokenJSON } from "./Token";
+import * as Vis from 'vis';
 
 export type nonTerminal = string
 export type productionText = Array< any >
@@ -540,12 +541,12 @@ export class CFG {
 		    let args: Array<any> = []
 		    current.rule.RHS.forEach(c => {
 		        if(self.isNonTerminal(c))
-		            args.push(dfs(current.children[posChild++]));
+		            args.push(dfs(current.children[posChild++]))
 		        else
 		            args.push(lexemes[posTerminal++])
 		    })
 		    if(current.rule.callback)
-		        return current.rule.callback(args);
+		        return current.rule.callback(args)
 		    return null
 		}
 		if(info.derivations[index])
@@ -582,6 +583,64 @@ export class CFG {
 		} catch(e) {
             return null
         }
+	}
+
+	graph(container: HTMLElement, info: ParseInfo, index: number = 0): Vis.Network | null {
+		let nodes = new Vis.DataSet()
+		let edges = new Vis.DataSet()
+
+		let posTerminal: number = 0
+		let posNode: number = 0
+		let self = this;
+		let lexemes: Array<string> = info.lexemes
+		
+		let dfs: (current: node, level: number) => void = function(current: node, level: number): void{
+			let posChild: number = 0
+			let currNode = posNode
+		    current.rule.RHS.forEach(c => {
+				posNode++
+		        if(self.isNonTerminal(c)){
+					nodes.add({id: posNode, label: c, level: level, color: {background: 'white'}})
+					edges.add({from: currNode, to: posNode, arrows: 'to'})
+		            dfs(current.children[posChild++], level + 1)
+				}else{
+					nodes.add({id: posNode, label: lexemes[posTerminal++], level: level, color: {background: 'cyan'}})
+					edges.add({from: currNode, to: posNode, arrows: 'to'})
+				}
+			})
+			if(current.rule.RHS.length == 0){
+				posNode++
+				nodes.add({id: posNode, label: 'ε', level: level, color: {background: 'green'}})
+				edges.add({from: currNode, to: posNode, arrows: 'to'})
+			}
+		}
+		if(info.derivations[index]){
+			nodes.add({id: posNode, label: info.derivations[index].LHS, level: 0, color: {background: 'white'}})
+			dfs(info.derivations[index], 1)
+		}else{
+			return null
+		}
+
+		let data = {nodes: nodes, edges: edges}
+        let options = {
+            edges:{
+                smooth:{
+                    type: 'cubicBezier',
+                    forceDirection: 'vertical',
+                    roundness: 0.4
+                },
+                color:{
+                    inherit: false
+                }
+            },
+            layout:{
+                hierarchical: {
+                    direction: 'UD'
+                }
+            },
+            physics: false
+		}
+		return new Vis.Network(container, data, options)
 	}
 
 }

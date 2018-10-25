@@ -120,7 +120,7 @@ const SeeGrammar: React.StatelessComponent<SeeGrammarProps> = (props: SeeGrammar
                     }
                 </tbody>
             </table>
-
+            
         </div>
     )
 }

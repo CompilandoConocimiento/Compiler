@@ -7,15 +7,22 @@ export interface propsType {
     Tokens: Map<string, TokenItem>
 }
 
-const SeeAutomata: React.StatelessComponent<propsType> = (props: propsType) => {
+export interface stateType{
 
-    const tokenAsArray: Array<[number, string]> = [...props.Tokens.keys()].map( (tokenName) => {
-        const data: [number, string] = [props.Tokens.get(tokenName)!.id, tokenName]
-        return data
-    })
-    const TokenID: Map<number, string> = new Map(tokenAsArray)
-    
-    const finalStateItems: JSX.Element[] = Array.from(props.FSA.states.values())
+}
+
+export default class SeeAutomata extends React.Component<propsType, stateType> {
+    finalStateItems: JSX.Element[] = []
+
+    constructor(props: propsType) {
+        super (props)
+        const tokenAsArray: Array<[number, string]> = [...props.Tokens.keys()].map( (tokenName) => {
+            const data: [number, string] = [props.Tokens.get(tokenName)!.id, tokenName]
+            return data
+        })
+        const TokenID: Map<number, string> = new Map(tokenAsArray)
+        
+        this.finalStateItems = Array.from(props.FSA.states.values())
             .filter(state => state.isFinalState)
             .map(state => {
                 const name = (TokenID.get(state.token) != undefined)? 
@@ -29,82 +36,90 @@ const SeeAutomata: React.StatelessComponent<propsType> = (props: propsType) => {
                     </span>
                 )
             })
+    }
 
-    return (
-        <div>
-            <h4 className="blue-grey-text text-darken-4">See the Automata {props.FSA.getName()}</h4>
-            <table>
-                <thead>
-                <tr>
-                    <th>Initial State</th>
-                    <th>Final States</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>{props.FSA.initialState}</td>
-                    <td>
-                    {`{ `}
-                        <br />
-                        {finalStateItems} 
-                    {`}`}
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-            
-            {
-                Array.from( props.FSA.states.entries() ).map( stateElement => {
-                    const state = stateElement[1]
-                    const transitions = Array.from( state.transitions.entries() )
-                    const TransitionsItems = transitions.map(element => {
-                        const transitionsvalues = Array.from(element[1].values())
+    componentDidMount(){
+        this.props.FSA.graph(document.getElementById("graphAutomata")!)
+    }
+
+    render () {
+        return (
+            <div>
+                <h4 className="blue-grey-text text-darken-4">See the Automata {this.props.FSA.getName()}</h4>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Initial State</th>
+                        <th>Final States</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>{this.props.FSA.initialState}</td>
+                        <td>
+                        {`{ `}
+                            <br />
+                            {this.finalStateItems} 
+                        {`}`}
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                
+                {
+                    Array.from( this.props.FSA.states.entries() ).map( stateElement => {
+                        const state = stateElement[1]
+                        const transitions = Array.from( state.transitions.entries() )
+                        const TransitionsItems = transitions.map(element => {
+                            const transitionsvalues = Array.from(element[1].values())
+                            return (
+                                <tr key={`stateElement ${stateElement[0]} ${element[0]}`}>
+                                    <td style={{padding: "1rem", fontSize: "1.2rem"}}>"{element[0] == this.props.FSA.epsilonCharacter ? 'ε' : element[0]}"</td>
+                                    <td>
+                                    {`{ `}
+                                        {
+                                            transitionsvalues.map( (e, index) => {
+                                                const isFinal = index + 1 == transitionsvalues.length
+
+                                                return (
+                                                    <span key={`${element[0]} ${index}`}>{e} {isFinal? "": ", "}</span>
+                                                )
+                                            })
+                                        }
+                                        {`}`}
+                                    </td>
+                                </tr>
+                            )
+                        })
                         return (
-                            <tr key={`stateElement ${stateElement[0]} ${element[0]}`}>
-                                <td style={{padding: "1rem", fontSize: "1.2rem"}}>"{element[0]}"</td>
-                                <td>
-                                {`{ `}
-                                    {
-                                        transitionsvalues.map( (e, index) => {
-                                            const isFinal = index + 1 == transitionsvalues.length
-
-                                            return (
-                                                <span key={`${element[0]} ${index}`}>{e} {isFinal? "": ", "}</span>
-                                            )
-                                        })
-                                    }
-                                    {`}`}
-                                </td>
-                            </tr>
+                            <React.Fragment key={stateElement[0]}>
+                                <br />
+                                <br />
+                                <span style={{padding: "1rem", fontSize: "1.4rem"}}>
+                                    State {stateElement[0]}
+                                    {" "}
+                                    {(this.props.FSA.initialState == stateElement[0])? "(Initial State)" : ""}
+                                    {(this.props.FSA.isFinalState(stateElement[0]))? "(Final State)" : ""}
+                                </span>
+                                <table>
+                                    <thead>
+                                    <tr>
+                                        <th>Character</th>
+                                        <th>Transitions</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {TransitionsItems}
+                                    </tbody>
+                                </table>
+                                <br />
+                            </React.Fragment>
                         )
                     })
-                    return (
-                        <React.Fragment key={stateElement[0]}>
-                            <br />
-                            <br />
-                            <span style={{padding: "1rem", fontSize: "1.4rem"}}>
-                                State {stateElement[0]}
-                                {" "}
-                                {(props.FSA.initialState == stateElement[0])? "(Initial State)" : ""}
-                                {(props.FSA.isFinalState(stateElement[0]))? "(Final State)" : ""}
-                            </span>
-                            <table>
-                                <thead>
-                                <tr>
-                                    <th>Character</th>
-                                    <th>Transitions</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {TransitionsItems}
-                                </tbody>
-                            </table>
-                            <br />
-                        </React.Fragment>
-                    )
-                })
-            }
-        </div>
-    )
+                }
+
+                <div id="graphAutomata" style={{height: 200}}></div>
+            </div>
+        )
+    }
 }
-export default SeeAutomata
