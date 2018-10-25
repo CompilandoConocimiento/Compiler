@@ -1,6 +1,6 @@
 import {tokenID, TokenJSON, TokenDefault} from "./Token"
 import {State, getNewStateID, stateID, StateJSON} from "./State"
-import * as Vis from 'vis';
+import {Network, DataSet} from 'vis';
 
 export type Automata = FiniteStateAutomata
 
@@ -546,9 +546,9 @@ export class FiniteStateAutomata {
         return null
     }
 
-    graph(container: HTMLElement): Vis.Network {
-        let nodes = new Vis.DataSet()
-        let edges = new Vis.DataSet()
+    graph(container: HTMLElement): Network {
+        let nodes = new DataSet()
+        let edges = new DataSet()
         let self = this
 
         let visited: Set<stateID> = new Set()
@@ -574,11 +574,12 @@ export class FiniteStateAutomata {
         
         let data = {nodes: nodes, edges: edges}
         let options = {
-            edges:{
+            edges: {
                 smooth:{
                     type: 'cubicBezier',
                     forceDirection: 'horizontal',
-                    roundness: 0.4
+                    roundness: 0.4,
+                    enabled: false,
                 },
                 color:{
                     inherit: false
@@ -589,9 +590,17 @@ export class FiniteStateAutomata {
                     direction: 'LR'
                 }
             },
-            physics:false
+            physics: false,
+            clickToUse: true,
+            interaction: {
+                keyboard: {
+                    enabled: true,
+                    bindToWindow: false,
+                    navigationButtons: true,
+                }
+            }
         }
-        return new Vis.Network(container, data, options)
+        return new Network(container, data, options)
     }
 }
 
