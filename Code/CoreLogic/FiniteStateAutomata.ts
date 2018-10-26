@@ -175,81 +175,47 @@ export class FiniteStateAutomata {
     states that you can reach only with ϵ transitions
     @param stateID id
     @return Set<number> visited */
-    epsilonClosure (id: stateID): Set<number> {
-        this.addStateIfNotExist(id)
-
+    epsilonClosure (statesIDs: Set<stateID>): Set<stateID> {
+        let self = this
         const visited: Set<number> = new Set()
-        const stack: Array<number> = [id]
-
-        while (stack.length > 0) {
-            const actualStateId: any = stack.pop()
+        
+        let dfs: (actualStateId: stateID) => void = function(actualStateId: stateID): void{
             visited.add(actualStateId)
-
-            const actualState: State = this.states.get(actualStateId)!
-
-            actualState.transitions.forEach((toStatesId, character, _) => {
-                if (character == this.epsilonCharacter) {
+            self.states.get(actualStateId)!.transitions.forEach((toStatesId, character, _) => {
+                if (character == self.epsilonCharacter) {
                     toStatesId.forEach( toStateID => {
-                        if (!visited.has(toStateID)) stack.push(toStateID)
+                        if (!visited.has(toStateID)) dfs(toStateID)
                     })
                 }
             })
-
         }
+
+        statesIDs.forEach(id => {
+            this.addStateIfNotExist(id)
+            if(!visited.has(id)) dfs(id)
+        })
         
         return visited
     }
-/*epsilonClosureSet()
-    Obtains the epsilon closure of the statesID set:
-    Given a set M of NFA states, we define ϵ-closure(M) to be the join of the ϵ-closure of each state of the set
-    @param {Set<stateID>} statesIDs
-    @return {Set<stateID>} visited 
-    */
-    epsilonClosureSet(statesIDs: Set<stateID>): Set<stateID>  {
-        let visited: Set<stateID> = new Set()
-        statesIDs.forEach(
-            id => visited = new Set([...visited, ...this.epsilonClosure(id)])
-        )
-        
-        return visited
-    }
-    /*move()
-    
-    @param {Set<stateID>} statesIDs
-    @return {Set<stateID>} visited 
-    */
 
-    move(id: stateID, character: string): Set<stateID> {
-        if (!this.isValidCharacterOrEpsilon(character)) return new Set()
-        this.addStateIfNotExist(id)
-
-        const stateTransitions = this.states.get(id)!.transitions
-        if (!stateTransitions.has(character)) return new Set()
-
-        return new Set(stateTransitions.get(character)!)
-    }
-
-    moveSet(statesIDs: Set<stateID>, character: string): Set<stateID>  {
+    move(statesIDs: Set<stateID>, character: string): Set<stateID>  {
         if (!this.isValidCharacterOrEpsilon(character)) return new Set()
 
         let visited: Set<stateID> = new Set()
-        statesIDs.forEach(
-            id => visited = new Set([...visited, ...this.move(id, character)])
-        )
+        statesIDs.forEach(id => {
+            this.addStateIfNotExist(id)
+            const stateTransitions = this.states.get(id)!.transitions
+            if (stateTransitions.has(character))
+                visited = new Set([...visited, ...stateTransitions.get(character)!])
+        })
         
         return visited
     }
 
-    goTo(id: stateID, character: string): Set<stateID> {
+    goTo(statesIDs: Set<stateID>, character: string): Set<stateID> {
         if (!this.isValidCharacterOrEpsilon(character)) return new Set()
 
-        return this.epsilonClosureSet(this.move(id, character))
-    }
-
-    goToSet(statesIDs: Set<stateID>, character: string): Set<stateID> {
-        if (!this.isValidCharacterOrEpsilon(character)) return new Set()
-
-        return this.epsilonClosureSet(this.moveSet(statesIDs, character))
+        return this.epsilonClosure(this.move(statesIDs, character))
     }
 
 
@@ -366,7 +332,7 @@ export class FiniteStateAutomata {
         DFA.setEpsilonCharacter(this.epsilonCharacter)
         DFA.setName(`(Deterministic : ${this.getName()})`)
 
-        const initialSet: Set<stateID> = this.epsilonClosure(this.initialState)
+        const initialSet: Set<stateID> = this.epsilonClosure(new Set([this.initialState]))
         const pending: Array<Set<stateID>> = [initialSet]
         const mapping: Map<string, stateID> = new Map()
         mapping.set(this.hashSet(initialSet), newInitialStateID)
@@ -389,7 +355,7 @@ export class FiniteStateAutomata {
             }
 
             this.alphabeth.forEach(character =>{
-                const newStates: Set<stateID> = this.goToSet(oldStates, character)
+                const newStates: Set<stateID> = this.goTo(oldStates, character)
                 if (newStates.size > 0) {
                     if (!mapping.has(this.hashSet(newStates))) {
                         pending.push(newStates)
@@ -405,10 +371,10 @@ export class FiniteStateAutomata {
     }
 
     validateString(testString: string): boolean {
-        let PossibleStates: Set<stateID> = this.epsilonClosure(this.initialState)
+        let PossibleStates: Set<stateID> = this.epsilonClosure(new Set([this.initialState]))
 
         for (let i = 0; i < testString.length; i++) {
-            PossibleStates = this.goToSet(PossibleStates, testString[i])
+            PossibleStates = this.goTo(PossibleStates, testString[i])
             if (PossibleStates.size === 0) return false
         }
 
@@ -593,10 +559,10 @@ export class FiniteStateAutomata {
             physics: false,
             clickToUse: true,
             interaction: {
+                navigationButtons: true,
                 keyboard: {
                     enabled: true,
                     bindToWindow: false,
-                    navigationButtons: true,
                 }
             }
         }

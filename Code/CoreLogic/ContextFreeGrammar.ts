@@ -71,6 +71,10 @@ export class item {
 		return newItem
 	}
 
+	hash(): string {
+		return this.LHS + " -> " + this.rule.RHS.join(",") + ";" + this.start.toString() + ";" + this.position.toString()
+	}
+
 	nextPosition(): any {
 		if (this.position < this.rule.RHS.length)
 			return this.rule.RHS[this.position]
@@ -128,7 +132,7 @@ export class CFG {
     }
 
     isNonTerminal(LHS: any): boolean {
-    	return LHS === TokenEOF || this.nonTerminalSymbols.has(LHS)
+    	return this.nonTerminalSymbols.has(LHS)
     }
 
     addRule(LHS: nonTerminal, RHS: productionText, callback: ((args: Array<any>)=>any) | null): boolean {
@@ -161,7 +165,8 @@ export class CFG {
 
 		badRules.forEach(LHS => {
 			let productions: Set<production> = this.productions.get(LHS)!
-			let newLHS = LHS + "'"
+			let newLHS = LHS
+			while(this.nonTerminalSymbols.has(newLHS)) newLHS += "'"
 			result.nonTerminalSymbols.add(newLHS)
 			productions.forEach(production => {
 				let RHS: productionText = production.RHS
@@ -203,9 +208,38 @@ export class CFG {
 		else return result.removeLeftRecursion(depth + 1)
 	}
 
+	isAugmented(): boolean {
+		let S = this.initialSymbol
+		let init = this.productions.get(S)!
+		if(!(init.size == 1 && init.values().next().value.RHS.length <= 1)) return false
+		let augmented: boolean = true
+		this.productions.forEach((rules, _) => {
+			rules.forEach(rule => {
+				rule.RHS.forEach(c => {
+					if(c === S) augmented = false
+				})
+			})
+		})
+		return augmented
+	}
+
+	augment(): CFG {
+		let newInitial = this.initialSymbol
+		while(this.nonTerminalSymbols.has(newInitial)) newInitial += "'"
+		let result: CFG = new CFG(new Set(this.terminalSymbols), new Set([newInitial, ...this.nonTerminalSymbols]), newInitial, this.FSA)
+		result.setName(this.getName() + " augmented")
+		result.addRule(newInitial, [this.initialSymbol], function(args){return args[0]})
+		this.productions.forEach( (rules, LHS) => {
+			rules.forEach(rule => {
+				result.addRule(LHS, [...rule.RHS], rule.callback)
+			})
+		})
+		return result
+	}
+
 	// ============ Begin of LL(1) parser ============
-	private hashSet(statesIDs: Set<tokenID>): string {
-        return Array.from(statesIDs).sort((a, b) => a - b).join(',')
+	private hashSetTokens(tokens: Set<tokenID>): string {
+        return Array.from(tokens).sort((a, b) => a - b).join(',')
 	}
 	
 	private nullable(LHS: nonTerminal): boolean {
@@ -237,7 +271,7 @@ export class CFG {
 						newSet.add(TokenDefault)
 				})
 
-				change = change || (this.hashSet(newSet) != this.hashSet(this.first.get(LHS)!))
+				change = change || (this.hashSetTokens(newSet) != this.hashSetTokens(this.first.get(LHS)!))
 				this.first.set(LHS, newSet)
 			})
 		}
@@ -275,7 +309,7 @@ export class CFG {
 						let c = production.RHS[i]
 						if(this.isTerminal(c)) break
 						let newSet: Set<tokenID> = new Set([...this.follow.get(c)!, ...this.follow.get(LHS)!])
-						change = change || (this.hashSet(newSet) != this.hashSet(this.follow.get(c)!))
+						change = change || (this.hashSetTokens(newSet) != this.hashSetTokens(this.follow.get(c)!))
 						this.follow.set(c, newSet)
 						if(!this.nullable(c)) break
 					}
@@ -413,20 +447,90 @@ export class CFG {
 			derivations: nodes,
 		}
 	}
-	// ============ End of LL(1) parser ============
+    // ============ End of LL(1) parser ============
+    
+	// ============ Begin of LR parser =============
+    itemClosure(items: Set<item>): Set<item> {
+        let visited: Set<item> = new Set()
+        let visitedHash: Set<string> = new Set()
+        let self = this
 
-	// ============ Begin of Earley parser ============
-    private hashItem(item: item): string {
-    	return item.LHS + ";" + item.rule.RHS.join(",") + ";" + item.start.toString() + ";" + item.position.toString()
+        let dfs: (fromItem: item) => void = function(fromItem: item): void {
+            visited.add(fromItem)
+            visitedHash.add(fromItem.hash())
+            let next = fromItem.nextPosition()
+            if(next !== TokenEOF && self.isNonTerminal(next)){
+                self.productions.get(next)!.forEach(production => {
+                    let newItem = new item(next, production, 0, 0)
+                    if(!visitedHash.has(newItem.hash())) dfs(newItem)
+                })
+            }
+        }
+
+        items.forEach(item => {
+            if(!visitedHash.has(item.hash())) dfs(item)
+        })
+
+        return visited
     }
 
-    private existItem(items: Array<item>, item: item): boolean {
-    	for(let i = 0; i < items.length; ++i){
-    		if(this.hashItem(items[i]) == this.hashItem(item)) return true
-    	}
-	    return false
+    itemMove(items: Set<item>, symbol: any): Set<item> {
+        if(!this.terminalSymbols.has(symbol) && !this.nonTerminalSymbols.has(symbol))
+            return new Set()
+
+        let visited: Set<item> = new Set()
+        items.forEach(item => {
+            if(item.nextPosition() == symbol){
+                let newItem = item.clone()
+                newItem.position++
+                visited.add(newItem)
+            }
+        })
+
+        return visited
     }
 
+    itemGo(items: Set<item>, symbol: any): Set<item> {
+        if(!this.terminalSymbols.has(symbol) && !this.nonTerminalSymbols.has(symbol))
+            return new Set()
+
+        return this.itemClosure(this.itemMove(items, symbol))
+    }
+
+    private hashSetItems(items: Set<item>): string {
+        return Array.from(items).map(item => item.hash()).sort().join(", ")
+    }
+
+    buildLR0Table(): boolean {
+		if(!this.isAugmented()) return false
+		let result: boolean = true
+        let startItem = new item(this.initialSymbol, this.productions.get(this.initialSymbol)!.values().next().value, 0, 0)
+        let state = 0
+        const initialSet = this.itemClosure(new Set([startItem]))
+        const pending: Array<Set<item>> = [initialSet]
+        const mapping: Map<string, number> = new Map()
+        mapping.set(this.hashSetItems(initialSet), state++)
+
+        for (let i = 0; i < pending.length; ++i){
+            const oldStates = pending[i]
+            const fromStateID: number = mapping.get(this.hashSetItems(oldStates))!
+            Array.from([...this.nonTerminalSymbols, ...this.terminalSymbols]).forEach(symbol => {
+                const newStates = this.itemGo(oldStates, symbol)
+                if(newStates.size > 0){
+                    if(!mapping.has(this.hashSetItems(newStates))){
+                        pending.push(newStates)
+                        mapping.set(this.hashSetItems(newStates), state++)
+                    }
+					const toStateID: number = mapping.get(this.hashSetItems(newStates))!
+					//do something with the transition
+                }
+            })
+		}
+		return result
+    }
+    // ============ End of LR parser ===============
+
+	// ============ Begin of Earley parser =========
     private createTree(root: item|null): Array<node> {
 		if(root == null) return []
     	let nodes: Array<node> = []
@@ -454,10 +558,13 @@ export class CFG {
     parseStringWithEarley (testString: string): ParseInfo|null {
 		if(this.FSA == null) return null
     	let lexer: Lexer = new Lexer(this.FSA, testString)
-		let dp: Array<Array<item> > = []
-		dp[0] = []
-		let init: Set<production> = this.productions.get(this.initialSymbol)!
-		init.forEach(rule => dp[0].push(new item(this.initialSymbol, rule, 0, 0)))
+		let dp: Array<Array<item> > = [[]]
+		let dpHash: Array<Set<string> > = [new Set()]
+		this.productions.get(this.initialSymbol)!.forEach(rule => {
+			let newItem = new item(this.initialSymbol, rule, 0, 0)
+			dp[0].push(newItem)
+			dpHash[0].add(newItem.hash())
+		})
 		let n: number = 0
 		let prevPosition = 0
 		let lexemes: Array<string> = []
@@ -473,7 +580,10 @@ export class CFG {
 			let change: boolean = true
 			while (change) {
 				change = false
-				if(typeof dp[n] == "undefined") dp[n] = []
+				if(typeof dp[n] == "undefined"){
+					dp[n] = []
+					dpHash[n] = new Set()
+				}
 				for(let j = 0; j < dp[n].length; ++j){
 					let currItem: item = dp[n][j]
 					let next: any = currItem.nextPosition()
@@ -484,8 +594,9 @@ export class CFG {
 								++newItem.position
 								newItem.prev = item.clone()
 								newItem.complete = currItem.clone()
-								if(!this.existItem(dp[n], newItem)){
+								if(!dpHash[n].has(newItem.hash())){
 									dp[n].push(newItem)
+									dpHash[n].add(newItem.hash())
 									change = true
 								}
 							}
@@ -494,17 +605,22 @@ export class CFG {
 						if(next == currentToken){
 							let newItem: item = currItem.clone()
 							++newItem.position
-							if(typeof dp[n + 1] == "undefined") dp[n + 1] = []
-							if(!this.existItem(dp[n + 1], newItem)){
+							if(typeof dp[n + 1] == "undefined"){
+								dp[n + 1] = []
+								dpHash[n + 1] = new Set()
+							}
+							if(!dpHash[n + 1].has(newItem.hash())){
 								dp[n + 1].push(newItem)
+								dpHash[n + 1].add(newItem.hash())
 								change = true
 							}
 						}
 					}else{
 						this.productions.get(next)!.forEach(rule => {
 							let newItem: item = new item(next, rule, n, 0)
-							if(!this.existItem(dp[n], newItem)){
+							if(!dpHash[n].has(newItem.hash())){
 								dp[n].push(newItem)
+								dpHash[n].add(newItem.hash())
 								change = true
 							}
 						})
@@ -627,7 +743,8 @@ export class CFG {
                 smooth:{
                     type: 'cubicBezier',
                     forceDirection: 'vertical',
-                    roundness: 0.4
+					roundness: 0.4,
+					enabled: false
                 },
                 color:{
                     inherit: false
@@ -638,7 +755,15 @@ export class CFG {
                     direction: 'UD'
                 }
             },
-            physics: false
+            physics: false,
+            clickToUse: true,
+            interaction: {
+                navigationButtons: true,
+                keyboard: {
+                    enabled: true,
+                    bindToWindow: false,
+                }
+            }
 		}
 		return new Vis.Network(container, data, options)
 	}
@@ -646,3 +771,4 @@ export class CFG {
 }
 
 window["CFG"] = CFG
+window["item"] = item

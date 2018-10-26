@@ -127,7 +127,7 @@ export default class LL1Viewer extends React.Component<LL1ViewerProps, LL1Viewer
                     </tbody>
                 </table>
 
-                <div id="graphTree" style={{height: 200}}></div>
+                <div id="graphTree" style={{height: "25rem"}}></div>
 
             </div>
         )

@@ -108,6 +108,8 @@ export default class GrammarPage extends React.Component<GrammarPageProps, Gramm
 
         const removeLeftRecursion = () => unaryOperation((a) => a.removeLeftRecursion())
 
+        const augment = () => unaryOperation((a) => a.augment())
+
         return (
             <div className="fixed-action-btn">
                 <a className="btn-floating btn-large red">
@@ -171,6 +173,14 @@ export default class GrammarPage extends React.Component<GrammarPageProps, Gramm
                             onClick   = {removeLeftRecursion}
                         >
                             Remove left recursion
+                        </a>
+                    </li>
+                    <li>
+                        <a 
+                            className = "btn-floating indigo" style={{"width": "140px"}}
+                            onClick   = {augment}
+                        >
+                            Augment
                         </a>
                     </li>
                     <li>
@@ -371,7 +381,7 @@ export default class GrammarPage extends React.Component<GrammarPageProps, Gramm
                                             })
                                         }else if(ext === "cfg"){
                                             loadFile(e.target, (data: string) => {
-                                                let result = GrammarOfGrammars.parseStringWithLL1(data)!
+                                                let result = GrammarOfGrammars.parseStringWithEarley(data)!
                                                 if(result.derivations.length == 0){
                                                     M.toast({html: "Not a valid grammar"})
                                                 }else{

@@ -165,7 +165,7 @@ window["arithGrammar"] = arithGrammar
 
 
 // =====  BASIC ARITMETHIC GRAMMAR  ========
-let basicArith: CFG = new CFG(new Set([1, 2, 3, 4, 6, 7, 8]), new Set(["E", "T", "F"]), 'E', arithmetic)
+let basicArith: CFG = new CFG(new Set([1, 2, 3, 4, 6, 7, 8]), new Set(["E", "T", "F"]), "E", arithmetic)
 basicArith.addRule("E", ["E", 1, "T"], function(args){return args[0]+args[2];})
 basicArith.addRule("E", ["E", 2, "T"], function(args){return args[0]-args[2];})
 basicArith.addRule("E", ["T"], function(args){return args[0];})
@@ -343,7 +343,6 @@ grammarOfGrammars.addRule('ListaRHS', ['ListaRHS', 29, 'RHS'], function (args){a
 grammarOfGrammars.addRule('RHS', [31, 30], function(args){return [args[1]]});
 grammarOfGrammars.addRule('RHS', ['RHS', 31, 30], function(args){args[0].push(args[2]); return args[0];});
 
-grammarOfGrammars = grammarOfGrammars.removeLeftRecursion();
 grammarOfGrammars.setName("Grammar of grammars")
 window["grammarOfGrammars"] = grammarOfGrammars
 
