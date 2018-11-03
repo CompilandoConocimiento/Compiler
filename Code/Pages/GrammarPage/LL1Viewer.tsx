@@ -72,11 +72,13 @@ export default class LL1Viewer extends React.Component<LL1ViewerProps, LL1Viewer
         if(result == null){
             M.toast({html: "Not a LL(1) grammar"})
             this.setState({table: null})
+            document.getElementById("graphTree")!.innerHTML = ""
             return
         }
 
         if (result.derivations.length == 0) {
-            M.toast({html: "Not a valid string"})                            
+            M.toast({html: "Not a valid string"})
+            document.getElementById("graphTree")!.innerHTML = ""
         }else{
             M.toast({html: "Valid string"})
 

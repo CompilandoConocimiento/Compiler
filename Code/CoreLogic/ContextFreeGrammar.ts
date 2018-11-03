@@ -531,31 +531,15 @@ export class CFG {
     // ============ End of LR parser ===============
 
 	// ============ Begin of Earley parser =========
-    private createTree(root: item|null): Array<node> {
-		if(root == null) return []
-    	let nodes: Array<node> = []
-    	let pending: Array<item|null> = []
-    	pending.push(root.complete)
-
-    	let prev: item|null = root.prev
-    	while (prev != null && prev.position > 0){
-    		pending.push(prev);
-    		prev = prev.prev
-    	}
-
-    	while (pending.length > 0) {
-    		if(pending[pending.length - 1] != null)
-    			nodes = [...nodes, ...this.createTree(pending[pending.length - 1])]
-    		pending.pop()
-    	}
-
-    	if (root.end())
-    		return [new node(root.LHS, root.rule, nodes)]
-    	else
-    		return nodes
+    private createTree(root: item): node {
+		let ans = new node(root.LHS, root.rule)
+		for(let curr: item|null = root; curr != null && curr.position > 0; curr = curr.prev)
+			if(curr.complete)
+				ans.children = [this.createTree(curr.complete), ...ans.children]
+		return ans
     }
 
-    parseStringWithEarley (testString: string): ParseInfo|null {
+    parseStringWithEarley (testString: string, callback: ((row: Array<item>, position: tokenID)=>any) | null = null): ParseInfo|null {
 		if(this.FSA == null) return null
     	let lexer: Lexer = new Lexer(this.FSA, testString)
 		let dp: Array<Array<item> > = [[]]
@@ -569,6 +553,15 @@ export class CFG {
 		let prevPosition = 0
 		let lexemes: Array<string> = []
 
+		let append: (n: number, newItem: item) => boolean = function(n: number, newItem: item): boolean{
+			if(!dpHash[n].has(newItem.hash())){
+				dp[n].push(newItem)
+				dpHash[n].add(newItem.hash())
+				return true
+			}
+			return false
+		}
+
 		while (true) {
 			let currentToken: tokenID = lexer.getNextToken()
 			if (currentToken == TokenError) lexer.advance()
@@ -577,56 +570,52 @@ export class CFG {
                 currentToken = TokenError
             }
 
-			let change: boolean = true
-			while (change) {
+			if(typeof dp[n] == "undefined"){
+				dp[n] = []
+				dpHash[n] = new Set()
+			}
+			
+			for(let change = true; change; ){ //only used for empty rules
 				change = false
-				if(typeof dp[n] == "undefined"){
-					dp[n] = []
-					dpHash[n] = new Set()
-				}
 				for(let j = 0; j < dp[n].length; ++j){
+					let predicted: Set<nonTerminal> = new Set()
 					let currItem: item = dp[n][j]
 					let next: any = currItem.nextPosition()
-					if(currItem.end()){
+					if(currItem.end()){ //completition
 						dp[currItem.start].forEach(item => {
 							if(item.nextPosition() == currItem.LHS){
 								let newItem: item = item.clone()
 								++newItem.position
-								newItem.prev = item.clone()
-								newItem.complete = currItem.clone()
-								if(!dpHash[n].has(newItem.hash())){
-									dp[n].push(newItem)
-									dpHash[n].add(newItem.hash())
-									change = true
-								}
+								newItem.prev = item
+								newItem.complete = currItem
+								change = change || append(n, newItem)
 							}
 						})
-					}else if(this.isTerminal(next)){
+					}else if(this.isTerminal(next)){ //scanner
 						if(next == currentToken){
 							let newItem: item = currItem.clone()
 							++newItem.position
+							newItem.prev = currItem
+							newItem.complete = null
 							if(typeof dp[n + 1] == "undefined"){
 								dp[n + 1] = []
 								dpHash[n + 1] = new Set()
 							}
-							if(!dpHash[n + 1].has(newItem.hash())){
-								dp[n + 1].push(newItem)
-								dpHash[n + 1].add(newItem.hash())
-								change = true
-							}
+							append(n + 1, newItem)
 						}
-					}else{
-						this.productions.get(next)!.forEach(rule => {
-							let newItem: item = new item(next, rule, n, 0)
-							if(!dpHash[n].has(newItem.hash())){
-								dp[n].push(newItem)
-								dpHash[n].add(newItem.hash())
-								change = true
-							}
-						})
+					}else{ //prediction
+						if(!predicted.has(next)){
+							this.productions.get(next)!.forEach(rule => {
+								let newItem: item = new item(next, rule, n, 0)
+								change = change || append(n, newItem)
+							})
+							predicted.add(next)
+						}
 					}
 				}
 			}
+
+			if(callback != null) callback(dp[n], currentToken)
 
 			if (currentToken == TokenEOF) break
 			lexemes.push(testString.substring(prevPosition, lexer.position));
@@ -638,7 +627,7 @@ export class CFG {
 
 		dp[n].forEach(currItem =>{
 			if(currItem.end() && currItem.start == 0 && currItem.LHS == this.initialSymbol)
-				nodes = [...nodes, ...this.createTree(currItem)]
+				nodes = [...nodes, this.createTree(currItem)]
 		})
 
 		return {

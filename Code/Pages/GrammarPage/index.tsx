@@ -7,6 +7,7 @@ import SeeGrammar from './SeeGrammar'
 import SeeLL1Table from './SeeLL1Table'
 import SeeFirstFollow from "./SeeFirstFollow";
 import LL1Viewer from "./LL1Viewer";
+import EarleyViewer from "./EarleyViewer";
 
 import Style from './Style.css'
 import { saveFile } from "../../Helpers/SaveFile";
@@ -291,6 +292,19 @@ export default class GrammarPage extends React.Component<GrammarPageProps, Gramm
                                                 this.state.ModalData!.open()
                                                 return {ModalContent: 
                                                     <LL1Viewer 
+                                                        Grammar = {grammar}
+                                                        Tokens  = {this.props.Tokens}
+                                                    />
+                                                }
+                                            })
+                                        }
+                                    }
+                                    EarleyViewer = {
+                                        () => {
+                                            this.setState(() => {
+                                                this.state.ModalData!.open()
+                                                return {ModalContent: 
+                                                    <EarleyViewer 
                                                         Grammar = {grammar}
                                                         Tokens  = {this.props.Tokens}
                                                     />

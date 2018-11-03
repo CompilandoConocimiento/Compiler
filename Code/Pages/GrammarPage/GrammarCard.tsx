@@ -14,6 +14,7 @@ interface propsType {
     SeeFirstFollow: any,
     SeeLL1Table: any,
     LL1Viewer: any,
+    EarleyViewer: any,
     isSelected: boolean,
     DeleteGrammar: () => any,
     forceUpdate: () => void,
@@ -182,24 +183,7 @@ export default function GrammarCard (props: propsType) {
                                     M.toast({html: "This grammar doesn't have any associated automata"})
                                     return
                                 }
-                                const value = prompt("Introduce the string to check:")
-                                if(value == null) return  
-
-                                const result = props.Grammar.parseStringWithEarley(value)
-                                if(result == null) return
-                                if (result.derivations.length == 0) {
-                                    M.toast({html: "Not a valid string"})
-                                    return                                
-                                }
-
-                                M.toast({html: "Valid string"})
-
-                                let parseResult = props.Grammar.executeActions(result)
-                                window['parseResult'] = parseResult
-                                console.log(parseResult)
-
-                                if (typeof parseResult === 'string' || typeof parseResult === 'number') 
-                                    M.toast({html: "Result: " + String(parseResult)})
+                                props.EarleyViewer()
                             }}
                         >
                             <i className="material-icons">check</i>
