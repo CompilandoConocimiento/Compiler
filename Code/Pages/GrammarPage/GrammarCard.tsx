@@ -13,7 +13,9 @@ interface propsType {
     SeeGrammar: any,
     SeeFirstFollow: any,
     SeeLL1Table: any,
+    SeeLR0Table: any,
     LL1Viewer: any,
+    LR0Viewer: any,
     EarleyViewer: any,
     isSelected: boolean,
     DeleteGrammar: () => any,
@@ -168,6 +170,48 @@ export default function GrammarCard (props: propsType) {
                             &nbsp;
                             &nbsp;
                             Parse String with LL(1) algorithm
+                        </a>
+                    </li>
+                </ul>
+
+                <div className="divider" style={{backgroundColor: "#e3f2fd"}}></div>
+
+                <ul>
+                    <li>
+                        <a 
+                            className   = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            onClick   = {
+                                () => {
+                                    props.Grammar.buildLR0Table()
+                                    if(props.Grammar.LR0Table == null){
+                                        M.toast({html: "Not a LR(0) grammar"})
+                                    }else{
+                                        props.SeeLR0Table()
+                                    }
+                                }
+                            }
+                        >
+                            <i className="material-icons">table_chart</i>
+                            &nbsp;
+                            &nbsp;
+                            See LR(0) table
+                        </a>
+                    </li>
+                    <li>
+                        <a 
+                            className   = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            onClick={() => {
+                                if(props.Grammar.FSA == null){
+                                    M.toast({html: "This grammar doesn't have any associated automata"})
+                                    return
+                                }
+                                props.LR0Viewer()
+                            }}
+                        >
+                            <i className="material-icons">check</i>
+                            &nbsp;
+                            &nbsp;
+                            Parse String with LR(0) algorithm
                         </a>
                     </li>
                 </ul>
