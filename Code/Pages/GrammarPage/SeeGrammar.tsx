@@ -26,7 +26,7 @@ const SeeGrammar: React.StatelessComponent<SeeGrammarProps> = (props: SeeGrammar
             <h5 className="blue-grey-text text-darken-4">Terminal Symbols</h5>
             <ul className="browser-default">
                 {
-                    Array.from(props.Grammar.terminalSymbols).map( (terminalSymbol, index) => {
+                    props.Grammar.terminalSymbols.toArray().map( (terminalSymbol, index) => {
                         const tokenName = tokenById.get(terminalSymbol)
                         return (
                             <li key={`token ${index}`}>
@@ -42,7 +42,7 @@ const SeeGrammar: React.StatelessComponent<SeeGrammarProps> = (props: SeeGrammar
             <h5 className="blue-grey-text text-darken-4">Not Terminal Symbols</h5>
             <ul className="browser-default">
                 {
-                    Array.from(props.Grammar.nonTerminalSymbols).map( (nonterminalSymbol, index) =>
+                    props.Grammar.nonTerminalSymbols.toArray().map( (nonterminalSymbol, index) =>
                         <li key={`token non${index}`}>
                             {nonterminalSymbol}
                         </li>
@@ -56,13 +56,13 @@ const SeeGrammar: React.StatelessComponent<SeeGrammarProps> = (props: SeeGrammar
             <table className="browser-default">
                 <tbody>
                     {
-                        Array.from(props.Grammar.productions).map( (productionData) =>
+                        props.Grammar.productions.toArray().map( (productionData) =>
                             <tr key={`production ${productionData[0]}`}>
                                 <td>{productionData[0]}</td>
                                 <td>{" => "}</td>
                                 <td>
                                     {
-                                        Array.from(productionData[1])
+                                        productionData[1].toArray()
                                         .map( (production, productionIndex) => {
                                             if (production.RHS.length == 0) 
                                                 return (
@@ -106,7 +106,7 @@ const SeeGrammar: React.StatelessComponent<SeeGrammarProps> = (props: SeeGrammar
                                                 }
                                                 </span>
                                                 {
-                                                    (productionIndex + 1 == productionData[1].size)?
+                                                    (productionIndex + 1 == productionData[1].size())?
                                                     "" : <span> {" | "} <br /> </span>
                                                 }
                                                 

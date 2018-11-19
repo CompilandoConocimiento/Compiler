@@ -1,0 +1,267 @@
+{
+  "Tokens": [
+    {
+      "id": -2,
+      "description": "Default token",
+      "name": "Default"
+    },
+    {
+      "id": 32,
+      "description": "a",
+      "name": "a"
+    },
+    {
+      "id": 33,
+      "description": "b",
+      "name": "b"
+    }
+  ],
+  "Grammars": [
+    {
+      "name": "Example 1 for LR",
+      "initialSymbol": "S'",
+      "terminalSymbols": [
+        32,
+        33
+      ],
+      "nonTerminalSymbols": [
+        "S",
+        "S'",
+        "X"
+      ],
+      "FSA": {
+        "alphabeth": [
+          "a",
+          "b"
+        ],
+        "initialState": 634,
+        "name": "Super join: [ [a] | [b] ]",
+        "states": [
+          {
+            "id": 630,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "a",
+                [
+                  631
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 631,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 32
+          },
+          {
+            "id": 632,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "b",
+                [
+                  633
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 633,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 33
+          },
+          {
+            "id": 634,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "\u0000",
+                [
+                  630,
+                  632
+                ]
+              ]
+            ],
+            "token": -2
+          }
+        ]
+      },
+      "productions": [
+        [
+          "S",
+          [
+            {
+              "RHS": [
+                "X",
+                "X"
+              ],
+              "callback": null
+            }
+          ]
+        ],
+        [
+          "S'",
+          [
+            {
+              "RHS": [
+                "S"
+              ],
+              "callback": null
+            }
+          ]
+        ],
+        [
+          "X",
+          [
+            {
+              "RHS": [
+                32,
+                "X"
+              ],
+              "callback": null
+            },
+            {
+              "RHS": [
+                33
+              ],
+              "callback": null
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "Example 2 for LR",
+      "initialSymbol": "S'",
+      "terminalSymbols": [
+        32,
+        33
+      ],
+      "nonTerminalSymbols": [
+        "B",
+        "S",
+        "S'"
+      ],
+      "FSA": {
+        "alphabeth": [
+          "a",
+          "b"
+        ],
+        "initialState": 634,
+        "name": "Super join: [ [a] | [b] ]",
+        "states": [
+          {
+            "id": 630,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "a",
+                [
+                  631
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 631,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 32
+          },
+          {
+            "id": 632,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "b",
+                [
+                  633
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 633,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 33
+          },
+          {
+            "id": 634,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "\u0000",
+                [
+                  630,
+                  632
+                ]
+              ]
+            ],
+            "token": -2
+          }
+        ]
+      },
+      "productions": [
+        [
+          "B",
+          [
+            {
+              "RHS": [
+                32
+              ],
+              "callback": null
+            }
+          ]
+        ],
+        [
+          "S",
+          [
+            {
+              "RHS": [
+                32,
+                32,
+                33
+              ],
+              "callback": null
+            },
+            {
+              "RHS": [
+                33,
+                "B",
+                32
+              ],
+              "callback": null
+            },
+            {
+              "RHS": [
+                "B",
+                33,
+                33
+              ],
+              "callback": null
+            }
+          ]
+        ],
+        [
+          "S'",
+          [
+            {
+              "RHS": [
+                "S"
+              ],
+              "callback": null
+            }
+          ]
+        ]
+      ]
+    }
+  ]
+}

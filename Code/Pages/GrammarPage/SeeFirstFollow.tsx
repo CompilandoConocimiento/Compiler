@@ -21,11 +21,11 @@ const SeeFirstFollow: React.StatelessComponent<SeeFirstFollowProps> = (props: Se
             <h5 className="blue-grey-text text-darken-4">First sets</h5>
             <ul className="browser-default">
                 {
-                    Array.from(props.Grammar.nonTerminalSymbols).map( LHS =>
+                    props.Grammar.nonTerminalSymbols.toArray().map( LHS =>
                         <li key={`first ${LHS}`}>
                             First({LHS}) = &#123;
                             {
-                                Array.from(props.Grammar.first.get(LHS)!).map(c => {
+                                props.Grammar.first.get(LHS)!.toArray().map(c => {
                                     if(c === TokenDefault){
                                         return "ε"
                                     }else{
@@ -42,11 +42,11 @@ const SeeFirstFollow: React.StatelessComponent<SeeFirstFollowProps> = (props: Se
             <h5 className="blue-grey-text text-darken-4">Follow sets</h5>
             <ul className="browser-default">
                 {
-                    Array.from(props.Grammar.nonTerminalSymbols).map( LHS =>
+                    props.Grammar.nonTerminalSymbols.toArray().map( LHS =>
                         <li key={`follow ${LHS}`}>
                             Follow({LHS}) = &#123;
                             {
-                                Array.from(props.Grammar.follow.get(LHS)!).map(c => 
+                                props.Grammar.follow.get(LHS)!.toArray().map(c => 
                                     tokenById.get(c)!.name
                                 ).join(", ")
                             }

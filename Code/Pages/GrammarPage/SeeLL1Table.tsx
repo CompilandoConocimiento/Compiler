@@ -25,7 +25,7 @@ const SeeLL1Table: React.StatelessComponent<SeeLL1TableProps> = (props: SeeLL1Ta
                     <tr key={`header`}>
                         <td>&nbsp;</td>
                         {
-                            Array.from(props.Grammar.terminalSymbols).map(c => 
+                            props.Grammar.terminalSymbols.toArray().map(c => 
                                 <td className={Style.TDHeader} key={`header ${c}`}>{tokenById.get(c)!.name}</td>
                             )
                         }
@@ -34,13 +34,13 @@ const SeeLL1Table: React.StatelessComponent<SeeLL1TableProps> = (props: SeeLL1Ta
                 </thead>
                 <tbody>
                     {
-                        Array.from(props.Grammar.nonTerminalSymbols).map(LHS => {
+                        props.Grammar.nonTerminalSymbols.toArray().map(LHS => {
                             let row = props.Grammar.LL1Table!.get(LHS)!
                             return (
                                 <tr key={`row ${LHS}`}>
                                     <td className={Style.TDHeader} >{LHS}</td>
                                     {
-                                        [...props.Grammar.terminalSymbols, TokenEOF].map(c => {
+                                        [...props.Grammar.terminalSymbols.toArray(), TokenEOF].map(c => {
                                             let strProd = ""
                                             if(row.has(c)){
                                                 let RHS = row.get(c)!.RHS
@@ -63,11 +63,11 @@ const SeeLL1Table: React.StatelessComponent<SeeLL1TableProps> = (props: SeeLL1Ta
                         })
                     }
                     {
-                        [...props.Grammar.terminalSymbols, TokenEOF].map(c =>
+                        [...props.Grammar.terminalSymbols.toArray(), TokenEOF].map(c =>
                             <tr className={Style.TDText} key={`row ${c}`}>
                                 <td className={Style.TDHeader}>{tokenById.get(c)!.name}</td>
                                 {
-                                    [...props.Grammar.terminalSymbols, TokenEOF].map(d => {
+                                    [...props.Grammar.terminalSymbols.toArray(), TokenEOF].map(d => {
                                         if(c == d){
                                             if(c == TokenEOF) return (<td key={`item ${c} ${d}`}>accepted</td>)
                                             else return (<td className={Style.TDText} key={`item ${c} ${d}`}>pop</td>)

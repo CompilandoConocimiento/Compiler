@@ -17,6 +17,7 @@ import GrammarPage from '../GrammarPage/'
 import CardToTopic from './CardToTopic'
 import { CFG } from "../../CoreLogic/ContextFreeGrammar"
 import { arithmeticAutomata, regularExpressionsAutomata, regularExpressionsGrammar, arithmeticGrammar, basicArithmeticGrammar, GrammarOfGrammars } from "../../Helpers/DefaultCreations"
+import { AVLSet } from "../../avl/avl";
 
 
 type AppState = {
@@ -37,6 +38,8 @@ class App extends React.Component<{}, AppState> {
             Automatas: [arithmeticAutomata, regularExpressionsAutomata],
             Grammars: [regularExpressionsGrammar, arithmeticGrammar, basicArithmeticGrammar, GrammarOfGrammars],
         }
+
+        window["AVLSet"] = AVLSet
 
         window["Tokens"] = this.state.Tokens
         window["Automatas"] = this.state.Automatas

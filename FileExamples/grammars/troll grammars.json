@@ -1,0 +1,262 @@
+{
+  "Tokens": [
+    {
+      "id": -2,
+      "description": "Default token",
+      "name": "Default"
+    },
+    {
+      "id": 32,
+      "description": "a",
+      "name": "a"
+    },
+    {
+      "id": 33,
+      "description": "b",
+      "name": "b"
+    }
+  ],
+  "Grammars": [
+    {
+      "name": "Twice b's than a's",
+      "initialSymbol": "S",
+      "terminalSymbols": [
+        32,
+        33
+      ],
+      "nonTerminalSymbols": [
+        "S"
+      ],
+      "FSA": {
+        "alphabeth": [
+          "a",
+          "b"
+        ],
+        "initialState": 630,
+        "name": "ab",
+        "states": [
+          {
+            "id": 630,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "\u0000",
+                [
+                  631,
+                  633
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 631,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "a",
+                [
+                  632
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 633,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "b",
+                [
+                  634
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 632,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 32
+          },
+          {
+            "id": 634,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 33
+          }
+        ]
+      },
+      "productions": [
+        [
+          "S",
+          [
+            {
+              "RHS": [
+                "S",
+                32,
+                "S",
+                33,
+                "S",
+                33,
+                "S"
+              ],
+              "callback": null
+            },
+            {
+              "RHS": [
+                "S",
+                33,
+                "S",
+                32,
+                "S",
+                33,
+                "S"
+              ],
+              "callback": null
+            },
+            {
+              "RHS": [
+                "S",
+                33,
+                "S",
+                33,
+                "S",
+                32,
+                "S"
+              ],
+              "callback": null
+            },
+            {
+              "RHS": [],
+              "callback": null
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "troll",
+      "initialSymbol": "S",
+      "terminalSymbols": [
+        32
+      ],
+      "nonTerminalSymbols": [
+        "S",
+        "B",
+        "T"
+      ],
+      "FSA": {
+        "alphabeth": [
+          "a",
+          "b"
+        ],
+        "initialState": 630,
+        "name": "ab",
+        "states": [
+          {
+            "id": 630,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "\u0000",
+                [
+                  631,
+                  633
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 631,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "a",
+                [
+                  632
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 633,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "b",
+                [
+                  634
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 632,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 32
+          },
+          {
+            "id": 634,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 33
+          }
+        ]
+      },
+      "productions": [
+        [
+          "S",
+          [
+            {
+              "RHS": [
+                "S",
+                "T"
+              ],
+              "callback": null
+            },
+            {
+              "RHS": [
+                32
+              ],
+              "callback": null
+            }
+          ]
+        ],
+        [
+          "B",
+          [
+            {
+              "RHS": [],
+              "callback": null
+            }
+          ]
+        ],
+        [
+          "T",
+          [
+            {
+              "RHS": [
+                32,
+                "B"
+              ],
+              "callback": null
+            },
+            {
+              "RHS": [
+                32
+              ],
+              "callback": null
+            }
+          ]
+        ]
+      ]
+    }
+  ]
+}

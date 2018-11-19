@@ -1,4 +1,5 @@
 import {tokenID, TokenDefault} from "./Token";
+import { AVLMap, AVLSet, stringComp, intComp } from "../avl/avl";
 
 export type stateID = number
 
@@ -36,9 +37,9 @@ export class State {
     id: stateID
     token: tokenID
     isFinalState: boolean
-    transitions: Map<string, Set<stateID> >
+    transitions: AVLMap<string, AVLSet<stateID>>
 
-    static specialTransitions: Map<string, string> = new Map([
+    static specialTransitions: AVLMap<string, string> = new AVLMap<string, string>(stringComp, [
         ...range(48, 57, metaCharacters.Digit),
         ...range(65, 90, metaCharacters.Letter),
         ...range(97, 122, metaCharacters.Letter),
@@ -49,22 +50,22 @@ export class State {
         this.id = id
         this.isFinalState = false
         this.token = TokenDefault
-        this.transitions = new Map()
+        this.transitions = new AVLMap<string, AVLSet<stateID>>(stringComp)
         this.transitions.has = function(character: string): boolean {
-            return Map.prototype.has.call(this, character) ||
+            return AVLMap.prototype.has.call(this, character) ||
                 (
                     State.specialTransitions.has(character) && 
-                    Map.prototype.has.call(this, State.specialTransitions.get(character)!)
+                    AVLMap.prototype.has.call(this, State.specialTransitions.get(character)!)
                 )
         }
 
-        this.transitions.get = function(character: string): Set<stateID> {
-            if (Map.prototype.has.call(this, character)) return Map.prototype.get.call(this, character)!
+        this.transitions.get = function(character: string): AVLSet<stateID> {
+            if (AVLMap.prototype.has.call(this, character)) return AVLMap.prototype.get.call(this, character)!
             if (State.specialTransitions.has(character)) {
                 let newChar: string = State.specialTransitions.get(character)!
-                return Map.prototype.get.call(this, newChar)!
+                return AVLMap.prototype.get.call(this, newChar)!
             }
-            return new Set()
+            return new AVLSet<stateID>(intComp)
         }
     }
 }

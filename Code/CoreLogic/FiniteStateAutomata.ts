@@ -1,6 +1,7 @@
 import {tokenID, TokenJSON, TokenDefault} from "./Token"
 import {State, getNewStateID, stateID, StateJSON} from "./State"
 import {Network, DataSet} from 'vis';
+import { AVLSet, AVLMap, intComp, stringComp } from "../avl/avl";
 
 export type Automata = FiniteStateAutomata
 
@@ -24,8 +25,8 @@ export interface serializedAutomata {
 */
 export class FiniteStateAutomata {
 
-    states: Map<stateID, State>
-    alphabeth: Set<string>
+    states: AVLMap<stateID, State>
+    alphabeth: AVLSet<string>
     initialState: stateID
     epsilonCharacter: string
     name: string
@@ -35,9 +36,9 @@ export class FiniteStateAutomata {
             @param {Set<string>} alphabeth
             @return FiniteStateAutomata
 */
-    constructor(alphabeth: Set<string>) {
-        this.states = new Map()
-        this.alphabeth = new Set(alphabeth)
+    constructor(alphabeth: Array<string>) {
+        this.states = new AVLMap<stateID, State>(intComp)
+        this.alphabeth = new AVLSet(stringComp, alphabeth)
         this.initialState = 0
         this.epsilonCharacter = '\0'
         this.name = ""
@@ -143,9 +144,9 @@ export class FiniteStateAutomata {
     @return isStillPossible */
     isDFA (): boolean {
         let isStillPossible: boolean = true
-        this.states.forEach( (fromState, _1, _2) => {
-            fromState.transitions.forEach((toStates, character, _) => {
-                const step = character !== this.epsilonCharacter && toStates.size === 1
+        this.states.forEach( (fromState, _) => {
+            fromState.transitions.forEach((toStates, character) => {
+                const step = character !== this.epsilonCharacter && toStates.size() === 1
                 isStillPossible = isStillPossible && step
             })
         })
@@ -165,7 +166,7 @@ export class FiniteStateAutomata {
         const stateTransitions = this.states.get(fromStateID)!.transitions
 
         if (stateTransitions.has(character)) stateTransitions.get(character)!.add(toStateID)
-        else stateTransitions.set(character, new Set([toStateID]))
+        else stateTransitions.set(character, new AVLSet(intComp, [toStateID]))
 
         return true
     }
@@ -175,13 +176,13 @@ export class FiniteStateAutomata {
     states that you can reach only with ϵ transitions
     @param stateID id
     @return Set<number> visited */
-    epsilonClosure (statesIDs: Set<stateID>): Set<stateID> {
+    epsilonClosure (statesIDs: AVLSet<stateID>): AVLSet<stateID> {
         let self = this
-        const visited: Set<number> = new Set()
+        const visited: AVLSet<stateID> = new AVLSet(intComp)
         
         let dfs: (actualStateId: stateID) => void = function(actualStateId: stateID): void{
             visited.add(actualStateId)
-            self.states.get(actualStateId)!.transitions.forEach((toStatesId, character, _) => {
+            self.states.get(actualStateId)!.transitions.forEach((toStatesId, character) => {
                 if (character == self.epsilonCharacter) {
                     toStatesId.forEach( toStateID => {
                         if (!visited.has(toStateID)) dfs(toStateID)
@@ -198,22 +199,22 @@ export class FiniteStateAutomata {
         return visited
     }
 
-    move(statesIDs: Set<stateID>, character: string): Set<stateID>  {
-        if (!this.isValidCharacterOrEpsilon(character)) return new Set()
+    move(statesIDs: AVLSet<stateID>, character: string): AVLSet<stateID>  {
+        if (!this.isValidCharacterOrEpsilon(character)) return new AVLSet(intComp)
 
-        let visited: Set<stateID> = new Set()
+        let visited: AVLSet<stateID> = new AVLSet(intComp)
         statesIDs.forEach(id => {
             this.addStateIfNotExist(id)
             const stateTransitions = this.states.get(id)!.transitions
             if (stateTransitions.has(character))
-                visited = new Set([...visited, ...stateTransitions.get(character)!])
+                visited.join(stateTransitions.get(character)!)
         })
         
         return visited
     }
 
-    goTo(statesIDs: Set<stateID>, character: string): Set<stateID> {
-        if (!this.isValidCharacterOrEpsilon(character)) return new Set()
+    goTo(statesIDs: AVLSet<stateID>, character: string): AVLSet<stateID> {
+        if (!this.isValidCharacterOrEpsilon(character)) return new AVLSet(intComp)
 
         return this.epsilonClosure(this.move(statesIDs, character))
     }
@@ -226,14 +227,14 @@ export class FiniteStateAutomata {
         this.addTransition(newInitialStateID, this.epsilonCharacter, FSA2.initialState)
         this.setInitialState(newInitialStateID)
         this.setName(`(${this.getName()} | ${FSA2.getName()})`)
-        this.alphabeth = new Set([...this.alphabeth, ...FSA2.alphabeth])
+        this.alphabeth.join(FSA2.alphabeth)
 
-        FSA2.states.forEach( (state, id, _) => {
+        FSA2.states.forEach( (state, id) => {
             this.states.set(id, state)
         })
 
         const newFinalStateID: stateID = getNewStateID()
-        this.states.forEach( (state, id, _2) => {
+        this.states.forEach( (state, id) => {
             if (state.isFinalState) {
                 this.addTransition(id, this.epsilonCharacter, newFinalStateID)
                 this.unsetFinalState(id)
@@ -246,18 +247,18 @@ export class FiniteStateAutomata {
 
     concat(FSA2: FiniteStateAutomata): FiniteStateAutomata {
         FSA2 = FSA2.clone()
-        this.alphabeth = new Set([...this.alphabeth, ...FSA2.alphabeth])
         this.setName(`(${this.getName()} & ${FSA2.getName()})`)
+        this.alphabeth.join(FSA2.alphabeth)
 
         let uniqueFinalState: stateID = 0;
-        this.states.forEach( (state, id, _2) => {
+        this.states.forEach( (state, id) => {
             if (state.isFinalState) {
                 uniqueFinalState = id
                 this.unsetFinalState(id)
             }
         })
 
-        FSA2.states.forEach( (state, id, _) => {
+        FSA2.states.forEach( (state, id) => {
             if (id != FSA2.initialState) this.states.set(id, state)
         })
 
@@ -273,7 +274,7 @@ export class FiniteStateAutomata {
         this.addTransition(newInitialStateID, this.epsilonCharacter, this.initialState)
         this.setName(`(${this.getName()})+`)
 
-        this.states.forEach( (state, id, _2) => {
+        this.states.forEach( (state, id) => {
             if (state.isFinalState) {
                 this.addTransition(id, this.epsilonCharacter, this.initialState)
                 this.addTransition(id, this.epsilonCharacter, newFinalStateID)
@@ -291,7 +292,7 @@ export class FiniteStateAutomata {
         this.positiveClosure()
         this.setName(this.getName().substring(0, this.getName().length - 1) + "*")
 
-        this.states.forEach( (state, id, _2) => {
+        this.states.forEach( (state, id) => {
             if (state.isFinalState)
                 this.addTransition(this.initialState, this.epsilonCharacter, id)
         })
@@ -305,8 +306,7 @@ export class FiniteStateAutomata {
         this.addTransition(newInitialStateID, this.epsilonCharacter, this.initialState)
         this.setName(`(${this.getName()})?`)
 
-
-        this.states.forEach( (state, id, _2) => {
+        this.states.forEach( (state, id) => {
             if (state.isFinalState) {
                 this.addTransition(id, this.epsilonCharacter, newFinalStateID)
                 this.unsetFinalState(id)
@@ -321,25 +321,21 @@ export class FiniteStateAutomata {
     }
 
 
-    private hashSet(statesIDs: Set<stateID>): string {
-        return Array.from(statesIDs).sort((a, b) => a - b).join(',')
-    }
-
     toDFA(): FiniteStateAutomata {
         const newInitialStateID: stateID = getNewStateID()
-        const DFA = new FiniteStateAutomata(new Set(this.alphabeth))
+        const DFA = new FiniteStateAutomata(this.alphabeth.toArray())
         DFA.setInitialState(newInitialStateID)
         DFA.setEpsilonCharacter(this.epsilonCharacter)
         DFA.setName(`(Deterministic : ${this.getName()})`)
 
-        const initialSet: Set<stateID> = this.epsilonClosure(new Set([this.initialState]))
-        const pending: Array<Set<stateID>> = [initialSet]
-        const mapping: Map<string, stateID> = new Map()
-        mapping.set(this.hashSet(initialSet), newInitialStateID)
+        const initialSet: AVLSet<stateID> = this.epsilonClosure(new AVLSet(intComp, [this.initialState]))
+        const pending: Array<AVLSet<stateID>> = [initialSet]
+        const mapping: AVLMap<AVLSet<stateID>, stateID> = new AVLMap(function(a, b){return a.compareTo(b)})
+        mapping.set(initialSet, newInitialStateID)
 
         for (let i = 0; i < pending.length; ++i) {
-            const oldStates: Set<stateID> = pending[i]
-            const fromStateID: stateID = mapping.get(this.hashSet(oldStates))!
+            const oldStates: AVLSet<stateID> = pending[i]
+            const fromStateID: stateID = mapping.get(oldStates)!
             let finalState: boolean = false
             let automataToken: tokenID = TokenDefault
 
@@ -355,13 +351,13 @@ export class FiniteStateAutomata {
             }
 
             this.alphabeth.forEach(character =>{
-                const newStates: Set<stateID> = this.goTo(oldStates, character)
-                if (newStates.size > 0) {
-                    if (!mapping.has(this.hashSet(newStates))) {
+                const newStates: AVLSet<stateID> = this.goTo(oldStates, character)
+                if (newStates.size() > 0) {
+                    if (!mapping.has(newStates)) {
                         pending.push(newStates)
-                        mapping.set(this.hashSet(newStates), getNewStateID())
+                        mapping.set(newStates, getNewStateID())
                     }
-                    const toStateID: stateID = mapping.get(this.hashSet(newStates))!
+                    const toStateID: stateID = mapping.get(newStates)!
                     DFA.addTransition(fromStateID, character, toStateID)
                 }
             })
@@ -371,31 +367,34 @@ export class FiniteStateAutomata {
     }
 
     validateString(testString: string): boolean {
-        let PossibleStates: Set<stateID> = this.epsilonClosure(new Set([this.initialState]))
+        let PossibleStates: AVLSet<stateID> = this.epsilonClosure(new AVLSet(intComp, [this.initialState]))
 
         for (let i = 0; i < testString.length; i++) {
             PossibleStates = this.goTo(PossibleStates, testString[i])
-            if (PossibleStates.size === 0) return false
+            if (PossibleStates.size() === 0) return false
         }
 
-        const finalStates = [...PossibleStates].filter(id => this.states.get(id)!.isFinalState)
+        let count = 0
+        PossibleStates.forEach(id => {
+            if(this.states.get(id)!.isFinalState) count++
+        })
         
-        return finalStates.length > 0
+        return count > 0
     }
 
     clone(): FiniteStateAutomata {
-        const newCopy = new FiniteStateAutomata(new Set(this.alphabeth))
+        const newCopy = new FiniteStateAutomata(this.alphabeth.toArray())
         newCopy.setEpsilonCharacter(this.epsilonCharacter)
         newCopy.setName(this.getName())
-        const stateTranslator: Map<stateID, stateID> = new Map()
+        const stateTranslator: AVLMap<stateID, stateID> = new AVLMap<stateID, stateID>(intComp)
 
-        this.states.forEach( (_1, fromID, _2) => {
+        this.states.forEach( (_1, fromID) => {
             stateTranslator.set(fromID, getNewStateID())
         })
 
-        this.states.forEach( (state, fromID, _2) => {
+        this.states.forEach( (state, fromID) => {
             const newFromID: stateID = stateTranslator.get(fromID)!
-            state.transitions.forEach((toStates, character, _) => {
+            state.transitions.forEach((toStates, character) => {
                 toStates.forEach(toID => {
                     const newToID: stateID = stateTranslator.get(toID)!
                     newCopy.addTransition(newFromID, character, newToID)
@@ -413,12 +412,12 @@ export class FiniteStateAutomata {
     }
 
     static basicFSA(characters: string, hasMetaCharacters: boolean = true): FiniteStateAutomata {
-        const basic = new FiniteStateAutomata(new Set())
+        const basic = new FiniteStateAutomata([])
         basic.setName(characters)
         let prevStateID: stateID = getNewStateID()
         let currStateID: stateID
         basic.setInitialState(prevStateID)
-
+        
         for (let i = 0; i < characters.length; ++i) {
             let c = characters[i]
             if(hasMetaCharacters && c == '\\') c += characters[++i]
@@ -427,7 +426,7 @@ export class FiniteStateAutomata {
             basic.addTransition(prevStateID, c, currStateID)
             prevStateID = currStateID
         }
-
+        
         basic.setFinalState(prevStateID)
 
         return basic
@@ -436,13 +435,13 @@ export class FiniteStateAutomata {
     static superJoin(FSAs: Array<FiniteStateAutomata>): FiniteStateAutomata {
         FSAs = FSAs.map(fsa => fsa.clone())
         const newInitialStateID: stateID = getNewStateID()
-        const newFSA = new FiniteStateAutomata(new Set([]))
+        const newFSA = new FiniteStateAutomata([])
         newFSA.setInitialState(newInitialStateID)
         newFSA.setName(`Super join: [ ${FSAs.map(e => `[${e.getName()}]`).join(" | ")} ]`)
 
         FSAs.forEach( FSA => {
-            newFSA.alphabeth = new Set([...newFSA.alphabeth, ...FSA.alphabeth])
-            FSA.states.forEach( (state, id, _) => {
+            newFSA.alphabeth.join(FSA.alphabeth)
+            FSA.states.forEach( (state, id) => {
                 newFSA.states.set(id, state)
             })
             newFSA.addTransition(newInitialStateID, newFSA.epsilonCharacter, FSA.initialState)
@@ -453,16 +452,16 @@ export class FiniteStateAutomata {
 
     serialize(): AutomataJSON {
         const JSONAutomata: AutomataJSON = {
-            alphabeth: Array.from(this.alphabeth),
+            alphabeth: this.alphabeth.toArray(),
             initialState: this.initialState,
             name: this.name,
-            states: [...this.states.values()].map(state => {
+            states: this.states.values().map(state => {
                 const dataState: StateJSON = {
                     id: state.id,
                     isFinalState: state.isFinalState,
-                    transitions: Array.from(state.transitions)
+                    transitions: state.transitions.toArray()
                                     .map( transition => 
-                                        [transition[0], [...transition[1]]] as [string, Array<stateID>])
+                                        [transition[0], transition[1].toArray()] as [string, Array<stateID>])
                 }
                 dataState.isFinalState = state.isFinalState
                 dataState.token = state.token
@@ -477,12 +476,12 @@ export class FiniteStateAutomata {
 
         try {
 
-            const stateTranslator = new Map<stateID, stateID>(
+            const stateTranslator = new AVLMap<stateID, stateID>(intComp,
                 JSONData.states
                     .map(state => [state.id, getNewStateID()] as [stateID, stateID])
             )
 
-            const result = new FiniteStateAutomata(new Set(JSONData.alphabeth))
+            const result = new FiniteStateAutomata(JSONData.alphabeth)
             result.setName(JSONData.name)
             result.setEpsilonCharacter('\0')
 
@@ -517,7 +516,7 @@ export class FiniteStateAutomata {
         let edges = new DataSet()
         let self = this
 
-        let visited: Set<stateID> = new Set()
+        let visited: AVLSet<stateID> = new AVLSet(intComp)
 
         let dfs: (fromStateID: stateID, level: number) => void = function(fromStateID: stateID, level: number): void {
             visited.add(fromStateID)

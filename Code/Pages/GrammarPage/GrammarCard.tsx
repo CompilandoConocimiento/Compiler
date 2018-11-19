@@ -13,9 +13,9 @@ interface propsType {
     SeeGrammar: any,
     SeeFirstFollow: any,
     SeeLL1Table: any,
-    SeeLR0Table: any,
+    SeeLRTable: any,
     LL1Viewer: any,
-    LR0Viewer: any,
+    LRViewer: any,
     EarleyViewer: any,
     isSelected: boolean,
     DeleteGrammar: () => any,
@@ -182,11 +182,11 @@ export default function GrammarCard (props: propsType) {
                             className   = "waves-effect waves-green btn-flat blue-text text-lighten-5"
                             onClick   = {
                                 () => {
-                                    props.Grammar.buildLR0Table()
-                                    if(props.Grammar.LR0Table == null){
+                                    props.Grammar.buildLRTable(false, false)
+                                    if(props.Grammar.LRTable == null){
                                         M.toast({html: "Not a LR(0) grammar"})
                                     }else{
-                                        props.SeeLR0Table()
+                                        props.SeeLRTable(0)
                                     }
                                 }
                             }
@@ -205,13 +205,97 @@ export default function GrammarCard (props: propsType) {
                                     M.toast({html: "This grammar doesn't have any associated automata"})
                                     return
                                 }
-                                props.LR0Viewer()
+                                props.LRViewer(0)
                             }}
                         >
                             <i className="material-icons">check</i>
                             &nbsp;
                             &nbsp;
                             Parse String with LR(0) algorithm
+                        </a>
+                    </li>
+                </ul>
+
+                <div className="divider" style={{backgroundColor: "#e3f2fd"}}></div>
+
+                <ul>
+                    <li>
+                        <a 
+                            className   = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            onClick   = {
+                                () => {
+                                    props.Grammar.buildLRTable(true, true)
+                                    if(props.Grammar.LRTable == null){
+                                        M.toast({html: "Not a LALR(1) grammar"})
+                                    }else{
+                                        props.SeeLRTable(2)
+                                    }
+                                }
+                            }
+                        >
+                            <i className="material-icons">table_chart</i>
+                            &nbsp;
+                            &nbsp;
+                            See LALR(1) table
+                        </a>
+                    </li>
+                    <li>
+                        <a 
+                            className   = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            onClick={() => {
+                                if(props.Grammar.FSA == null){
+                                    M.toast({html: "This grammar doesn't have any associated automata"})
+                                    return
+                                }
+                                props.LRViewer(2)
+                            }}
+                        >
+                            <i className="material-icons">check</i>
+                            &nbsp;
+                            &nbsp;
+                            Parse String with LALR(1) algorithm
+                        </a>
+                    </li>
+                </ul>
+
+                <div className="divider" style={{backgroundColor: "#e3f2fd"}}></div>
+
+                <ul>
+                    <li>
+                        <a 
+                            className   = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            onClick   = {
+                                () => {
+                                    props.Grammar.buildLRTable(true, false)
+                                    if(props.Grammar.LRTable == null){
+                                        M.toast({html: "Not a LR(1) grammar"})
+                                    }else{
+                                        props.SeeLRTable(1)
+                                    }
+                                }
+                            }
+                        >
+                            <i className="material-icons">table_chart</i>
+                            &nbsp;
+                            &nbsp;
+                            See LR(1) table
+                        </a>
+                    </li>
+                    <li>
+                        <a 
+                            className   = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            onClick={() => {
+                                if(props.Grammar.FSA == null){
+                                    M.toast({html: "This grammar doesn't have any associated automata"})
+                                    return
+                                }
+                                props.LRViewer(1)
+                            }}
+                        >
+                            <i className="material-icons">check</i>
+                            &nbsp;
+                            &nbsp;
+                            Parse String with LR(1) algorithm
                         </a>
                     </li>
                 </ul>

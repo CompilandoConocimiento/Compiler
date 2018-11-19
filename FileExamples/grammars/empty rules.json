@@ -1,0 +1,137 @@
+{
+  "Tokens": [
+    {
+      "id": -2,
+      "description": "Default token",
+      "name": "Default"
+    },
+    {
+      "id": 32,
+      "description": "a",
+      "name": "a"
+    },
+    {
+      "id": 33,
+      "description": "b",
+      "name": "b"
+    }
+  ],
+  "Grammars": [
+    {
+      "name": "empty",
+      "initialSymbol": "S",
+      "terminalSymbols": [
+        32
+      ],
+      "nonTerminalSymbols": [
+        "S",
+        "A",
+        "E"
+      ],
+      "FSA": {
+        "alphabeth": [
+          "a",
+          "b"
+        ],
+        "initialState": 630,
+        "name": "ab",
+        "states": [
+          {
+            "id": 630,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "\u0000",
+                [
+                  631,
+                  632
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 631,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "a",
+                [
+                  633
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 632,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "b",
+                [
+                  634
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 633,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 32
+          },
+          {
+            "id": 634,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 33
+          }
+        ]
+      },
+      "productions": [
+        [
+          "S",
+          [
+            {
+              "RHS": [
+                "A",
+                "A",
+                "A",
+                "A"
+              ],
+              "callback": null
+            }
+          ]
+        ],
+        [
+          "A",
+          [
+            {
+              "RHS": [
+                32
+              ],
+              "callback": null
+            },
+            {
+              "RHS": [
+                "E"
+              ],
+              "callback": null
+            }
+          ]
+        ],
+        [
+          "E",
+          [
+            {
+              "RHS": [],
+              "callback": null
+            }
+          ]
+        ]
+      ]
+    }
+  ]
+}

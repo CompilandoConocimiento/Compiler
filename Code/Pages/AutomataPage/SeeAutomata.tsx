@@ -60,11 +60,11 @@ const SeeAutomata = (props: propsType) => {
             </table>
             
             {
-                Array.from( props.FSA.states.entries() ).map( stateElement => {
+                props.FSA.states.toArray().map( stateElement => {
                     const state = stateElement[1]
-                    const transitions = Array.from( state.transitions.entries() )
+                    const transitions = state.transitions.toArray()
                     const TransitionsItems = transitions.map(element => {
-                        const transitionsvalues = Array.from(element[1].values())
+                        const transitionsvalues = element[1].toArray()
                         return (
                             <tr key={`stateElement ${stateElement[0]} ${element[0]}`}>
                                 <td style={{padding: "1rem", fontSize: "1.2rem"}}>"{element[0] == props.FSA.epsilonCharacter ? 'ε' : element[0]}"</td>

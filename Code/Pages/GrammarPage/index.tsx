@@ -5,10 +5,10 @@ import { TokenItem, tokenID, Token, TokenJSON, TokenError } from "../../CoreLogi
 import GrammarCard from './GrammarCard'
 import SeeGrammar from './SeeGrammar'
 import SeeLL1Table from './SeeLL1Table'
-import SeeLR0Table from './SeeLR0Table'
+import SeeLR0Table from './SeeLRTable'
 import SeeFirstFollow from "./SeeFirstFollow";
 import LL1Viewer from "./LL1Viewer";
-import LR0Viewer from "./LR0Viewer";
+import LRViewer from "./LRViewer";
 import EarleyViewer from "./EarleyViewer";
 
 import Style from './Style.css'
@@ -16,6 +16,7 @@ import { saveFile } from "../../Helpers/SaveFile";
 import { loadFile } from "../../Helpers/LoadFile";
 import { FiniteStateAutomata } from "../../CoreLogic/FiniteStateAutomata";
 import { GrammarOfGrammars } from "../../Helpers/DefaultCreations";
+import { AVLSet, intComp } from "../../avl/avl";
 
 type GrammarPageState = {
     selectedGrammars: Array<number>
@@ -69,7 +70,7 @@ export default class GrammarPage extends React.Component<GrammarPageProps, Gramm
         const JSONGrammars = Grammars.map(
             cfg => {
                 TokensUsed = new Set([...TokensUsed, ...[...(cfg.FSA == null ? [] : cfg.FSA.states.values())].map(state => state.token)])
-                TokensUsed = new Set([...TokensUsed, ...cfg.terminalSymbols.values()])
+                TokensUsed = new Set([...TokensUsed, ...cfg.terminalSymbols.toArray()])
                 return cfg.serialize()
             }
         )
@@ -160,7 +161,7 @@ export default class GrammarPage extends React.Component<GrammarPageProps, Gramm
                                 if(isNaN(newIdx)) return
                                 if(0 <= newIdx && newIdx < i){
                                     let name = prompt("Introduce a name for ths grammar:")
-                                    const newCFG = new CFG(new Set(terminals), new Set(nonTerminals), initial, this.props.Automatas[newIdx])
+                                    const newCFG = new CFG(terminals, nonTerminals, initial, this.props.Automatas[newIdx])
                                     newCFG.setName(name == null ? "" : name)
                                     this.props.AddGrammar(newCFG)
                                     M.toast({html: "Grammar added"})
@@ -275,14 +276,15 @@ export default class GrammarPage extends React.Component<GrammarPageProps, Gramm
                                             })
                                         }
                                     }
-                                    SeeLR0Table = {
-                                        () => {
+                                    SeeLRTable = {
+                                        (type: number) => {
                                             this.setState(() => {
                                                 this.state.ModalData!.open()
                                                 return {ModalContent: 
                                                     <SeeLR0Table 
                                                         Grammar = {grammar}
                                                         Tokens  = {this.props.Tokens}
+                                                        type    = {type}
                                                     />
                                                 }
                                             })
@@ -314,14 +316,15 @@ export default class GrammarPage extends React.Component<GrammarPageProps, Gramm
                                             })
                                         }
                                     }
-                                    LR0Viewer = {
-                                        () => {
+                                    LRViewer = {
+                                        (type: number) => {
                                             this.setState(() => {
                                                 this.state.ModalData!.open()
                                                 return {ModalContent: 
-                                                    <LR0Viewer 
+                                                    <LRViewer 
                                                         Grammar = {grammar}
                                                         Tokens  = {this.props.Tokens}
+                                                        type    = {type}
                                                     />
                                                 }
                                             })
@@ -412,7 +415,7 @@ export default class GrammarPage extends React.Component<GrammarPageProps, Gramm
                                                         })
                                                     })
 
-                                                    cfg.terminalSymbols = new Set(Array.from(cfg.terminalSymbols).map(terminal =>{
+                                                    cfg.terminalSymbols = new AVLSet(intComp, cfg.terminalSymbols.toArray().map(terminal =>{
                                                         const tokenName = tokenById.get(terminal)!.name
                                                         return this.props.Tokens.get(tokenName)!.id as tokenID
                                                     }))

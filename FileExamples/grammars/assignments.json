@@ -1,0 +1,311 @@
+{
+  "Tokens": [
+    {
+      "id": -2,
+      "description": "Default token",
+      "name": "Default"
+    },
+    {
+      "id": 6,
+      "description": "Open Parenthesis",
+      "name": "OpenParenthesis"
+    },
+    {
+      "id": 7,
+      "description": "Close Parenthesis",
+      "name": "CloseParenthesis"
+    },
+    {
+      "id": 1,
+      "description": "Plus Sign",
+      "name": "PlusSign"
+    },
+    {
+      "id": 32,
+      "description": "Equal sign",
+      "name": "Equal"
+    },
+    {
+      "id": 8,
+      "description": "Number :v",
+      "name": "Number"
+    },
+    {
+      "id": 33,
+      "description": "Id",
+      "name": "Id"
+    }
+  ],
+  "Grammars": [
+    {
+      "name": "Assignments",
+      "initialSymbol": "S'",
+      "terminalSymbols": [
+        1,
+        6,
+        7,
+        8,
+        32,
+        33
+      ],
+      "nonTerminalSymbols": [
+        "E",
+        "F",
+        "S",
+        "S'",
+        "V"
+      ],
+      "FSA": {
+        "alphabeth": [
+          "(",
+          ")",
+          "+",
+          "=",
+          "\\d",
+          "\\w"
+        ],
+        "initialState": 694,
+        "name": "Assignments",
+        "states": [
+          {
+            "id": 694,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "(",
+                [
+                  695
+                ]
+              ],
+              [
+                ")",
+                [
+                  696
+                ]
+              ],
+              [
+                "+",
+                [
+                  697
+                ]
+              ],
+              [
+                "=",
+                [
+                  698
+                ]
+              ],
+              [
+                "\\d",
+                [
+                  699
+                ]
+              ],
+              [
+                "\\w",
+                [
+                  700
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 695,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 6
+          },
+          {
+            "id": 696,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 7
+          },
+          {
+            "id": 697,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 1
+          },
+          {
+            "id": 698,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 32
+          },
+          {
+            "id": 699,
+            "isFinalState": true,
+            "transitions": [
+              [
+                "\\d",
+                [
+                  699
+                ]
+              ]
+            ],
+            "token": 8
+          },
+          {
+            "id": 700,
+            "isFinalState": true,
+            "transitions": [
+              [
+                "\\d",
+                [
+                  701
+                ]
+              ],
+              [
+                "\\w",
+                [
+                  702
+                ]
+              ]
+            ],
+            "token": 33
+          },
+          {
+            "id": 701,
+            "isFinalState": true,
+            "transitions": [
+              [
+                "\\d",
+                [
+                  701
+                ]
+              ],
+              [
+                "\\w",
+                [
+                  703
+                ]
+              ]
+            ],
+            "token": 33
+          },
+          {
+            "id": 702,
+            "isFinalState": true,
+            "transitions": [
+              [
+                "\\d",
+                [
+                  701
+                ]
+              ],
+              [
+                "\\w",
+                [
+                  702
+                ]
+              ]
+            ],
+            "token": 33
+          },
+          {
+            "id": 703,
+            "isFinalState": true,
+            "transitions": [
+              [
+                "\\d",
+                [
+                  701
+                ]
+              ],
+              [
+                "\\w",
+                [
+                  703
+                ]
+              ]
+            ],
+            "token": 33
+          }
+        ]
+      },
+      "productions": [
+        [
+          "E",
+          [
+            {
+              "RHS": [
+                "E",
+                1,
+                "F"
+              ],
+              "callback": null
+            },
+            {
+              "RHS": [
+                "F"
+              ],
+              "callback": null
+            }
+          ]
+        ],
+        [
+          "F",
+          [
+            {
+              "RHS": [
+                6,
+                "E",
+                7
+              ],
+              "callback": null
+            },
+            {
+              "RHS": [
+                8
+              ],
+              "callback": null
+            },
+            {
+              "RHS": [
+                "V"
+              ],
+              "callback": null
+            }
+          ]
+        ],
+        [
+          "S",
+          [
+            {
+              "RHS": [
+                "V",
+                32,
+                "E"
+              ],
+              "callback": null
+            }
+          ]
+        ],
+        [
+          "S'",
+          [
+            {
+              "RHS": [
+                "S"
+              ],
+              "callback": null
+            }
+          ]
+        ],
+        [
+          "V",
+          [
+            {
+              "RHS": [
+                33
+              ],
+              "callback": null
+            }
+          ]
+        ]
+      ]
+    }
+  ]
+}

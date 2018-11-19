@@ -1,6 +1,7 @@
 import {FiniteStateAutomata} from "./FiniteStateAutomata"
 import {tokenID, TokenEOF, TokenError} from "./Token"
 import {stateID} from "./State"
+import { intComp, AVLSet } from "../avl/avl";
 
 export type stateID = number
 
@@ -25,7 +26,7 @@ export class Lexer {
         return this.position < this.testString.length
     }
 
-    private isFinalState(states: Set<stateID>): boolean {
+    private isFinalState(states: AVLSet<stateID>): boolean {
         let finalState: boolean = false
         states.forEach (
             id => finalState = finalState || this.FSA.isFinalState(id)
@@ -33,7 +34,7 @@ export class Lexer {
         return finalState
     }
 
-    private getautomataToken(states: Set<stateID>): tokenID {
+    private getautomataToken(states: AVLSet<stateID>): tokenID {
         let automataToken: tokenID = TokenError
         states.forEach (
             id => {
@@ -46,8 +47,8 @@ export class Lexer {
     getNextToken(): tokenID {
         if (this.position == this.testString.length) return TokenEOF
 
-        let currentStates: Set<stateID> = this.FSA.epsilonClosure(new Set([this.FSA.initialState]))
-        let lastMatchedState: Set<stateID> = new Set()
+        let currentStates: AVLSet<stateID> = this.FSA.epsilonClosure(new AVLSet(intComp, [this.FSA.initialState]))
+        let lastMatchedState: AVLSet<stateID> = new AVLSet(intComp)
         let endMatchPosition: number = this.position
 
         while (this.position <= this.testString.length) {
@@ -56,11 +57,11 @@ export class Lexer {
                 endMatchPosition = this.position
             }
             
-            let toStates: Set<stateID> = new Set()
+            let toStates: AVLSet<stateID> = new AVLSet(intComp)
             if (this.position != this.testString.length)
                 toStates = this.FSA.goTo(currentStates, this.testString[this.position++])
             
-            if (toStates.size > 0) 
+            if (toStates.size() > 0) 
                 currentStates = toStates
             else {
                 this.position = endMatchPosition

@@ -2,6 +2,7 @@ import {FiniteStateAutomata, AutomataJSON} from "./FiniteStateAutomata"
 import {Lexer} from "./Lexer"
 import { tokenID, TokenError, TokenEOF, TokenDefault, TokenJSON } from "./Token";
 import * as Vis from 'vis';
+import { stringComp, AVLMap, AVLSet, intComp, arrComp } from "../avl/avl";
 
 export type nonTerminal = string
 export type productionText = Array<any>
@@ -52,27 +53,25 @@ export class item {
 	rule: production
 	start: number
 	position: number
+	lookahead: tokenID
 	prev: null | item
 	complete: null | item
 
-	constructor (LHS: nonTerminal, rule: production, start: number, position: number) {
+	constructor (LHS: nonTerminal, rule: production, start: number, position: number, lookahead: tokenID) {
 		this.LHS = LHS
 		this.rule = rule
 		this.start = start
 		this.position = position
+		this.lookahead = lookahead
 		this.prev = null
 		this.complete = null
 	}
 
 	clone(): item {
-		let newItem: item = new item(this.LHS, this.rule, this.start, this.position)
+		let newItem: item = new item(this.LHS, this.rule, this.start, this.position, this.lookahead)
 		newItem.prev = this.prev
 		newItem.complete = this.complete
 		return newItem
-	}
-
-	hash(): string {
-		return this.LHS + " -> " + this.rule.RHS.join(",") + ";" + this.start.toString() + ";" + this.position.toString()
 	}
 
 	nextPosition(): tokenID|nonTerminal {
@@ -85,29 +84,52 @@ export class item {
 	end(): boolean {
 		return this.position == this.rule.RHS.length
 	}
+
+	compareTo(other: item): number{
+		if(this.LHS != other.LHS) return stringComp(this.LHS, other.LHS)
+		if(this.start != other.start) return this.start - other.start
+		if(this.position != other.position) return this.position - other.position
+		let comp = arrComp(this.rule.RHS, other.rule.RHS)
+		if(comp != 0) return comp
+		return this.lookahead - other.lookahead
+	}
+
+	hash(): number{
+		let x0 = 1001, mod = 1e7 + 19
+		let str = this.LHS + "\0" + this.rule.RHS.join(",") + "\0" + this.start.toString() + "\0" + this.position.toString() + "\0" + this.lookahead
+		let h = 0, pot = 1
+		for(let i = 0; i < str.length; ++i){
+			h = (h + str.charCodeAt(i) * pot % mod) % mod
+			pot = pot * x0 % mod
+		}
+		return h
+	}
 }
+
+let itemComp = function(a: item, b: item){return a.compareTo(b)}
+let itemHash = function(a: item){return a.hash()}
 
 export class CFG {
 	
-	terminalSymbols: Set<tokenID>
-	nonTerminalSymbols: Set<nonTerminal>
+	terminalSymbols: AVLSet<tokenID>
+	nonTerminalSymbols: AVLSet<nonTerminal>
 	initialSymbol: nonTerminal
-	productions: Map<nonTerminal, Set<production> >
-	first: Map<nonTerminal, Set<tokenID> >
-	follow: Map<nonTerminal, Set<tokenID> >
+	productions: AVLMap<nonTerminal, AVLSet<production> >
+	first: AVLMap<nonTerminal, AVLSet<tokenID> >
+	follow: AVLMap<nonTerminal, AVLSet<tokenID> >
 	LL1Table: Map<nonTerminal, Map<tokenID, production> > | null
-	LR0Table: Map<number, Map<tokenID | nonTerminal, item | number> > | null
+	LRTable: Map<number, Map<tokenID | nonTerminal, item | number> > | null
 	name: string
 	FSA: FiniteStateAutomata|null
 
-	constructor (terminalSymbols: Set<tokenID>, nonTerminalSymbols: Set<nonTerminal>, initialSymbol: nonTerminal, FSA: FiniteStateAutomata|null) {
-		this.terminalSymbols = new Set(terminalSymbols)
-		this.nonTerminalSymbols = new Set(nonTerminalSymbols)
-		this.first = new Map()
-		this.follow = new Map()
+	constructor (terminalSymbols: Array<tokenID>, nonTerminalSymbols: Array<nonTerminal>, initialSymbol: nonTerminal, FSA: FiniteStateAutomata|null) {
+		this.terminalSymbols = new AVLSet(intComp, terminalSymbols)
+		this.nonTerminalSymbols = new AVLSet(stringComp, nonTerminalSymbols)
+		this.first = new AVLMap(stringComp)
+		this.follow = new AVLMap(stringComp)
 		this.LL1Table = null
-		this.LR0Table = null
-		this.productions = new Map()
+		this.LRTable = null
+		this.productions = new AVLMap(stringComp)
 		this.initialSymbol = initialSymbol
 		this.name = ""
 		this.FSA = FSA
@@ -123,9 +145,9 @@ export class CFG {
 
     private addProductionIfNotExist(LHS: nonTerminal): void {
     	if (!this.productions.has(LHS)){
-			this.productions.set(LHS, new Set())
-			this.first.set(LHS, new Set())
-			this.follow.set(LHS, new Set())
+			this.productions.set(LHS, new AVLSet(function(a, b){return arrComp(a.RHS, b.RHS)}))
+			this.first.set(LHS, new AVLSet(intComp))
+			this.follow.set(LHS, new AVLSet(intComp))
 		}
     }
 
@@ -148,8 +170,8 @@ export class CFG {
 	}
 
 	removeLeftRecursion(depth: number = 0): CFG {
-		let goodRules: Set<nonTerminal> = new Set()
-		let badRules: Set<nonTerminal> = new Set()
+		let goodRules: AVLSet<nonTerminal> = new AVLSet(stringComp)
+		let badRules: AVLSet<nonTerminal> = new AVLSet(stringComp)
 		this.productions.forEach( (rules, LHS) => {
 			rules.forEach(production => {
 				if(production.RHS.length > 0 && production.RHS[0] === LHS)
@@ -161,12 +183,12 @@ export class CFG {
 				goodRules.add(LHS)
 		})
 
-		let result: CFG = new CFG(new Set(this.terminalSymbols), new Set(this.nonTerminalSymbols), this.initialSymbol, this.FSA)
+		let result: CFG = new CFG(this.terminalSymbols.toArray(), this.nonTerminalSymbols.toArray(), this.initialSymbol, this.FSA)
 		if(depth == 0) result.setName(this.getName() + " non left-recursive")
 		else result.setName(this.getName())
 
 		badRules.forEach(LHS => {
-			let productions: Set<production> = this.productions.get(LHS)!
+			let productions: AVLSet<production> = this.productions.get(LHS)!
 			let newLHS = LHS
 			while(this.nonTerminalSymbols.has(newLHS)) newLHS += "'"
 			result.nonTerminalSymbols.add(newLHS)
@@ -200,20 +222,20 @@ export class CFG {
 		})
 
 		goodRules.forEach(LHS => {
-			let productions: Set<production> = this.productions.get(LHS)!
+			let productions: AVLSet<production> = this.productions.get(LHS)!
 			productions.forEach(production => {
 				result.addRule(LHS, [...production.RHS], production.callback)
 			})
 		})
 
-		if(badRules.size == 0) return result
+		if(badRules.size() == 0) return result
 		else return result.removeLeftRecursion(depth + 1)
 	}
 
 	isAugmented(): boolean {
 		let S = this.initialSymbol
 		let init = this.productions.get(S)!
-		if(!(init.size == 1 && init.values().next().value.RHS.length <= 1)) return false
+		if(!(init.size() == 1 && init.nthElement(0)!.key!.RHS.length <= 1)) return false
 		let augmented: boolean = true
 		this.productions.forEach((rules, _) => {
 			rules.forEach(rule => {
@@ -228,7 +250,7 @@ export class CFG {
 	augment(): CFG {
 		let newInitial = this.initialSymbol
 		while(this.nonTerminalSymbols.has(newInitial)) newInitial += "'"
-		let result: CFG = new CFG(new Set(this.terminalSymbols), new Set([newInitial, ...this.nonTerminalSymbols]), newInitial, this.FSA)
+		let result: CFG = new CFG(this.terminalSymbols.toArray(), [newInitial, ...this.nonTerminalSymbols.toArray()], newInitial, this.FSA)
 		result.setName(this.getName() + " augmented")
 		result.addRule(newInitial, [this.initialSymbol], function(args){return args[0]})
 		this.productions.forEach( (rules, LHS) => {
@@ -240,10 +262,6 @@ export class CFG {
 	}
 
 	// ============ Begin of LL(1) parser ============
-	private hashSetTokens(tokens: Set<tokenID>): string {
-        return Array.from(tokens).sort((a, b) => a - b).join(',')
-	}
-	
 	private nullable(LHS: nonTerminal): boolean {
 		return this.first.get(LHS)!.has(TokenDefault)
 	}
@@ -254,7 +272,7 @@ export class CFG {
 		while(change){
 			change = false
 			this.productions.forEach( (rules, LHS) => {
-				let newSet: Set<tokenID> = new Set(this.first.get(LHS)!)
+				let newSet: AVLSet<tokenID> = this.first.get(LHS)!.clone()
 				rules.forEach(production => {
 					let i = 0
 					for(; i < production.RHS.length; ++i){
@@ -263,9 +281,9 @@ export class CFG {
 							newSet.add(c)
 							break
 						}
-						let firstOfC: Set<tokenID> = new Set(this.first.get(c)!)
-						firstOfC.delete(TokenDefault)
-						newSet = new Set([...newSet, ...firstOfC])
+						let firstOfC: AVLSet<tokenID> = this.first.get(c)!.clone()
+						firstOfC.erase(TokenDefault)
+						newSet.join(firstOfC)
 						if(!this.nullable(c)) break
 					}
 
@@ -273,7 +291,7 @@ export class CFG {
 						newSet.add(TokenDefault)
 				})
 
-				change = change || (this.hashSetTokens(newSet) != this.hashSetTokens(this.first.get(LHS)!))
+				change = change || (newSet.compareTo(this.first.get(LHS)!) != 0)
 				this.first.set(LHS, newSet)
 			})
 		}
@@ -294,7 +312,7 @@ export class CFG {
 								this.follow.get(c)!.add(d)
 								break
 							}
-							this.follow.set(c, new Set([...this.follow.get(c)!, ...this.first.get(d)!]))
+							this.follow.get(c)!.join(this.first.get(d)!)
 							if(!this.nullable(d)) break
 						}
 					}
@@ -310,8 +328,8 @@ export class CFG {
 					for(let i = production.RHS.length-1; i >= 0; --i){
 						let c = production.RHS[i]
 						if(this.isTerminal(c)) break
-						let newSet: Set<tokenID> = new Set([...this.follow.get(c)!, ...this.follow.get(LHS)!])
-						change = change || (this.hashSetTokens(newSet) != this.hashSetTokens(this.follow.get(c)!))
+						let newSet: AVLSet<tokenID> = new AVLSet(intComp, [...this.follow.get(c)!.toArray(), ...this.follow.get(LHS)!.toArray()])
+						change = change || (newSet.compareTo(this.follow.get(c)!) != 0)
 						this.follow.set(c, newSet)
 						if(!this.nullable(c)) break
 					}
@@ -319,22 +337,22 @@ export class CFG {
 			})
 		}
 
-		this.follow.forEach(followSet => followSet.delete(TokenDefault))
+		this.follow.forEach(followSet => followSet.erase(TokenDefault))
 	}
 
-	private firstRHS(RHS: productionText): Set<tokenID> {
-		let result: Set<tokenID> = new Set()
+	private firstRHS(RHS: productionText): AVLSet<tokenID> {
+		let result: AVLSet<tokenID> = new AVLSet(intComp)
 		let i = 0
 		for(; i < RHS.length; ++i){
 			let c = RHS[i]
-			if(this.isTerminal(c)){
+			if(c === TokenEOF || this.isTerminal(c)){
 				result.add(c)
 				break
 			}
-			let firstOfC: Set<tokenID> = new Set(this.first.get(c)!)
+			let firstOfC: AVLSet<tokenID> = this.first.get(c)!.clone()
 			let nullable: boolean = firstOfC.has(TokenDefault)
-			firstOfC.delete(TokenDefault)
-			result = new Set([...result, ...firstOfC])
+			firstOfC.erase(TokenDefault)
+			result.join(firstOfC)
 			if(!nullable) break
 		}
 		if(i == RHS.length)
@@ -352,10 +370,10 @@ export class CFG {
 			this.LL1Table!.set(LHS, new Map())
 			let row: Map<tokenID, production> = this.LL1Table!.get(LHS)!
 			rules.forEach(production => {
-				let domain: Set<tokenID> = this.firstRHS(production.RHS)
+				let domain: AVLSet<tokenID> = this.firstRHS(production.RHS)
 				if(domain.has(TokenDefault)){
-					domain = new Set([...domain, ...this.follow.get(LHS)!])
-					domain.delete(TokenDefault)
+					domain.join(this.follow.get(LHS)!)
+					domain.erase(TokenDefault)
 				}
 				domain.forEach(arg => {
 					if(row.has(arg))
@@ -454,35 +472,41 @@ export class CFG {
     // ============ End of LL(1) parser ============
     
 	// ============ Begin of LR parser =============
-    itemClosure(items: Set<item>): Set<item> {
-        let visited: Set<item> = new Set()
-        let visitedHash: Set<string> = new Set()
+    itemClosure(items: AVLSet<item>, useLookahead: boolean): AVLSet<item> {
+        let visited: AVLSet<item> = new AVLSet(itemComp, [], itemHash)
         let self = this
 
         let dfs: (fromItem: item) => void = function(fromItem: item): void {
             visited.add(fromItem)
-            visitedHash.add(fromItem.hash())
             let next = fromItem.nextPosition()
             if(typeof next === "string" && self.isNonTerminal(next)){
                 self.productions.get(next)!.forEach(production => {
-                    let newItem = new item(next as nonTerminal, production, 0, 0)
-                    if(!visitedHash.has(newItem.hash())) dfs(newItem)
+					if(useLookahead){
+							let firstSet = self.firstRHS([...[...fromItem.rule.RHS].splice(fromItem.position + 1), fromItem.lookahead])
+							firstSet.forEach(b => {
+								let newItem = new item(next as nonTerminal, production, 0, 0, b)
+								if(!visited.has(newItem)) dfs(newItem)
+							})
+					}else{
+						let newItem = new item(next as nonTerminal, production, 0, 0, 0)
+						if(!visited.has(newItem)) dfs(newItem)
+					}
                 })
             }
         }
 
         items.forEach(item => {
-            if(!visitedHash.has(item.hash())) dfs(item)
+            if(!visited.has(item)) dfs(item)
         })
 
         return visited
     }
 
-    itemMove(items: Set<item>, symbol: tokenID|nonTerminal): Set<item> {
+    itemMove(items: AVLSet<item>, symbol: tokenID|nonTerminal): AVLSet<item> {
         if(!this.isTerminal(symbol) && !this.isNonTerminal(symbol))
-            return new Set()
+            return new AVLSet(itemComp, [], itemHash)
 
-        let visited: Set<item> = new Set()
+        let visited: AVLSet<item> = new AVLSet(itemComp, [], itemHash)
         items.forEach(item => {
             if(item.nextPosition() === symbol){
                 let newItem = item.clone()
@@ -494,51 +518,92 @@ export class CFG {
         return visited
     }
 
-    itemGo(items: Set<item>, symbol: tokenID|nonTerminal): Set<item> {
+    itemGo(items: AVLSet<item>, symbol: tokenID|nonTerminal, useLookahead: boolean): AVLSet<item> {
         if(!this.isTerminal(symbol) && !this.isNonTerminal(symbol))
-            return new Set()
+            return new AVLSet(itemComp, [], itemHash)
 
-        return this.itemClosure(this.itemMove(items, symbol))
-    }
+        return this.itemClosure(this.itemMove(items, symbol), useLookahead)
+	}
+	
+	getCoreItems(items: AVLSet<item>): AVLSet<item> {
+		let result: AVLSet<item> = new AVLSet(itemComp, [], itemHash)
+		items.forEach(item => {
+			let newItem = item.clone()
+			newItem.lookahead = 0
+			result.add(newItem)
+		})
+		return result
+	}
 
-    private hashSetItems(items: Set<item>): string {
-        return Array.from(items).map(item => item.hash()).sort().join(", ")
-    }
-
-    buildLR0Table(): boolean {
+    buildLRTable(useLookahead: boolean, mergeSimilarStates: boolean): boolean {
 		if(!this.isAugmented()) return false
 		let result: boolean = true
 		this.calculateFirstSets()
 		this.calculateFollowSets()
-		this.LR0Table = new Map()
+		this.LRTable = new Map()
 
-        let startItem = new item(this.initialSymbol, this.productions.get(this.initialSymbol)!.values().next().value, 0, 0)
-        let state = 0
-        const initialSet = this.itemClosure(new Set([startItem]))
-        const pending: Array<Set<item>> = [initialSet]
-        const mapping: Map<string, number> = new Map()
-        mapping.set(this.hashSetItems(initialSet), state++)
+		let startItem = new item(this.initialSymbol, this.productions.get(this.initialSymbol)!.nthElement(0)!.key, 0, 0, 0)
+        let stateCnt = 0
+		const initialSet = this.itemClosure(new AVLSet(itemComp, [startItem], itemHash), useLookahead)
+        let states: Array<AVLSet<item>> = [initialSet]
+        const mapping: AVLMap<AVLSet<item>, number> = new AVLMap(function(a, b){return a.compareTo(b)})
+		mapping.set(initialSet, stateCnt++)
+		
+		let allSymbols = Array.from([...this.nonTerminalSymbols.toArray(), ...this.terminalSymbols.toArray()])
 
-        for (let i = 0; i < pending.length; ++i){
-            const oldStates = pending[i]
-			const fromStateID: number = mapping.get(this.hashSetItems(oldStates))!
-			if(!this.LR0Table.has(fromStateID)) this.LR0Table.set(fromStateID, new Map())
-			let row = this.LR0Table.get(fromStateID)!
-            Array.from([...this.nonTerminalSymbols, ...this.terminalSymbols]).forEach(symbol => {
-                const newStates = this.itemGo(oldStates, symbol)
-                if(newStates.size > 0){
-                    if(!mapping.has(this.hashSetItems(newStates))){
-                        pending.push(newStates)
-                        mapping.set(this.hashSetItems(newStates), state++)
+        for (let i = 0; i < states.length; ++i){
+			const oldStates = states[i]
+			if(!this.LRTable.has(i)) this.LRTable.set(i, new Map())
+			let row = this.LRTable.get(i)!
+            allSymbols.forEach(symbol => {
+				const newStates = this.itemGo(oldStates, symbol, useLookahead)
+                if(newStates.size() > 0){
+                    if(!mapping.has(newStates)){
+                        states.push(newStates)
+                        mapping.set(newStates, stateCnt++)
                     }
-					const toStateID: number = mapping.get(this.hashSetItems(newStates))!
+					const toStateID: number = mapping.get(newStates)!
 					row.set(symbol, toStateID)
                 }
 			})
+		}
+
+		if(mergeSimilarStates){
+			stateCnt = 0
+			let mappingCore: AVLMap<AVLSet<item>, number> = new AVLMap(function(a, b){return a.compareTo(b)})
+			let stateTranslator: AVLMap<number, number> = new AVLMap(intComp)
+			const newStates: Array<AVLSet<item>> = []
+			for (let i = 0; i < states.length; ++i){
+				let coreState = this.getCoreItems(states[i])
+				if(!mappingCore.has(coreState)){
+					mappingCore.set(coreState, stateCnt++)
+					newStates.push(states[i])
+				}else{
+					newStates[mappingCore.get(coreState)!].join(states[i])
+				}
+				stateTranslator.set(i, mappingCore.get(coreState)!)
+			}
+			let newTable: Map<number, Map<tokenID | nonTerminal, item | number> > = new Map()
+			for (let i = 0; i < states.length; ++i){
+				let row = this.LRTable.get(i)!
+				let fromStateID = stateTranslator.get(i)!
+				if(!newTable.has(fromStateID)) newTable.set(fromStateID, new Map())
+				let newRow = newTable.get(fromStateID)!
+				row.forEach((toStateID, symbol) => {
+					newRow.set(symbol, stateTranslator.get(toStateID as number)!)
+				})
+			}
+			states = newStates
+			this.LRTable = newTable
+		}
+
+		for (let i = 0; i < stateCnt; ++i){
+			const oldStates = states[i]
+			let row = this.LRTable!.get(i)!
 			oldStates.forEach(item => {
 				if(item.end()){
-					let followSet = this.follow.get(item.LHS)!
-					followSet.forEach(arg => {
+					let args = useLookahead ? new AVLSet(intComp, [item.lookahead]) : this.follow.get(item.LHS)!
+					args.forEach(arg => {
 						if(row.has(arg))
 							result = false
 						row.set(arg, item)
@@ -547,12 +612,12 @@ export class CFG {
 			})
 		}
 
-		if(!result) this.LR0Table = null
+		if(!result) this.LRTable = null
 		return result
 	}
 	
-	parseStringWithLR0(testString: string, callback: ((stackContent: productionText, position: tokenID, action: number|item|null)=>any) | null = null): ParseInfo|null {
-		if(!this.buildLR0Table()) return null
+	parseStringWithLR(testString: string, useLookahead: boolean, mergeSimilarStates: boolean, callback: ((stackContent: productionText, position: tokenID, action: number|item|null)=>any) | null = null): ParseInfo|null {
+		if(!this.buildLRTable(useLookahead, mergeSimilarStates)) return null
 
 		let stack: Array<node | tokenID | number> = [0]
 		let nodes: Array<node> = []
@@ -582,7 +647,7 @@ export class CFG {
 							return c
 					})
 					let top = stack[stack.length - 1]
-					let row = this.LR0Table!.get(top as number)!
+					let row = this.LRTable!.get(top as number)!
 					if(!row.has(currentToken)){
 						if(callback && valid) callback(stackContent, currentToken, null)
 						valid = false
@@ -608,7 +673,7 @@ export class CFG {
 							nodes.push(newNode)
 							break
 						}
-						row = this.LR0Table!.get(stack[stack.length - 2] as number)!
+						row = this.LRTable!.get(stack[stack.length - 2] as number)!
 						if(!row.has(action.LHS)){
 							if(callback && valid) callback(stackContent, currentToken, null)
 							valid = false
@@ -651,20 +716,20 @@ export class CFG {
 		if(this.FSA == null) return null
     	let lexer: Lexer = new Lexer(this.FSA, testString)
 		let dp: Array<Array<item> > = [[]]
-		let dpHash: Array<Set<string> > = [new Set()]
+		let dpSet: Array<AVLSet<item> > = [new AVLSet(itemComp)]
 		this.productions.get(this.initialSymbol)!.forEach(rule => {
-			let newItem = new item(this.initialSymbol, rule, 0, 0)
+			let newItem = new item(this.initialSymbol, rule, 0, 0, 0)
 			dp[0].push(newItem)
-			dpHash[0].add(newItem.hash())
+			dpSet[0].add(newItem)
 		})
 		let n: number = 0
 		let prevPosition = 0
 		let lexemes: Array<string> = []
 
 		let append: (n: number, newItem: item) => boolean = function(n: number, newItem: item): boolean{
-			if(!dpHash[n].has(newItem.hash())){
+			if(!dpSet[n].has(newItem)){
 				dp[n].push(newItem)
-				dpHash[n].add(newItem.hash())
+				dpSet[n].add(newItem)
 				return true
 			}
 			return false
@@ -680,13 +745,13 @@ export class CFG {
 
 			if(typeof dp[n] === "undefined"){
 				dp[n] = []
-				dpHash[n] = new Set()
+				dpSet[n] = new AVLSet(itemComp)
 			}
 			
 			for(let change = true; change; ){ //only used for empty rules
 				change = false
 				for(let j = 0; j < dp[n].length; ++j){
-					let predicted: Set<nonTerminal> = new Set()
+					let predicted: AVLSet<nonTerminal> = new AVLSet(stringComp)
 					let currItem: item = dp[n][j]
 					let next: tokenID|nonTerminal = currItem.nextPosition()
 					if(currItem.end()){ //completition
@@ -707,14 +772,14 @@ export class CFG {
 							newItem.complete = null
 							if(typeof dp[n + 1] === "undefined"){
 								dp[n + 1] = []
-								dpHash[n + 1] = new Set()
+								dpSet[n + 1] = new AVLSet(itemComp)
 							}
 							append(n + 1, newItem)
 						}
 					}else if(typeof next === "string" && this.isNonTerminal(next)){ //prediction
 						if(!predicted.has(next)){
 							this.productions.get(next)!.forEach(rule => {
-								let newItem: item = new item(next as nonTerminal, rule, n, 0)
+								let newItem: item = new item(next as nonTerminal, rule, n, 0, 0)
 								change = change || append(n, newItem)
 							})
 							predicted.add(next)
@@ -771,10 +836,10 @@ export class CFG {
 		const JSONCFG: CFGJSON = {
 			name: this.name,
 			initialSymbol: this.initialSymbol,
-			terminalSymbols: Array.from(this.terminalSymbols),
-			nonTerminalSymbols: Array.from(this.nonTerminalSymbols),
+			terminalSymbols: this.terminalSymbols.toArray(),
+			nonTerminalSymbols: this.nonTerminalSymbols.toArray(),
 			FSA: (this.FSA == null ? null : this.FSA.serialize()),
-			productions: Array.from(this.productions).map(production => [production[0], [...production[1]].map(rule => {return {RHS: rule.RHS, callback: (rule.callback == null ? null : rule.callback.toString())}})] as [nonTerminal, Array<ProductionJSON>])
+			productions: this.productions.toArray().map(production => [production[0], production[1].toArray().map(rule => {return {RHS: rule.RHS, callback: (rule.callback == null ? null : rule.callback.toString())}})] as [nonTerminal, Array<ProductionJSON>])
 		}
 
 		return JSONCFG
@@ -782,7 +847,7 @@ export class CFG {
 
 	static deserialize(JSONData: CFGJSON) : CFG | null {
 		try {
-			const result = new CFG(new Set(JSONData.terminalSymbols), new Set(JSONData.nonTerminalSymbols), JSONData.initialSymbol, (JSONData.FSA == null ? null : FiniteStateAutomata.deserialize(JSONData.FSA)!))
+			const result = new CFG(JSONData.terminalSymbols, JSONData.nonTerminalSymbols, JSONData.initialSymbol, (JSONData.FSA == null ? null : FiniteStateAutomata.deserialize(JSONData.FSA)!))
 			result.setName(JSONData.name)
 			JSONData.productions.forEach(productionData => {
 				const LHS: nonTerminal = productionData[0]

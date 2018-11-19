@@ -126,7 +126,7 @@ arithmetic.setName("Arithmetic expressions")
 
 
 // =====  ARITMETHIC GRAMMAR  ========
-const arithGrammar: CFG = new CFG(new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]), new Set(['E', 'T', 'P', 'U', 'F']), 'E', arithmetic);
+const arithGrammar: CFG = new CFG([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], ['E', 'T', 'P', 'U', 'F'], 'E', arithmetic);
 arithGrammar.addRule('E', ['E', 1, 'T'], function(args){return args[0]+args[2];});
 arithGrammar.addRule('E', ['E', 2, 'T'], function(args){return args[0]-args[2];});
 arithGrammar.addRule('E', ['T'], function(args){return args[0];});
@@ -165,7 +165,7 @@ window["arithGrammar"] = arithGrammar
 
 
 // =====  BASIC ARITMETHIC GRAMMAR  ========
-let basicArith: CFG = new CFG(new Set([1, 2, 3, 4, 6, 7, 8]), new Set(["E", "T", "F"]), "E", arithmetic)
+let basicArith: CFG = new CFG([1, 2, 3, 4, 6, 7, 8], ["E", "T", "F"], "E", arithmetic)
 basicArith.addRule("E", ["E", 1, "T"], function(args){return args[0]+args[2];})
 basicArith.addRule("E", ["E", 2, "T"], function(args){return args[0]-args[2];})
 basicArith.addRule("E", ["T"], function(args){return args[0];})
@@ -224,7 +224,7 @@ regularExpressions.setName("Regular expressions");
 
 
 // =====  REGULAR EXPRESSIONS GRAMMARS  ========
-const regExpGrammar = new CFG(new Set([6, 7, 21, 22, 23, 24, 25, 26]), new Set(['E', 'T', 'C', 'F']), 'E', regularExpressions);
+const regExpGrammar = new CFG([6, 7, 21, 22, 23, 24, 25, 26], ['E', 'T', 'C', 'F'], 'E', regularExpressions);
 regExpGrammar.addRule('E', ['E', 21, 'T'], function(args){return args[0].join(args[2]);});
 regExpGrammar.addRule('E', ['T'], function(args){return args[0]});
 
@@ -290,7 +290,7 @@ let grammarOfGrammarsAutomata: FiniteStateAutomata = FiniteStateAutomata.superJo
 
 
 // =====  GRAMMAR OF GRAMMARS  ========
-let grammarOfGrammars: CFG = new CFG(new Set([27, 28, 29, 30, 31]), new Set(['G', 'Reglas', 'Regla', 'LHS', 'RHS', 'ListaRHS']), 'G', grammarOfGrammarsAutomata);
+let grammarOfGrammars: CFG = new CFG([27, 28, 29, 30, 31], ['G', 'Reglas', 'Regla', 'LHS', 'RHS', 'ListaRHS'], 'G', grammarOfGrammarsAutomata);
 grammarOfGrammars.addRule('G', ['Reglas'], function(args){
     let productions: Map<nonTerminal, Set<production>> = args[0]
     let newGramar: CFG = new window["CFG"](new Set([]), new Set([]), Array.from(productions.keys())[0], null);
