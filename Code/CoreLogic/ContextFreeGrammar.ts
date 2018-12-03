@@ -261,11 +261,6 @@ export class CFG {
 		return result
 	}
 
-	// ============ Begin of LL(1) parser ============
-	private nullable(LHS: nonTerminal): boolean {
-		return this.first.get(LHS)!.has(TokenDefault)
-	}
-	
 	calculateFirstSets(): void {
 		this.first.forEach(set => set.clear())
 		let change: boolean = true
@@ -360,6 +355,11 @@ export class CFG {
 		return result
 	}
 
+	// ============ Begin of LL(1) parser ============
+	private nullable(LHS: nonTerminal): boolean {
+		return this.first.get(LHS)!.has(TokenDefault)
+	}
+
 	buildLL1Table(): boolean {
 		let result: boolean = true
 		this.calculateFirstSets()
@@ -425,8 +425,9 @@ export class CFG {
 							if(top === TokenEOF){
 								nodes.push(derivation)
 								if(callback && valid) callback(stackContent, currentToken, ["accepted"])
+							}else{
+								if(callback && valid) callback(stackContent, currentToken, ["pop"])
 							}
-							if(callback && valid) callback(stackContent, currentToken, ["pop"])
 						}else{
 							if(callback && valid) callback(stackContent, currentToken, ["error"])
 							valid = false
@@ -655,10 +656,10 @@ export class CFG {
 					}
 					let action = row.get(currentToken)!
 					if(callback && valid) callback(stackContent, currentToken, action)
-					if(typeof action === "number"){
+					if(typeof action === "number"){ //shift
 						stack.push(...[currentToken, action])
 						break
-					}else if(typeof action === "object"){
+					}else if(typeof action === "object"){ //reduce
 						let newNode = new node(action.LHS, action.rule)
 						for(let i = stack.length - 2*action.rule.RHS.length; i < stack.length; i += 2){
 							let c = stack[i]
@@ -669,8 +670,7 @@ export class CFG {
 						stack.splice(stack.length - 2*action.rule.RHS.length, 2*action.rule.RHS.length)
 						stack.push(newNode)
 						if(action.LHS === this.initialSymbol){
-							if(callback && valid) callback(stackContent, currentToken, action) /* */
-							nodes.push(newNode)
+							nodes.push(newNode) //accepted
 							break
 						}
 						row = this.LRTable!.get(stack[stack.length - 2] as number)!
@@ -680,13 +680,7 @@ export class CFG {
 							break
 						}
 						action = row.get(action.LHS)!
-						if(typeof action === "number"){
-							stack.push(action)
-						}else{
-							if(callback && valid) callback(stackContent, currentToken, null)
-							valid = false
-							break
-						}
+						stack.push(action as number)
 					}
 				}
 			}

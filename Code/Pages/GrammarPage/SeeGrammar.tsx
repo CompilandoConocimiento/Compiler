@@ -64,19 +64,6 @@ const SeeGrammar: React.StatelessComponent<SeeGrammarProps> = (props: SeeGrammar
                                     {
                                         productionData[1].toArray()
                                         .map( (production, productionIndex) => {
-                                            if (production.RHS.length == 0) 
-                                                return (
-                                                    <React.Fragment key={`production ${productionIndex}`}>
-                                                        <span
-                                                        className     = "tooltipped" 
-                                                        data-position = "top" 
-                                                        data-tooltip  = {production.callback == null ? "" : production.callback.toString()}
-                                                        >
-                                                            <span key={`production ${productionIndex}`}> &epsilon; </span>
-                                                        </span>
-                                                    </React.Fragment>
-                                                )
-
                                             return (
                                                 <React.Fragment key={`production ${productionIndex}`}>
                                                 <span
@@ -85,24 +72,14 @@ const SeeGrammar: React.StatelessComponent<SeeGrammarProps> = (props: SeeGrammar
                                                     data-tooltip  = {production.callback == null ? "" : production.callback.toString()}
                                                 >
                                                 {
-                                                    production.RHS.map( (element, rhsIndex) => {
-                                                        let text = ""
-                                                        if (typeof element == 'number') {
-                                                            const tokenName = tokenById.get(element)
-                                                            text = (tokenName != undefined)? tokenName.name : "Unknown name"
+                                                    production.RHS.length > 0 ? 
+                                                    production.RHS.map( c => {
+                                                        if (typeof c == 'number') {
+                                                            const tokenName = tokenById.get(c)
+                                                            return (tokenName != undefined)? tokenName.name : "Unknown name"
                                                         }
-                                                        else text = element
-                
-                                                        return (
-                                                            <span key={`production - ${productionIndex} ${rhsIndex}`}>
-                                                                {text}
-                                                                {
-                                                                    (rhsIndex + 1 ==production.RHS.length)?
-                                                                    "" : " "
-                                                                }
-                                                            </span>
-                                                        )
-                                                    })
+                                                        else return c
+                                                    }).join(" ") : "ε"
                                                 }
                                                 </span>
                                                 {
