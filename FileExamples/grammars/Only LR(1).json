@@ -1,0 +1,250 @@
+{
+  "Tokens": [
+    {
+      "id": -2,
+      "description": "Default token",
+      "name": "Default"
+    },
+    {
+      "id": 32,
+      "description": "a",
+      "name": "a"
+    },
+    {
+      "id": 33,
+      "description": "b",
+      "name": "b"
+    },
+    {
+      "id": 34,
+      "description": "c",
+      "name": "c"
+    },
+    {
+      "id": 35,
+      "description": "d",
+      "name": "d"
+    },
+    {
+      "id": 36,
+      "description": "e",
+      "name": "e"
+    }
+  ],
+  "Grammars": [
+    {
+      "name": "Only LR(1)",
+      "initialSymbol": "S'",
+      "terminalSymbols": [
+        32,
+        33,
+        34,
+        35,
+        36
+      ],
+      "nonTerminalSymbols": [
+        "E",
+        "F",
+        "S",
+        "S'"
+      ],
+      "FSA": {
+        "alphabeth": [
+          "a",
+          "b",
+          "c",
+          "d",
+          "e"
+        ],
+        "initialState": 650,
+        "name": "Super join: [ [a] | [b] | [c] | [d] | [e] ]",
+        "states": [
+          {
+            "id": 640,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "a",
+                [
+                  641
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 641,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 32
+          },
+          {
+            "id": 642,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "b",
+                [
+                  643
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 643,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 33
+          },
+          {
+            "id": 644,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "c",
+                [
+                  645
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 645,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 34
+          },
+          {
+            "id": 646,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "d",
+                [
+                  647
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 647,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 35
+          },
+          {
+            "id": 648,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "e",
+                [
+                  649
+                ]
+              ]
+            ],
+            "token": -2
+          },
+          {
+            "id": 649,
+            "isFinalState": true,
+            "transitions": [],
+            "token": 36
+          },
+          {
+            "id": 650,
+            "isFinalState": false,
+            "transitions": [
+              [
+                "\u0000",
+                [
+                  640,
+                  642,
+                  644,
+                  646,
+                  648
+                ]
+              ]
+            ],
+            "token": -2
+          }
+        ]
+      },
+      "productions": [
+        [
+          "E",
+          [
+            {
+              "RHS": [
+                36
+              ],
+              "callback": null
+            }
+          ]
+        ],
+        [
+          "F",
+          [
+            {
+              "RHS": [
+                36
+              ],
+              "callback": null
+            }
+          ]
+        ],
+        [
+          "S",
+          [
+            {
+              "RHS": [
+                32,
+                "E",
+                34
+              ],
+              "callback": null
+            },
+            {
+              "RHS": [
+                32,
+                "F",
+                35
+              ],
+              "callback": null
+            },
+            {
+              "RHS": [
+                33,
+                "E",
+                35
+              ],
+              "callback": null
+            },
+            {
+              "RHS": [
+                33,
+                "F",
+                34
+              ],
+              "callback": null
+            }
+          ]
+        ],
+        [
+          "S'",
+          [
+            {
+              "RHS": [
+                "S"
+              ],
+              "callback": null
+            }
+          ]
+        ]
+      ]
+    }
+  ]
+}

@@ -34,3 +34,16 @@
     padding: 0.3rem;
     font-size: 0.95rem;
 }
+
+.CodeWrapper {
+    font-family: 'firacode' !important;
+}
+
+.CodeWrapper::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+}
+
+.Code {
+    font-family: 'firacode' !important;
+}

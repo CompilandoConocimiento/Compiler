@@ -7,6 +7,7 @@ import SeeGrammar from './SeeGrammar'
 import SeeLL1Table from './SeeLL1Table'
 import SeeLR0Table from './SeeLRTable'
 import SeeFirstFollow from "./SeeFirstFollow";
+import RecursiveViewer from "./RecursiveViewer";
 import LL1Viewer from "./LL1Viewer";
 import LRViewer from "./LRViewer";
 import EarleyViewer from "./EarleyViewer";
@@ -285,6 +286,19 @@ export default class GrammarPage extends React.Component<GrammarPageProps, Gramm
                                                         Grammar = {grammar}
                                                         Tokens  = {this.props.Tokens}
                                                         type    = {type}
+                                                    />
+                                                }
+                                            })
+                                        }
+                                    }
+                                    RecursiveViewer = {
+                                        () => {
+                                            this.setState(() => {
+                                                this.state.ModalData!.open()
+                                                return {ModalContent: 
+                                                    <RecursiveViewer 
+                                                        Grammar = {grammar}
+                                                        Tokens  = {this.props.Tokens}
                                                     />
                                                 }
                                             })

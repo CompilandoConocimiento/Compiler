@@ -355,11 +355,65 @@ export class CFG {
 		return result
 	}
 
-	// ============ Begin of LL(1) parser ============
 	private nullable(LHS: nonTerminal): boolean {
 		return this.first.get(LHS)!.has(TokenDefault)
 	}
 
+	// ============ Begin of recursive descent parser ============
+	recursiveDescent(): string {
+		let ans = ""
+		this.calculateFirstSets()
+		this.calculateFollowSets()
+		ans += "int t;\n\n"
+		ans += "bool match(int matched){\n"
+		ans += "    if(t != matched) return false;\n"
+		ans += "    printf(\"Token matched: %d\\n\", matched);\n"
+		ans += "    t = nextToken();\n"
+		ans += "    return true;\n"
+		ans += "}\n\n"
+		this.productions.forEach( (_, LHS) => {
+			ans += "bool " + LHS.replace("'", "p") + "();\n"
+		})
+		this.productions.forEach( (rules, LHS) => {
+			ans += "\nbool " + LHS.replace("'", "p") + "(){\n"
+			ans += "    bool valid = true;\n"
+			ans += "    switch(t){\n"
+			rules.forEach(rule => {
+				if(rule.RHS.length > 0){
+					ans += this.firstRHS(rule.RHS).toArray().map(c => {
+						if(c !== TokenDefault) return "        case " + c.toString().replace("'", "p") + ":\n"
+						else return null
+					}).filter(c => c != null).join("")
+					ans += rule.RHS.map(c => {
+						if(this.isNonTerminal(c)) return "            valid = valid && " + c.toString().replace("'", "p") + "();\n"
+						else return "            valid = valid && match(" + c + ");\n"
+					}).join("")
+					ans += "            break;\n"
+				}
+			})
+			if(this.nullable(LHS)){
+				ans += this.follow.get(LHS)!.toArray().map(c => "        case " + c.toString().replace("'", "p") + ":\n").join("")
+				ans += "            break;\n"
+			}
+			ans += "        default:\n"
+			ans += "            valid = false;\n"
+			ans += "	}\n"
+			ans += "	return valid;\n"
+			ans += "}\n\n"
+		})
+		ans += "int main(){\n"
+		ans += "    t = nextToken();\n"
+		ans += "    if(" + this.initialSymbol.replace("'", "p") + "())\n"
+		ans += "        printf(\"Accepted.\\n\");\n"
+		ans += "    else\n"
+		ans += "        printf(\"Syntax error.\\n\");\n"
+		ans += "    exit(0);\n"
+		ans += "}\n"
+		return ans
+	}
+	// ============ End of recursive descent parser ============
+
+	// ============ Begin of LL(1) parser ============
 	buildLL1Table(): boolean {
 		let result: boolean = true
 		this.calculateFirstSets()

@@ -12,6 +12,7 @@ interface propsType {
     Tokens: Map<string, TokenItem>
     SeeGrammar: any,
     SeeFirstFollow: any,
+    RecursiveViewer: any,
     SeeLL1Table: any,
     SeeLRTable: any,
     LL1Viewer: any,
@@ -133,6 +134,21 @@ export default function GrammarCard (props: propsType) {
                             &nbsp;
                             &nbsp;
                             See First and Follow sets
+                        </a>
+                    </li>
+                    <li>
+                        <a 
+                            className   = "waves-effect waves-green btn-flat blue-text text-lighten-5"
+                            onClick   = {
+                                () => {
+                                    props.RecursiveViewer()
+                                }
+                            }
+                        >
+                            <i className="material-icons">code</i>
+                            &nbsp;
+                            &nbsp;
+                            Generate recursive descent parser in C
                         </a>
                     </li>
                     <li>

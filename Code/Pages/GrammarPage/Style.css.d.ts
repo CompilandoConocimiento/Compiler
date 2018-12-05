@@ -5,3 +5,7 @@ export const TDText: string;
 export const tdText: string;
 export const TDHeader: string;
 export const tdHeader: string;
+export const CodeWrapper: string;
+export const codeWrapper: string;
+export const Code: string;
+export const code: string;
