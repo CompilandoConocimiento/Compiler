@@ -365,8 +365,8 @@ export class CFG {
 		this.calculateFirstSets()
 		this.calculateFollowSets()
 		ans += "int t;\n\n"
-		ans += "bool match(int matched){\n"
-		ans += "    if(t != matched) return false;\n"
+		ans += "bool match(int matched) {\n"
+		ans += "    if (t != matched) return false;\n"
 		ans += "    printf(\"Token matched: %d\\n\", matched);\n"
 		ans += "    t = nextToken();\n"
 		ans += "    return true;\n"
@@ -375,9 +375,9 @@ export class CFG {
 			ans += "bool " + LHS.replace("'", "p") + "();\n"
 		})
 		this.productions.forEach( (rules, LHS) => {
-			ans += "\nbool " + LHS.replace("'", "p") + "(){\n"
+			ans += "\nbool " + LHS.replace("'", "p") + "() {\n"
 			ans += "    bool valid = true;\n"
-			ans += "    switch(t){\n"
+			ans += "    switch(t) {\n"
 			rules.forEach(rule => {
 				if(rule.RHS.length > 0){
 					ans += this.firstRHS(rule.RHS).toArray().map(c => {
@@ -401,9 +401,9 @@ export class CFG {
 			ans += "	return valid;\n"
 			ans += "}\n\n"
 		})
-		ans += "int main(){\n"
+		ans += "int main() {\n"
 		ans += "    t = nextToken();\n"
-		ans += "    if(" + this.initialSymbol.replace("'", "p") + "())\n"
+		ans += "    if (" + this.initialSymbol.replace("'", "p") + "())\n"
 		ans += "        printf(\"Accepted.\\n\");\n"
 		ans += "    else\n"
 		ans += "        printf(\"Syntax error.\\n\");\n"
