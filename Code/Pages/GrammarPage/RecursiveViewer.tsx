@@ -20,6 +20,7 @@ export default class RecursiveViewer extends React.Component<RecursiveViewerProp
 
         //@ts-ignore
         hljs.highlightBlock(codeNode)
+        console.log("aaaa")
     }
 
     render() {
