@@ -28,5 +28,7 @@
         * https://www.uplabs.com/posts/kmpautocompletetextview
         * Find in the current word is part of a TokenName
         * Tabs should finish the current word
-
-
+ * Add interpeter (with editor (mono face)) and console
+ * Upload AVL package
+ * ..... Remove duplicated (automotas and grammars)
+ * Edit Graph UI for better vizualization
